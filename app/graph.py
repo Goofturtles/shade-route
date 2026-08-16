@@ -27,10 +27,7 @@ _graph_lock = threading.Lock()
 
 
 def _configure_osmnx() -> None:
-    config.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    ox.settings.use_cache = True
-    ox.settings.cache_folder = str(config.CACHE_DIR / "osmnx")
-    ox.settings.log_console = False
+    config.configure_osmnx()
 
 
 def verify_bbox_orientation(graph: nx.MultiDiGraph) -> dict:

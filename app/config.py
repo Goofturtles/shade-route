@@ -65,3 +65,25 @@ DEMO_BBOX = _derive_bbox()
 def bbox_contains(lat: float, lon: float) -> bool:
     west, south, east, north = DEMO_BBOX
     return south <= lat <= north and west <= lon <= east
+
+
+_osmnx_configured = False
+
+
+def configure_osmnx() -> None:
+    """Point OSMnx at our on-disk HTTP cache.
+
+    Must run before *any* Overpass call, from whichever module gets there
+    first. Overpass is a shared public service that rate-limits, and without
+    this every process restart re-downloads and eventually gets refused.
+    """
+    global _osmnx_configured
+    if _osmnx_configured:
+        return
+    import osmnx as ox
+
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    ox.settings.use_cache = True
+    ox.settings.cache_folder = str(CACHE_DIR / "osmnx")
+    ox.settings.log_console = False
+    _osmnx_configured = True

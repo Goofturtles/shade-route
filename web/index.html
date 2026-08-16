@@ -13,43 +13,103 @@
    Palette: Okabe–Ito, which stays distinguishable under all three
    common forms of colour blindness. Every colour that carries
    meaning is paired with a shape, pattern or text label as well.
+
+   Light is the default; dark overrides the same tokens. Both were
+   checked for WCAG AA against live computed styles.
    --------------------------------------------------------------- */
 :root {
   --ink:          #16191d;
   --ink-muted:    #4d545c;
   --surface:      #ffffff;
   --surface-sunk: #f2f4f6;
-  --line:         #c9cfd6; /* decorative rules only — 1.57:1, not for control edges */
+  --surface-card: #ffffff;
+  --line:         #c9cfd6; /* decorative rules only — not for control edges */
   --field-border: #6b7280; /* form control boundaries — 4.83:1 on white */
 
-  --shortest:     #d55e00; /* vermillion — M2 route lines only (3.87:1, clears
-                              the 3:1 bar for non-text graphics, fails 4.5:1) */
+  --shortest:     #d55e00; /* vermillion — route lines (3:1 non-text bar) */
   --shadiest:     #0072b2; /* blue */
-  --ok:           #007a5e; /* green, darkened for AA on white */
+  --accent:       #0072b2;
+  --accent-ink:   #ffffff;
+  --ok:           #007a5e;
   --error:        #a4262c;
+  --sun:          #b26a00;
 
-  /* Pins carry a letter, so their fill has to satisfy the *text* contrast bar
-     against white, not the graphics bar. Vermillion at full strength does not:
-     white on #d55e00 is 3.87:1. Darkened to 6.07:1 here. */
-  --pin-destination: #a34700;
+  /* Pins carry a letter, so their fill must clear the *text* contrast bar. */
+  --pin-origin:      #007a5e; /* 5.32:1 under white bold */
+  --pin-destination: #a34700; /* 6.07:1 — full-strength #d55e00 is only 3.87:1 */
 
-  --focus:        #0072b2;
-  --radius:       10px;
-  --pad:          16px;
+  --focus:  #0072b2;
+  --radius: 12px;
+  --pad:    16px;
 
-  /* Marisol is 71. Nothing in this app's own interface is smaller than 15px and
-     body copy sits at 17px. The single exception is Leaflet's attribution line
-     (third-party chrome, raised from 11px to 13px below). */
-  --font-body:    17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --tile-filter: none;
+
+  /* Marisol is 71. Nothing in this app's own interface is smaller than 15px
+     and body copy sits at 17px. The single exception is Leaflet's attribution
+     line (third-party chrome, raised from 11px to 13px below). */
+  --font-body: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Dark theme. Applied by preference, or forced by the toggle. Colours are not
+   simply inverted: the accents are lightened so they still clear 4.5:1 against
+   a dark surface, which a naive inversion would not do. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink:          #eef1f5;
+    --ink-muted:    #b3bcc6;
+    --surface:      #14171c;
+    --surface-sunk: #1c2129;
+    --surface-card: #1a1f26;
+    --line:         #39414c;
+    --field-border: #8b95a3;
+
+    --shortest:     #ff8c3f;
+    --shadiest:     #66baff;
+    --accent:       #4ba3e3;
+    --accent-ink:   #06121c;
+    --ok:           #48c9a0;
+    --error:        #ff8a8a;
+    --sun:          #ffc457;
+
+    /* --pin-origin and --pin-destination are deliberately NOT overridden here.
+       Pin labels are always white on a white ring, sitting over map tiles
+       rather than the page background, so their fill must clear 4.5:1 against
+       *white* in either theme. Darkening them for dark mode dropped them to
+       4.07:1 and 4.49:1 — the opposite of the intended effect. */
+
+    --focus: #7cc4f5;
+    --tile-filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92) saturate(0.75);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ink:          #eef1f5;
+  --ink-muted:    #b3bcc6;
+  --surface:      #14171c;
+  --surface-sunk: #1c2129;
+  --surface-card: #1a1f26;
+  --line:         #39414c;
+  --field-border: #8b95a3;
+
+  --shortest:     #ff8c3f;
+  --shadiest:     #66baff;
+  --accent:       #4ba3e3;
+  --accent-ink:   #06121c;
+  --ok:           #48c9a0;
+  --error:        #ff8a8a;
+  --sun:          #ffc457;
+
+  /* Pin fills intentionally inherit the light-theme values — see the note in
+     the prefers-color-scheme block above. */
+
+  --focus: #7cc4f5;
+  --tile-filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92) saturate(0.75);
 }
 
 * { box-sizing: border-box; }
 
 html { height: 100%; }
 
-/* Wide screens: the app fills the viewport exactly and the sidebar scrolls
-   inside itself, so the map never gets pushed off-screen. Narrow screens undo
-   this below and let the whole page scroll normally. */
 body {
   margin: 0;
   padding: 0;
@@ -63,7 +123,6 @@ body {
   background: var(--surface);
 }
 
-/* Visible focus everywhere, on every focusable thing. */
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
@@ -76,24 +135,23 @@ body {
   top: 0;
   z-index: 2000;
   background: var(--ink);
-  color: #fff;
+  color: var(--surface);
   padding: 12px 18px;
   border-radius: 0 0 var(--radius) 0;
   text-decoration: none;
   font-weight: 600;
 }
-.skip-link:focus {
-  left: 0;
-}
+.skip-link:focus { left: 0; }
 
 header {
   flex: 0 0 auto;
-  padding: 14px var(--pad);
+  padding: 12px var(--pad);
   border-bottom: 1px solid var(--line);
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 20px;
-  align-items: baseline;
+  gap: 4px 18px;
+  align-items: center;
+  background: var(--surface);
 }
 header h1 {
   margin: 0;
@@ -101,23 +159,29 @@ header h1 {
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
-header p {
+header .tagline {
   margin: 0;
   color: var(--ink-muted);
   font-size: 15px;
   line-height: 1.45;
 }
+.header-end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
 
 #backend-status {
-  margin-left: auto;
+  margin: 0;
   font-size: 15px;
   line-height: 1.45;
   color: var(--ink-muted);
 }
 #backend-status .dot {
   display: inline-block;
-  width: 9px;
-  height: 9px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   background: var(--line);
   margin-right: 7px;
@@ -127,14 +191,11 @@ header p {
 #backend-status.is-error .dot { background: var(--error); }
 #backend-status.is-error      { color: var(--error); }
 
-/* Flex-grown rather than height: calc(100% - <header height>). The header
-   wraps at narrow widths, so any hardcoded header height is a layout bug
-   waiting for a viewport that triggers it. */
 main {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 390px 1fr;
+  grid-template-columns: 420px 1fr;
 }
 
 #controls {
@@ -150,16 +211,13 @@ main {
   background: var(--surface-sunk);
 }
 
-@media (max-width: 860px) {
-  body {
-    height: auto;
-    min-height: 100dvh;
-    overflow: visible;
-  }
-  main {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 55vh;
-  }
+/* Dark map without adding a second tile provider or an API key: filter the
+   tile pane only, so route lines and markers keep their true colours. */
+.leaflet-tile-pane { filter: var(--tile-filter); }
+
+@media (max-width: 900px) {
+  body { height: auto; min-height: 100dvh; overflow: visible; }
+  main { grid-template-columns: 1fr; grid-template-rows: auto 60vh; }
   #controls { border-right: 0; border-bottom: 1px solid var(--line); overflow-y: visible; }
 }
 
@@ -169,12 +227,14 @@ h2 {
   letter-spacing: -0.005em;
   line-height: 1.35;
 }
+.section-heading-spaced { margin-top: 22px; }
 
 fieldset {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 12px 14px 14px;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
+  background: var(--surface-card);
 }
 legend {
   padding: 0 6px;
@@ -183,70 +243,76 @@ legend {
   line-height: 1.4;
 }
 
-/* auto-fit with a floor rather than a rigid 1fr 1fr auto: at 200% text zoom, or
-   at 320px wide, three fixed columns squeeze the coordinate fields until
-   "45.522000" is clipped. The keyboard path is the accessible path, so it has
-   to survive reflow (WCAG 1.4.10). */
-.point-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
-  gap: 8px;
-  align-items: end;
-}
-/* The button wraps below the two coordinate fields at every width the sidebar
-   actually takes; span the full row so it doesn't sit as a stray half-width
-   control. */
-.point-row button {
-  white-space: nowrap;
-  grid-column: 1 / -1;
-}
-.field label {
+label {
   display: block;
   font-size: 15px;
   line-height: 1.4;
   color: var(--ink-muted);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
-/* Selector is attribute-free on purpose: this was `input[type="number"]` and
-   silently became dead when the fields moved to type="text", dropping them to
-   the UA default 13.3px in a 21px box. Bind the styling to the row, not to a
-   type that is free to change. */
-.point-row input {
+
+input[type="text"],
+input[type="time"],
+input[type="date"],
+select {
   width: 100%;
   font: inherit;
   font-size: 16px; /* 16px minimum also suppresses iOS focus-zoom */
   min-height: 44px;
   padding: 9px 10px;
-  /* --line is 1.57:1 on white — fine for decorative rules, but a form control's
-     boundary needs 3:1 (WCAG 1.4.11). --field-border is 4.83:1. */
   border: 1px solid var(--field-border);
   border-radius: 8px;
   background: var(--surface);
   color: var(--ink);
 }
+input[aria-invalid="true"] { border-color: var(--error); border-width: 2px; }
+
+.place-row { display: grid; gap: 8px; }
+.place-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.place-actions button { flex: 1 1 auto; }
 
 button {
   font: inherit;
   font-size: 16px;
   line-height: 1.4;
-  padding: 10px 16px;
-  min-height: 44px; /* comfortable target size */
+  padding: 10px 14px;
+  min-height: 44px;
   border-radius: 8px;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--field-border);
   background: var(--surface);
   color: var(--ink);
   cursor: pointer;
 }
 button:hover { background: var(--surface-sunk); }
+button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 button.primary {
-  background: var(--shadiest);
-  border-color: var(--shadiest);
-  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
   width: 100%;
   font-weight: 600;
+  font-size: 17px;
+  min-height: 50px;
 }
-button.primary:hover { background: #005b8f; border-color: #005b8f; }
+button.primary:hover { filter: brightness(1.08); }
+
+.when-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+input[type="range"] {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--accent);
+}
+.range-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
+#aversion-readout { font-weight: 600; color: var(--ink); }
 
 .hint {
   color: var(--ink-muted);
@@ -265,95 +331,31 @@ button.primary:hover { background: #005b8f; border-color: #005b8f; }
   line-height: 1.5;
   min-height: 24px;
 }
-#status.is-error {
-  border-left-color: var(--error);
-  color: var(--error);
-}
+#status.is-error { border-left-color: var(--error); color: var(--error); }
 
-/* Map pins: letter + colour + shape, never colour alone. */
-.pin {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  color: #fff;
-  font-weight: 700;
-  font-size: 16px;
-  /* digits/letters only, so line-height 1 is safe here */
-  line-height: 1;
-  border: 3px solid #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
-}
-.pin--origin      { background: var(--ok); }
-.pin--destination { background: var(--pin-destination); }
-
-.legend-key {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 6px 0;
-  font-size: 15px;
+/* Results ------------------------------------------------------- */
+.headline {
+  margin: 16px 0 12px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  font-size: 18px;
   line-height: 1.45;
 }
-.legend-key .swatch {
-  flex: 0 0 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 3px solid #fff;
-  box-shadow: 0 0 0 1px var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: 700;
-  font-size: 15px;
-  line-height: 1;
-}
-.swatch--origin      { background: var(--ok); }
-.swatch--destination { background: var(--pin-destination); }
+.headline strong { font-variant-numeric: tabular-nums; }
 
-input[aria-invalid="true"] {
-  border-color: var(--error);
-  border-width: 2px;
-}
-
-/* Leaflet's defaults undercut this project's commitments: 26px zoom buttons
-   (30px on touch) and 11px attribution text. Bring the controls up to the 44px
-   target size. The attribution is third-party chrome rather than app UI, so it
-   goes to 13px rather than the app's 15px floor — the README says so explicitly
-   instead of quietly claiming otherwise. */
-.leaflet-bar a,
-.leaflet-touch .leaflet-bar a {
-  width: 44px;
-  height: 44px;
-  line-height: 44px; /* single glyphs (+ and −) only */
-  font-size: 22px;
-}
-.leaflet-control-attribution {
-  font-size: 13px;
-  line-height: 1.5;
-  padding: 3px 8px;
-}
-
-.route-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
+.route-list { list-style: none; margin: 0; padding: 0; }
 .route-item {
   border: 1px solid var(--line);
   border-left-width: 6px;
   border-radius: var(--radius);
   padding: 12px 14px;
   margin-bottom: 10px;
+  background: var(--surface-card);
 }
-.route-item h3 {
-  margin: 0 0 6px;
-  font-size: 16px;
-  line-height: 1.4;
-}
+.route-item h3 { margin: 0 0 4px; font-size: 16px; line-height: 1.4; }
+.route-pattern { margin: 0 0 8px; font-size: 15px; line-height: 1.45; color: var(--ink-muted); }
 .route-item dl {
   margin: 0;
   display: grid;
@@ -365,15 +367,101 @@ input[aria-invalid="true"] {
 .route-item dt { color: var(--ink-muted); }
 .route-item dd { margin: 0; font-variant-numeric: tabular-nums; }
 
-/* Route identity is carried by a written line-style name as well as colour and
-   the drawn dash pattern, so nothing depends on seeing hue. */
-.route-pattern {
+/* Shade bar: width encodes the percentage, and the number is always written
+   out beside it, so the bar is reinforcement rather than the only signal. */
+.shade-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.shade-bar span { display: block; height: 100%; background: var(--shadiest); }
+
+#sun-readout {
+  margin: 10px 0 0;
   font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+#sun-readout .sun-dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--sun);
+  margin-right: 6px;
+}
+
+/* Map pins: letter + colour + shape, never colour alone. */
+.pin {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1; /* single glyphs only */
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+.pin--origin      { background: var(--pin-origin); }
+.pin--destination { background: var(--pin-destination); }
+
+.legend-key {
+  display: flex; align-items: center; gap: 10px;
+  margin: 6px 0;
+  font-size: 15px; line-height: 1.45;
+}
+.legend-key .swatch {
+  flex: 0 0 30px; height: 30px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px var(--line);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 15px; line-height: 1;
+}
+.swatch--origin      { background: var(--pin-origin); }
+.swatch--destination { background: var(--pin-destination); }
+
+details { margin: 0 0 14px; }
+summary {
+  cursor: pointer;
+  padding: 10px 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
   line-height: 1.45;
+}
+.point-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
+  gap: 8px;
+  align-items: end;
+  margin-top: 6px;
+}
+.point-row button { white-space: nowrap; grid-column: 1 / -1; }
+
+.milestone-note {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--ink-muted);
 }
 
-button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
+/* Leaflet's defaults undercut this project's commitments: 26px zoom buttons
+   and 11px attribution. The attribution is third-party chrome, so it goes to
+   13px rather than the app's 15px floor — the README says so explicitly. */
+.leaflet-bar a,
+.leaflet-touch .leaflet-bar a {
+  width: 44px; height: 44px;
+  line-height: 44px; /* single glyphs (+ and −) only */
+  font-size: 22px;
+}
+.leaflet-control-attribution { font-size: 13px; line-height: 1.5; padding: 3px 8px; }
 
 .visually-hidden {
   position: absolute;
@@ -384,17 +472,6 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
   white-space: nowrap;
   border: 0;
 }
-
-.milestone-note {
-  margin: 18px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-  font-size: 15px; /* project floor — nothing in this UI goes below 15px */
-  line-height: 1.5;
-  color: var(--ink-muted);
-}
-
-.section-heading-spaced { margin-top: 22px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -412,82 +489,137 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
 
 <header>
   <h1>Shade Route</h1>
-  <p>Walking routes that stay in the shade, not the ones that finish first.</p>
-  <p id="backend-status"><span class="dot" aria-hidden="true"></span><span id="backend-status-text">Checking backend…</span></p>
+  <p class="tagline">Walking routes that stay in the shade, not the ones that finish first.</p>
+  <div class="header-end">
+    <p id="backend-status"><span class="dot" aria-hidden="true"></span><span id="backend-status-text">Checking backend…</span></p>
+    <button type="button" id="theme-toggle" aria-pressed="false">Dark mode</button>
+  </div>
 </header>
 
 <main>
   <section id="controls" aria-labelledby="controls-heading" tabindex="-1">
     <h2 id="controls-heading">Plan a walk</h2>
 
-    <p class="hint" id="area-note">Loading the demo area…</p>
+    <fieldset>
+      <legend>Start</legend>
+      <div class="place-row">
+        <div>
+          <label for="origin-place">Search for a place, or click the map</label>
+          <input type="text" id="origin-place" list="places-list" autocomplete="off"
+                 placeholder="e.g. a pharmacy or a bus stop"
+                 aria-describedby="origin-place-value">
+        </div>
+        <p class="hint" id="origin-place-value">No start point set yet.</p>
+        <div class="place-actions">
+          <button type="button" id="use-my-location">Use my location</button>
+          <button type="button" id="clear-origin">Clear</button>
+        </div>
+      </div>
+    </fieldset>
 
     <fieldset>
-      <legend>Start (A)</legend>
+      <legend>Destination</legend>
+      <div class="place-row">
+        <div>
+          <label for="dest-place">Search for a place, or click the map</label>
+          <input type="text" id="dest-place" list="places-list" autocomplete="off"
+                 placeholder="e.g. a pharmacy or a bus stop"
+                 aria-describedby="dest-place-value">
+        </div>
+        <p class="hint" id="dest-place-value">No destination set yet.</p>
+        <div class="place-actions">
+          <button type="button" id="surprise-me">Surprise me</button>
+          <button type="button" id="swap-points">Swap start and destination</button>
+        </div>
+      </div>
+    </fieldset>
+
+    <datalist id="places-list"></datalist>
+
+    <fieldset>
+      <legend>When are you walking?</legend>
+      <div class="when-row">
+        <div>
+          <label for="when-date">Date</label>
+          <input type="date" id="when-date">
+        </div>
+        <div>
+          <label for="when-time">Time</label>
+          <input type="time" id="when-time" step="900">
+        </div>
+      </div>
+      <p id="sun-readout"><span class="sun-dot" aria-hidden="true"></span><span id="sun-text">Pick a time to see where the sun is.</span></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>How much detour for shade?</legend>
+      <label for="aversion">
+        Shade preference: <span id="aversion-readout">balanced</span>
+      </label>
+      <input type="range" id="aversion" min="0" max="3" step="0.5" value="1.5"
+             aria-describedby="aversion-help">
+      <div class="range-scale" aria-hidden="true">
+        <span>Shortest</span><span>Shadiest</span>
+      </div>
+      <p class="hint" id="aversion-help">
+        At the far left this returns the plain shortest route, so the comparison
+        below is measured against the same router rather than a different one.
+      </p>
+    </fieldset>
+
+    <button type="button" class="primary" id="find-route">Find the shadiest route</button>
+
+    <p id="status" role="status" aria-live="polite">Set a start and a destination to begin.</p>
+
+    <section id="results" aria-labelledby="results-heading" hidden>
+      <h2 id="results-heading" class="section-heading-spaced">Result</h2>
+      <p class="headline" id="headline"></p>
+      <ul id="route-list" class="route-list"></ul>
+      <p class="hint" id="assumption-note"></p>
+      <p class="hint" id="sources-note"></p>
+    </section>
+
+    <details>
+      <summary>Enter coordinates instead</summary>
       <div class="point-row">
-        <!-- The visually-hidden suffix keeps each field's accessible name unique.
-             Navigating a form by field alone, four inputs all called "Latitude"
-             or "Longitude" are indistinguishable. -->
         <!-- type="text" rather than type="number" on purpose: with a number input,
              focusing a field and pressing Down arrow to scroll the page silently
-             turns 45.522 into 44.522 — a point 110 km away. inputmode="decimal"
-             still raises the numeric keypad on touch. -->
-        <div class="field">
+             turns 45.522 into 44.522 — a point 110 km away. -->
+        <div>
           <label for="origin-lat">Latitude<span class="visually-hidden"> of the start point</span></label>
           <input type="text" id="origin-lat" inputmode="decimal" autocomplete="off" spellcheck="false">
         </div>
-        <div class="field">
+        <div>
           <label for="origin-lon">Longitude<span class="visually-hidden"> of the start point</span></label>
           <input type="text" id="origin-lon" inputmode="decimal" autocomplete="off" spellcheck="false">
         </div>
-        <button type="button" id="origin-set">Set A</button>
+        <button type="button" id="origin-set">Set start point</button>
       </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Destination (B)</legend>
       <div class="point-row">
-        <div class="field">
+        <div>
           <label for="dest-lat">Latitude<span class="visually-hidden"> of the destination</span></label>
           <input type="text" id="dest-lat" inputmode="decimal" autocomplete="off" spellcheck="false">
         </div>
-        <div class="field">
+        <div>
           <label for="dest-lon">Longitude<span class="visually-hidden"> of the destination</span></label>
           <input type="text" id="dest-lon" inputmode="decimal" autocomplete="off" spellcheck="false">
         </div>
-        <button type="button" id="dest-set">Set B</button>
+        <button type="button" id="dest-set">Set destination</button>
       </div>
-    </fieldset>
-
-    <button type="button" class="primary" id="find-route">Find route</button>
-
-    <p id="status" role="status" aria-live="polite">Click the map to place A, then B — or type coordinates above.</p>
-
-    <section id="results" aria-labelledby="results-heading" hidden>
-      <h2 id="results-heading" class="section-heading-spaced">Route</h2>
-      <ul id="route-list" class="route-list"></ul>
-      <p class="hint" id="assumption-note"></p>
-    </section>
+    </details>
 
     <h2 class="section-heading-spaced">Map key</h2>
     <p class="legend-key"><span class="swatch swatch--origin" aria-hidden="true">A</span> Start point</p>
     <p class="legend-key"><span class="swatch swatch--destination" aria-hidden="true">B</span> Destination</p>
-    <p class="hint" id="map-help">The dashed rectangle marks the area covered by the downloaded street
-      data. Points must sit inside it. Click the map to place a point, or use the coordinate fields
-      above. With the map focused, the arrow keys pan and the plus and minus keys zoom.</p>
+    <p class="hint" id="map-help">The dashed rectangle marks the area covered by the downloaded
+      street data. Points must sit inside it. Click the map to place a point. With the map
+      focused, the arrow keys pan and the plus and minus keys zoom.</p>
 
-    <p class="milestone-note">
-      Milestone 1 — shortest-path routing over the real walking network.
-      Shade modelling, and the comparison against a shadier route, arrive in
-      Milestone 2.
+    <p class="milestone-note" id="milestone-note">
+      Milestone 2 — sun position, building and tree shadows, and shade-aware routing.
     </p>
   </section>
 
-  <!-- No role="application": that drops screen readers out of browse mode for the
-       whole subtree, including Leaflet's own controls and attribution link, and we
-       have no custom key handling that would justify the trade. Leaflet already
-       makes this container focusable with arrow-pan and +/- zoom. The long
-       instructions live in aria-describedby, not in the accessible name. -->
   <div id="map" role="region" aria-label="Map of inner Portland" aria-describedby="map-help"></div>
 </main>
 
@@ -508,35 +640,32 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
     origin: null,
     destination: null,
     nextClickSets: 'origin',
-    graphCached: null
+    graphCached: null,
+    places: [],
+    placeByLabel: {}
   };
 
   var map, bboxRect;
   var markers = { origin: null, destination: null };
-
+  var routeLayers = [];
   var statusEl = document.getElementById('status');
 
   var FIELDS = {
-    origin:      ['origin-lat', 'origin-lon'],
+    origin: ['origin-lat', 'origin-lon'],
     destination: ['dest-lat', 'dest-lon']
   };
 
   // Assistive tech commonly suppresses a live-region update whose text is
-  // identical to what it just read. Two failed attempts with the same bad
-  // coordinates would announce once and then go silent — the worst case, since
-  // this region is the only channel carrying that feedback.
-  //
-  // Alternating an invisible zero-width space guarantees the text differs every
-  // time. Deliberately synchronous: a requestAnimationFrame version of this was
-  // tried and left the status line permanently blank in any tab that isn't
-  // compositing (backgrounded, or a non-rendering preview pane), and a timer
-  // would inherit background-tab throttling.
+  // identical to what it just read. Alternating an invisible zero-width space
+  // guarantees the text differs every time. Deliberately synchronous: a
+  // requestAnimationFrame version left the status blank in any tab that is not
+  // compositing, and a timer would inherit background-tab throttling.
   var announceToggle = false;
 
   function announce(message, isError) {
     statusEl.classList.toggle('is-error', Boolean(isError));
     announceToggle = !announceToggle;
-    statusEl.textContent = message + (announceToggle ? '\u200B' : '');
+    statusEl.textContent = message + (announceToggle ? '​' : '');
   }
 
   function markFieldValidity(kind, isValid) {
@@ -547,13 +676,44 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
         input.removeAttribute('aria-describedby');
       } else {
         input.setAttribute('aria-invalid', 'true');
-        // Point the field at the message so tabbing back to it re-reads why it
-        // was rejected, rather than leaving the reason only in the live region.
         input.setAttribute('aria-describedby', 'status');
       }
     });
   }
 
+  // --- Theme -----------------------------------------------------------------
+  var themeButton = document.getElementById('theme-toggle');
+
+  function systemPrefersDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  function applyTheme(theme) {
+    if (theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    var isDark = theme ? theme === 'dark' : systemPrefersDark();
+    themeButton.setAttribute('aria-pressed', String(isDark));
+    themeButton.textContent = isDark ? 'Light mode' : 'Dark mode';
+  }
+
+  themeButton.addEventListener('click', function () {
+    var isDark = themeButton.getAttribute('aria-pressed') === 'true';
+    var next = isDark ? 'light' : 'dark';
+    applyTheme(next);
+    try { window.localStorage.setItem('shade-route-theme', next); } catch (e) { /* private mode */ }
+    announce('Switched to ' + next + ' mode.');
+  });
+
+  (function initTheme() {
+    var saved = null;
+    try { saved = window.localStorage.getItem('shade-route-theme'); } catch (e) { /* private mode */ }
+    applyTheme(saved);
+  }());
+
+  // --- Points ----------------------------------------------------------------
   function pinIcon(letter, kind) {
     return L.divIcon({
       className: '',
@@ -568,9 +728,7 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
     return lat >= b.south && lat <= b.north && lon >= b.west && lon <= b.east;
   }
 
-  function fmt(n) {
-    return Number(n).toFixed(6);
-  }
+  function fmt(n) { return Number(n).toFixed(6); }
 
   function setPoint(kind, lat, lon, options) {
     options = options || {};
@@ -585,13 +743,11 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
     if (!insideBbox(lat, lon)) {
       announce(
         'That point is outside the ' + state.config.area_label + ' demo area. ' +
-        'Street data has only been downloaded inside the dashed rectangle.',
-        true
-      );
+        'Street data has only been downloaded inside the dashed rectangle.', true);
       return false;
     }
 
-    state[kind] = { lat: lat, lon: lon };
+    state[kind] = { lat: lat, lon: lon, name: options.name || null };
 
     var letter = kind === 'origin' ? 'A' : 'B';
     var label = kind === 'origin' ? 'Start' : 'Destination';
@@ -600,69 +756,256 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
       markers[kind].setLatLng([lat, lon]);
     } else {
       markers[kind] = L.marker([lat, lon], {
-        icon: pinIcon(letter, kind),
-        keyboard: false,
-        alt: label + ' marker'
+        icon: pinIcon(letter, kind), keyboard: false, alt: label + ' marker'
       }).addTo(map);
     }
-    markers[kind].bindPopup(label + ' (' + letter + ')<br>' + fmt(lat) + ', ' + fmt(lon));
+    markers[kind].bindPopup((options.name ? options.name + '<br>' : '') +
+      label + ' (' + letter + ')<br>' + fmt(lat) + ', ' + fmt(lon));
 
-    document.getElementById(kind === 'origin' ? 'origin-lat' : 'dest-lat').value = fmt(lat);
-    document.getElementById(kind === 'origin' ? 'origin-lon' : 'dest-lon').value = fmt(lon);
+    document.getElementById(FIELDS[kind][0]).value = fmt(lat);
+    document.getElementById(FIELDS[kind][1]).value = fmt(lon);
+
+    var readout = document.getElementById(kind === 'origin' ? 'origin-place-value' : 'dest-place-value');
+    readout.textContent = (options.name ? options.name + ' — ' : '') + fmt(lat) + ', ' + fmt(lon);
 
     state.nextClickSets = kind === 'origin' ? 'destination' : 'origin';
+    markFieldValidity(kind, true);
 
     if (!options.silent) {
-      // Always derive the next letter from state.nextClickSets. Hardcoding "A"
-      // in the both-points-set branch was wrong after re-placing A, and the live
-      // region is the only place a screen-reader user learns this mode.
       var nextLetter = state.nextClickSets === 'origin' ? 'A' : 'B';
       var next = (state.origin && state.destination)
         ? 'Both points are set. The next map click will move ' + nextLetter + '.'
         : 'Now place ' + nextLetter + '.';
-      announce(label + ' set to ' + fmt(lat) + ', ' + fmt(lon) + '. ' + next);
+      announce(label + ' set to ' + (options.name || (fmt(lat) + ', ' + fmt(lon))) + '. ' + next);
     }
-    // Clear-only, never set. A successful map click writes valid values into the
-    // coordinate fields, so leaving a stale aria-invalid on them would have a
-    // screen reader announce "invalid entry" immediately before the success
-    // message. Marking a field *invalid* stays with the typed-entry handler,
-    // which is the only path where the field is genuinely the thing at fault.
-    markFieldValidity(kind, true);
     return true;
   }
 
+  function clearPoint(kind) {
+    state[kind] = null;
+    if (markers[kind]) { map.removeLayer(markers[kind]); markers[kind] = null; }
+    document.getElementById(FIELDS[kind][0]).value = '';
+    document.getElementById(FIELDS[kind][1]).value = '';
+    document.getElementById(kind === 'origin' ? 'origin-place' : 'dest-place').value = '';
+    document.getElementById(kind === 'origin' ? 'origin-place-value' : 'dest-place-value')
+      .textContent = kind === 'origin' ? 'No start point set yet.' : 'No destination set yet.';
+    state.nextClickSets = kind;
+  }
+
+  // --- Places ----------------------------------------------------------------
+  function placeLabel(place) {
+    return place.name + ' (' + place.category_label + ')';
+  }
+
+  function loadPlaces() {
+    return fetch('/api/places')
+      .then(function (r) { return r.ok ? r.json() : { places: [] }; })
+      .then(function (data) {
+        state.places = data.places || [];
+        var list = document.getElementById('places-list');
+        list.textContent = '';
+        state.places.forEach(function (place) {
+          var label = placeLabel(place);
+          state.placeByLabel[label.toLowerCase()] = place;
+          var option = document.createElement('option');
+          option.value = label;
+          list.appendChild(option);
+        });
+        if (state.places.length === 0) {
+          document.getElementById('origin-place').placeholder =
+            'Place search unavailable — click the map instead';
+          document.getElementById('dest-place').placeholder =
+            'Place search unavailable — click the map instead';
+        }
+        return state.places;
+      })
+      .catch(function () { return []; });
+  }
+
+  function wirePlaceInput(kind, inputId) {
+    var input = document.getElementById(inputId);
+    function apply() {
+      var typed = input.value.trim().toLowerCase();
+      if (!typed) { return; }
+      var place = state.placeByLabel[typed];
+      if (!place) {
+        // Allow a bare name if it is unambiguous.
+        var matches = state.places.filter(function (p) {
+          return p.name.toLowerCase() === typed;
+        });
+        if (matches.length === 1) { place = matches[0]; }
+      }
+      if (!place) {
+        announce('No place in the demo area matches "' + input.value.trim() +
+                 '". Pick one from the suggestions, or click the map.', true);
+        return;
+      }
+      setPoint(kind, place.lat, place.lon, { name: place.name });
+      input.value = placeLabel(place);
+    }
+    input.addEventListener('change', apply);
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') { event.preventDefault(); apply(); }
+    });
+  }
+
+  // --- Geolocation -----------------------------------------------------------
+  document.getElementById('use-my-location').addEventListener('click', function () {
+    if (!navigator.geolocation) {
+      announce('This browser cannot report your location. Click the map to set a start point instead.', true);
+      return;
+    }
+    announce('Asking your browser for your location…');
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        var lat = position.coords.latitude;
+        var lon = position.coords.longitude;
+        if (!insideBbox(lat, lon)) {
+          // Be straight about it rather than silently snapping somewhere else.
+          announce(
+            'You are at ' + fmt(lat) + ', ' + fmt(lon) + ', which is outside this demo’s ' +
+            '2 km by 2 km area of inner Portland. Street and shadow data only exist inside ' +
+            'the dashed rectangle, so pick a start point there instead.', true);
+          return;
+        }
+        setPoint('origin', lat, lon, { name: 'Your location' });
+      },
+      function (error) {
+        announce('Could not get your location: ' + error.message +
+                 '. Click the map to set a start point instead.', true);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  });
+
+  // --- Surprise me -----------------------------------------------------------
+  function randomPointInBbox() {
+    var b = state.config.bbox;
+    // Keep away from the very edge so routing has somewhere to go.
+    var inset = 0.15;
+    return {
+      lat: b.south + (b.north - b.south) * (inset + Math.random() * (1 - 2 * inset)),
+      lon: b.west + (b.east - b.west) * (inset + Math.random() * (1 - 2 * inset))
+    };
+  }
+
+  function metresBetween(a, b) {
+    var dLat = (b.lat - a.lat) * 111320;
+    var dLon = (b.lon - a.lon) * 111320 * Math.cos(a.lat * Math.PI / 180);
+    return Math.sqrt(dLat * dLat + dLon * dLon);
+  }
+
+  document.getElementById('surprise-me').addEventListener('click', function () {
+    if (!state.config) { announce('Still loading the demo area.', true); return; }
+
+    // Prefer real named places — that is the point of the project. Fall back to
+    // random points in the box if the place list could not be fetched.
+    var pool = state.places;
+    var attempt = 0;
+    var from, to;
+
+    while (attempt < 40) {
+      attempt++;
+      if (pool.length >= 2) {
+        from = pool[Math.floor(Math.random() * pool.length)];
+        to = pool[Math.floor(Math.random() * pool.length)];
+      } else {
+        from = randomPointInBbox();
+        to = randomPointInBbox();
+      }
+      if (metresBetween(from, to) >= 400) { break; }
+    }
+
+    setPoint('origin', from.lat, from.lon, { name: from.name || null, silent: true });
+    setPoint('destination', to.lat, to.lon, { name: to.name || null, silent: true });
+
+    document.getElementById('origin-place').value = from.name ? placeLabel(from) : '';
+    document.getElementById('dest-place').value = to.name ? placeLabel(to) : '';
+
+    var description = (from.name && to.name)
+      ? from.name + ' to ' + to.name
+      : 'two points ' + Math.round(metresBetween(from, to)) + ' m apart';
+    announce('Picked ' + description + '. Press "Find the shadiest route".');
+  });
+
+  document.getElementById('swap-points').addEventListener('click', function () {
+    if (!state.origin || !state.destination) {
+      announce('Set both a start and a destination before swapping them.', true);
+      return;
+    }
+    var a = state.origin, b = state.destination;
+    var aText = document.getElementById('origin-place').value;
+    var bText = document.getElementById('dest-place').value;
+    setPoint('origin', b.lat, b.lon, { name: b.name, silent: true });
+    setPoint('destination', a.lat, a.lon, { name: a.name, silent: true });
+    document.getElementById('origin-place').value = bText;
+    document.getElementById('dest-place').value = aText;
+    announce('Swapped: now walking from ' + (b.name || 'B') + ' to ' + (a.name || 'A') + '.');
+  });
+
+  document.getElementById('clear-origin').addEventListener('click', function () {
+    clearPoint('origin');
+    announce('Start point cleared.');
+  });
+
+  // --- Coordinate entry (advanced) -------------------------------------------
   function wireCoordinateEntry(kind, latId, lonId, buttonId) {
     var latInput = document.getElementById(latId);
     var lonInput = document.getElementById(lonId);
-
-    // Field validity is marked here rather than inside setPoint: a rejected map
-    // click must not paint the coordinate inputs red, since they are still
-    // holding a value the user typed and we accepted.
     function apply() {
       var accepted = setPoint(kind, parseFloat(latInput.value), parseFloat(lonInput.value));
-      // If the config hasn't loaded, the failure is the app's, not the field's —
-      // WCAG 3.3.1 is about identifying the item actually in error, and the
-      // typed value may be perfectly good.
-      if (state.config) {
-        markFieldValidity(kind, accepted);
-      }
+      // Do not blame the fields when the failure is the app's (config not loaded).
+      if (state.config) { markFieldValidity(kind, accepted); }
     }
-
     document.getElementById(buttonId).addEventListener('click', apply);
     [latInput, lonInput].forEach(function (input) {
       input.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          apply();
-        }
+        if (event.key === 'Enter') { event.preventDefault(); apply(); }
       });
     });
   }
 
+  // --- When ------------------------------------------------------------------
+  function currentWhenISO() {
+    var date = document.getElementById('when-date').value;
+    var time = document.getElementById('when-time').value;
+    if (!date || !time) { return null; }
+    return date + 'T' + time;
+  }
+
+  (function initWhen() {
+    var now = new Date();
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+    document.getElementById('when-date').value =
+      now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+    // Default to mid-afternoon: the moment the user story is actually about.
+    document.getElementById('when-time').value = '15:00';
+  }());
+
+  // --- Shade preference ------------------------------------------------------
+  var aversionInput = document.getElementById('aversion');
+
+  function aversionWord(value) {
+    if (value === 0) { return 'shortest route only'; }
+    if (value <= 0.5) { return 'barely detour'; }
+    if (value <= 1.5) { return 'balanced'; }
+    if (value <= 2.5) { return 'prefer shade'; }
+    return 'shade above all';
+  }
+
+  function updateAversionReadout() {
+    var value = parseFloat(aversionInput.value);
+    document.getElementById('aversion-readout').textContent =
+      aversionWord(value) + ' (' + value.toFixed(1) + ')';
+    aversionInput.setAttribute('aria-valuetext', aversionWord(value));
+  }
+  aversionInput.addEventListener('input', updateAversionReadout);
+  updateAversionReadout();
+
+  // --- Map -------------------------------------------------------------------
   function buildMap(cfg) {
-    // The blanket CSS reduced-motion rule can't reach Leaflet's inertia panning
-    // or its zoom/fade animations — those are JS-driven, so the map would keep
-    // gliding after release for a user who asked for no motion.
+    // The blanket CSS reduced-motion rule cannot reach Leaflet's inertia
+    // panning or its zoom animations — those are JS-driven.
     var reduceMotion = window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -682,11 +1025,8 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
     }).addTo(map);
 
     var b = cfg.bbox;
-    bboxRect = L.rectangle(
-      [[b.south, b.west], [b.north, b.east]],
-      { color: '#16191d', weight: 2, dashArray: '8 6', fill: false, interactive: false }
-    ).addTo(map);
-
+    bboxRect = L.rectangle([[b.south, b.west], [b.north, b.east]],
+      { color: '#7a828c', weight: 2, dashArray: '8 6', fill: false, interactive: false }).addTo(map);
     map.fitBounds(bboxRect.getBounds(), { padding: [18, 18] });
 
     map.on('click', function (event) {
@@ -694,22 +1034,15 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
     });
   }
 
-  function showBackend(ok, text) {
-    var el = document.getElementById('backend-status');
-    el.classList.toggle('is-ok', ok);
-    el.classList.toggle('is-error', !ok);
-    document.getElementById('backend-status-text').textContent = text;
-  }
-
-  // Keyed by the route id the server returns, so Milestone 2 adds the shadiest
-  // route by adding one entry here. Every route is identified by a written
-  // line-style name as well as a colour, so none of this depends on seeing hue.
+  // --- Routes ----------------------------------------------------------------
   var ROUTE_STYLES = {
-    shortest: { color: '#d55e00', dashArray: '12 8', patternName: 'a dashed line' },
-    shadiest: { color: '#0072b2', dashArray: null, patternName: 'a solid line' }
+    shortest: { varName: '--shortest', dashArray: '12 8', patternName: 'a dashed line' },
+    shadiest: { varName: '--shadiest', dashArray: null, patternName: 'a solid line' }
   };
 
-  var routeLayers = [];
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
 
   function clearRoutes() {
     routeLayers.forEach(function (layer) { map.removeLayer(layer); });
@@ -719,9 +1052,7 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
   }
 
   function formatDistance(metres) {
-    return metres >= 1000
-      ? (metres / 1000).toFixed(2) + ' km'
-      : Math.round(metres) + ' m';
+    return metres >= 1000 ? (metres / 1000).toFixed(2) + ' km' : Math.round(metres) + ' m';
   }
 
   function formatDuration(seconds) {
@@ -730,28 +1061,36 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
     return Math.floor(minutes / 60) + ' h ' + (minutes % 60) + ' min';
   }
 
+  function percent(fraction) { return Math.round(fraction * 100) + '%'; }
+
   function renderRoutes(payload) {
     clearRoutes();
     var list = document.getElementById('route-list');
     var bounds = null;
 
-    payload.routes.forEach(function (route) {
-      var style = ROUTE_STYLES[route.id] || ROUTE_STYLES.shortest;
+    // Draw the shadiest last so it sits on top of the shortest where they overlap.
+    var ordered = payload.routes.slice().sort(function (a, b) {
+      return a.id === 'shadiest' ? 1 : (b.id === 'shadiest' ? -1 : 0);
+    });
 
+    ordered.forEach(function (route) {
+      var style = ROUTE_STYLES[route.id] || ROUTE_STYLES.shortest;
+      var colour = cssVar(style.varName);
       var line = L.polyline(route.coordinates, {
-        color: style.color,
-        weight: 6,
-        opacity: 0.9,
-        dashArray: style.dashArray,
-        lineCap: 'round',
-        lineJoin: 'round'
+        color: colour, weight: 6, opacity: 0.9,
+        dashArray: style.dashArray, lineCap: 'round', lineJoin: 'round'
       }).addTo(map);
       routeLayers.push(line);
       bounds = bounds ? bounds.extend(line.getBounds()) : line.getBounds();
+    });
+
+    payload.routes.forEach(function (route) {
+      var style = ROUTE_STYLES[route.id] || ROUTE_STYLES.shortest;
+      var colour = cssVar(style.varName);
 
       var item = document.createElement('li');
       item.className = 'route-item';
-      item.style.borderLeftColor = style.color;
+      item.style.borderLeftColor = colour;
 
       var heading = document.createElement('h3');
       heading.textContent = route.label;
@@ -763,63 +1102,120 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
       item.appendChild(pattern);
 
       var dl = document.createElement('dl');
-      [
-        ['Distance', formatDistance(route.length_m)],
-        ['Walking time', formatDuration(route.duration_s)],
-        ['In shade', route.shade_fraction === null
-          ? 'not measured yet (Milestone 2)'
-          : Math.round(route.shade_fraction * 100) + '%']
-      ].forEach(function (pair) {
+      [['Distance', formatDistance(route.length_m)],
+       ['Walking time', formatDuration(route.duration_s)],
+       ['In shade', percent(route.shade_fraction)]].forEach(function (pair) {
         var dt = document.createElement('dt');
         dt.textContent = pair[0];
         var dd = document.createElement('dd');
         dd.textContent = pair[1];
-        dl.appendChild(dt);
-        dl.appendChild(dd);
+        dl.appendChild(dt); dl.appendChild(dd);
       });
       item.appendChild(dl);
+
+      var bar = document.createElement('div');
+      bar.className = 'shade-bar';
+      var fill = document.createElement('span');
+      fill.style.width = (route.shade_fraction * 100).toFixed(1) + '%';
+      bar.appendChild(fill);
+      bar.setAttribute('role', 'img');
+      bar.setAttribute('aria-label', percent(route.shade_fraction) + ' of this route is in shade');
+      item.appendChild(bar);
+
       list.appendChild(item);
     });
 
-    document.getElementById('assumption-note').textContent =
-      payload.assumptions.walking_speed_note;
+    var shortest = payload.routes.filter(function (r) { return r.id === 'shortest'; })[0];
+    var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
+    var cmp = payload.comparison;
+    var headline = document.getElementById('headline');
+    headline.textContent = '';
+
+    if (!payload.sun.casts_shadows) {
+      headline.textContent = payload.sun.is_up
+        ? 'The sun is too low to cast usable shadows right now, so both routes are the same.'
+        : 'The sun is below the horizon at this time, so there are no shadows and both routes are the same.';
+    } else if (cmp.identical) {
+      headline.textContent = 'At this shade setting the shadiest route is the shortest route — ' +
+        'no detour was worth taking.';
+    } else {
+      headline.innerHTML = '<strong>+' + formatDuration(cmp.extra_duration_s) + '</strong> walk, ' +
+        '<strong>' + percent(shadiest.shade_fraction) + '</strong> shaded instead of ' +
+        '<strong>' + percent(shortest.shade_fraction) + '</strong>' +
+        ' <span style="color:var(--ink-muted)">(' + formatDistance(cmp.extra_distance_m) + ' further)</span>';
+    }
+
+    document.getElementById('assumption-note').textContent = payload.assumptions.walking_speed_note;
+    var sources = payload.shade_sources;
+    document.getElementById('sources-note').textContent =
+      'Modelled from ' + sources.building_shadows.toLocaleString() + ' building shadows, ' +
+      sources.tree_shadows.toLocaleString() + ' tree shadows and ' +
+      sources.park_polygons.toLocaleString() + ' park areas in OpenStreetMap.';
     document.getElementById('results').hidden = false;
+
+    var sun = payload.sun;
+    document.getElementById('sun-text').textContent = sun.is_up
+      ? 'Sun ' + sun.elevation_deg.toFixed(0) + '° above the horizon, bearing ' +
+        sun.azimuth_deg.toFixed(0) + '° (' + compass(sun.azimuth_deg) + ').'
+      : 'The sun is below the horizon at this time.';
 
     if (bounds) { map.fitBounds(bounds, { padding: [40, 40] }); }
   }
 
+  function compass(azimuth) {
+    var names = ['north', 'north-east', 'east', 'south-east',
+                 'south', 'south-west', 'west', 'north-west'];
+    return names[Math.round(((azimuth % 360) / 45)) % 8];
+  }
+
   function describeRoutes(payload) {
-    return payload.routes.map(function (route) {
-      return route.label + ': ' + formatDistance(route.length_m) +
-             ', about ' + formatDuration(route.duration_s) + ' walk';
-    }).join('. ') + '.';
+    var shortest = payload.routes.filter(function (r) { return r.id === 'shortest'; })[0];
+    var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
+    if (payload.comparison.identical) {
+      return 'Both routes are identical: ' + formatDistance(shortest.length_m) + ', ' +
+             formatDuration(shortest.duration_s) + ', ' + percent(shortest.shade_fraction) + ' in shade.';
+    }
+    return 'Shortest route ' + formatDistance(shortest.length_m) + ', ' +
+           formatDuration(shortest.duration_s) + ', ' + percent(shortest.shade_fraction) + ' shaded. ' +
+           'Shadiest route ' + formatDistance(shadiest.length_m) + ', ' +
+           formatDuration(shadiest.duration_s) + ', ' + percent(shadiest.shade_fraction) + ' shaded. ' +
+           'That is ' + formatDuration(payload.comparison.extra_duration_s) + ' more walking for ' +
+           Math.round(payload.comparison.shade_gain * 100) + ' more percentage points of shade.';
   }
 
   var findButton = document.getElementById('find-route');
 
   findButton.addEventListener('click', function () {
     if (!state.origin || !state.destination) {
-      announce('Place both A and B first.', true);
+      announce('Set both a start and a destination first. Try "Surprise me" if you want an example.', true);
+      return;
+    }
+    var when = currentWhenISO();
+    if (!when) {
+      announce('Pick a date and a time — the shade depends entirely on where the sun is.', true);
       return;
     }
 
     var params = new URLSearchParams({
       orig_lat: state.origin.lat, orig_lon: state.origin.lon,
-      dest_lat: state.destination.lat, dest_lon: state.destination.lon
+      dest_lat: state.destination.lat, dest_lon: state.destination.lon,
+      when: when, shade_aversion: aversionInput.value
     });
 
     findButton.setAttribute('aria-busy', 'true');
     findButton.disabled = true;
     announce(state.graphCached === false
-      ? 'Finding the route. The street network is downloading for the first time — ' +
-        'this happens once, takes about half a minute, and is cached afterwards.'
-      : 'Finding the route…');
+      ? 'Working. The street network and shadow data are downloading for the first time — ' +
+        'this happens once and is cached afterwards.'
+      : 'Computing shadows and routing…');
 
     fetch('/api/route?' + params.toString())
       .then(function (response) {
         return response.json().then(function (body) {
           if (!response.ok) {
-            throw new Error(body.detail || ('HTTP ' + response.status));
+            var detail = body.detail;
+            if (Array.isArray(detail)) { detail = detail.map(function (d) { return d.msg; }).join('; '); }
+            throw new Error(detail || ('HTTP ' + response.status));
           }
           return body;
         });
@@ -827,8 +1223,7 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
       .then(function (payload) {
         state.graphCached = true;
         renderRoutes(payload);
-        announce(describeRoutes(payload) +
-          ' Shade comparison arrives in Milestone 2.');
+        announce(describeRoutes(payload));
       })
       .catch(function (error) {
         clearRoutes();
@@ -840,48 +1235,52 @@ button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
       });
   });
 
+  // --- Boot ------------------------------------------------------------------
   wireCoordinateEntry('origin', 'origin-lat', 'origin-lon', 'origin-set');
   wireCoordinateEntry('destination', 'dest-lat', 'dest-lon', 'dest-set');
+  wirePlaceInput('origin', 'origin-place');
+  wirePlaceInput('destination', 'dest-place');
+
+  function showBackend(ok, text) {
+    var el = document.getElementById('backend-status');
+    el.classList.toggle('is-ok', ok);
+    el.classList.toggle('is-error', !ok);
+    document.getElementById('backend-status-text').textContent = text;
+  }
 
   fetch('/api/config')
-    .then(function (response) {
-      if (!response.ok) { throw new Error('HTTP ' + response.status); }
-      return response.json();
-    })
+    .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
     .then(function (cfg) {
       state.config = cfg;
       buildMap(cfg);
-      document.getElementById('area-note').textContent =
-        'Demo area: ' + cfg.area_label + ', roughly 2 km by 2 km.';
+      return loadPlaces();
+    })
+    .then(function (places) {
+      if (places && places.length) {
+        announce('Ready. ' + places.length.toLocaleString() +
+          ' places in ' + state.config.area_label + ' you can search for, or click the map.');
+      } else {
+        announce('Ready. Click the map to set a start and a destination, or press "Surprise me".');
+      }
     })
     .catch(function (error) {
       announce('Could not load the map configuration from the server: ' + error.message, true);
     });
 
   fetch('/health')
-    .then(function (response) {
-      if (!response.ok) { throw new Error('HTTP ' + response.status); }
-      return response.json();
-    })
+    .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
     .then(function (health) {
-      // A missing geo package doesn't stop the server booting, so "ok" here has
-      // to mean the stack is actually present — not merely that HTTP answered.
+      state.graphCached = health.graph_cached;
       if (health.status !== 'ok') {
-        showBackend(false,
-          'Backend degraded · missing: ' + (health.missing || []).join(', ') +
+        showBackend(false, 'Backend degraded · missing: ' + (health.missing || []).join(', ') +
           ' · run: pip install -r requirements.txt');
         return;
       }
-      state.graphCached = health.graph_cached;
-      showBackend(true,
-        'Backend ok · Python ' + health.python +
-        ' · OSMnx ' + health.versions.osmnx +
+      showBackend(true, 'Backend ok · OSMnx ' + health.versions.osmnx +
         ' · pvlib ' + health.versions.pvlib +
         ' · street network ' + (health.graph_cached ? 'cached' : 'not yet downloaded'));
     })
-    .catch(function (error) {
-      showBackend(false, 'Backend unreachable: ' + error.message);
-    });
+    .catch(function (error) { showBackend(false, 'Backend unreachable: ' + error.message); });
 }());
 </script>
 </body>

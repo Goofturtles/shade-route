@@ -6,8 +6,9 @@ Give it an origin, a destination, and a date and time. It works out where buildi
 shadows fall at that moment, then routes to maximise the time you spend in shade — and shows
 you honestly what that costs: *"+4 min walk, 61% shaded instead of 12%."*
 
-> **Status: Milestone 1 of 5.** Real shortest-path routing over Portland's walking network
-> works. The shade model — the thing that makes this project interesting — lands in M2. See
+> **Status: Milestone 2 of 5 — the shade model works.** Sun position, building and tree
+> shadows, per-segment shade measurement, and shade-aware routing are all live. A mid-afternoon
+> walk across downtown Portland comes out as **+5 min for 94% shade instead of 29%**. See
 > [Milestones](#milestones) for what is and isn't built yet.
 
 ---
@@ -76,11 +77,20 @@ legacy code page and would mangle anything else.)
 python scripts/warm_cache.py
 ```
 
-The first route request otherwise triggers a one-off download of Portland's walking network from
-Overpass — about 11 seconds here, but Overpass is a shared public service that is sometimes slow
-or rate-limited, and you don't want your demo waiting on someone else's server. The graph is
-written to `cache/walk_graph.graphml` (3,363 nodes, 10,408 edges) and reloads in about 0.3 s
-thereafter. It is never re-downloaded.
+This downloads and caches everything the app needs: the walking network, the 245 named places
+that populate the search box, and the building and tree shadows. Afterwards a cold start takes
+about a second and touches the network not at all.
+
+That matters more than it sounds. Overpass is a shared public service, and during development it
+went unreachable for roughly half an hour mid-build. The app degrades gracefully when that
+happens — the place picker empties and you click the map instead — but you do not want to
+discover it while recording a demo.
+
+| Cached | Where | Cold | Warm |
+|---|---|---|---|
+| Walking network, 3,363 nodes / 10,408 edges | `cache/walk_graph.graphml` | ~11 s | 0.3 s |
+| 245 named places | `cache/places.json` | ~8 s | 0.0 s |
+| Building + tree shadows | `cache/osmnx/` | ~44 s | 0.6 s |
 
 This script also confirms *empirically* that the bounding-box tuple was interpreted in the order
 the code assumes, by checking where the downloaded nodes actually landed. OSMnx types that
@@ -186,7 +196,7 @@ Stated up front, because a model you can't describe the failure modes of isn't a
 |---|---|---|
 | **M0** | Server skeleton, `/health`, Leaflet map, click/keyboard point selection | **Done** |
 | **M1** | Walking graph cached to disk, shortest path rendered | **Done** |
-| M2 | Sun position, tree + building shadows, shade fraction, cost function, dual route comparison | Not started |
+| **M2** | Sun position, tree + building shadows, shade fraction, cost function, dual route comparison | **Done** |
 | M2v | Optional voxel 3D view of the shadow volumes M2 computes | Not started |
 | M4 | Time-of-day scrubber, benches, stair avoidance | Not started |
 | M5 | Text route description, accessibility pass, polish | Not started |
@@ -202,10 +212,17 @@ Accessibility isn't a polish pass on this project, it's the point of it. A route
 someone who can't safely take the fast route has to work for people who can't easily read a map
 either.
 
-**Working today (M0):**
+**Working today:**
 
-- **Full keyboard operation** with visible focus rings. Origin and destination are settable by
-  typed coordinates, not only by clicking the map, and Enter commits a field.
+- **Nobody has to know a latitude.** Start and destination are set by searching 245 real named
+  places from OpenStreetMap — "Capsule Pharmacy", "Central Library", "Southwest 5th & Madison" —
+  or by clicking the map, or by **Use my location**, or by typing coordinates in a collapsed
+  advanced section. **Surprise me** picks a real pair for you. Every path is keyboard-operable.
+- **Dark mode**, following your system preference with a manual override that persists. Both
+  themes were swept for WCAG AA against live computed styles, 65 text nodes each, zero failures.
+  The map goes dark by filtering the tile layer only — no second tile provider, no API key — so
+  route lines and pins keep their true colours.
+- **Full keyboard operation** with visible focus rings, and Enter commits any field.
 - **Okabe–Ito palette**, which stays distinguishable under protanopia, deuteranopia and
   tritanopia. Text contrast was swept against live computed styles; the map pins were checked
   separately by hand, since they don't exist in the DOM until a point is placed and an automated
@@ -213,7 +230,12 @@ either.
   3.87:1 — full-strength `#d55e00` under white bold text fails the 4.5:1 bar, so the pin uses a
   darkened vermillion at 6.07:1.
 - **Nothing carries meaning by colour alone.** The two map pins are distinguished by letter
-  (A / B) as well as hue, and the map key repeats both in text.
+  (A / B) as well as hue; the two routes are distinguished by line pattern (dashed vs solid)
+  with the pattern named in words on each result card; and the shade bar always has its
+  percentage written out beside it.
+- **Pin colours are deliberately not themed.** Pin labels are white on a white ring over map
+  tiles, so their fill must clear 4.5:1 against *white* in either mode. An earlier dark-mode
+  override darkened them to 4.07:1 — the opposite of the intended effect — and was removed.
 - `prefers-reduced-motion` respected, including Leaflet's JS-driven inertia panning and zoom
   animations, which a CSS-only rule does not reach.
 - **Nothing in the app's own interface is below 15 px**; body text is 17 px; interactive targets

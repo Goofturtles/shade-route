@@ -8,12 +8,14 @@ from __future__ import annotations
 
 import importlib.metadata as importlib_metadata
 import platform
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import networkx as nx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 
-from app import config, graph
+from app import config, graph, places, shade
 
 app = FastAPI(
     title="Shade Route",
@@ -86,18 +88,58 @@ def client_config() -> dict:
     }
 
 
+@app.get("/api/places")
+def list_places() -> dict:
+    """Named destinations inside the demo area.
+
+    Exists so the interface can offer "Rite Aid Pharmacy" instead of asking for
+    a latitude. Fetched from OSM once per process.
+    """
+    found = places.all_places()
+    categories: dict[str, int] = {}
+    for place in found:
+        categories[place["category_label"]] = categories.get(place["category_label"], 0) + 1
+    return {"count": len(found), "categories": categories, "places": found}
+
+
+def _parse_when(raw: str | None) -> datetime:
+    """Interpret the requested moment as Portland local time.
+
+    A naive timestamp is what the interface sends ("2026-08-16T15:00"), and it
+    means local time to the person typing it. pvlib will happily return a solar
+    position that is wrong by hours if handed a naive value treated as UTC.
+    """
+    zone = ZoneInfo(config.TIMEZONE)
+    if not raw:
+        return datetime.now(zone)
+    try:
+        parsed = datetime.fromisoformat(raw)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not read '{raw}' as a date and time. Expected ISO 8601, e.g. 2026-08-16T15:00.",
+        )
+    return parsed.replace(tzinfo=zone) if parsed.tzinfo is None else parsed
+
+
 @app.get("/api/route")
 def compute_route(
     orig_lat: float = Query(..., description="Origin latitude"),
     orig_lon: float = Query(..., description="Origin longitude"),
     dest_lat: float = Query(..., description="Destination latitude"),
     dest_lon: float = Query(..., description="Destination longitude"),
+    when: str | None = Query(None, description="ISO 8601 local datetime; defaults to now"),
+    shade_aversion: float = Query(
+        1.5, ge=0.0, le=3.0,
+        description="How much detour to accept for shade. 0 returns the shortest path.",
+    ),
 ) -> dict:
-    """Compute walking routes between two points.
+    """Compute the shortest and the shadiest walking route between two points.
 
-    Milestone 1 returns only the shortest route. The response is already shaped
-    as a *list* of routes so that M2 adds the shadiest one alongside it without
-    the client having to change how it reads the payload.
+    Both routes come out of the same router over the same graph; the only thing
+    that differs is the edge weight. At shade_aversion 0 the shade cost collapses
+    to plain length, so the two routes become identical — which is what makes
+    the comparison honest rather than two algorithms dressed up as a trade-off.
     """
     for label, lat, lon in (
         ("origin", orig_lat, orig_lon),
@@ -122,36 +164,64 @@ def compute_route(
             detail="Those two points snap to the same intersection. Move them further apart.",
         )
 
+    moment = _parse_when(when)
+    shade_field = shade.get_shade_field(moment)
+    shade.annotate_graph(walk_graph, shade_field, shade_aversion)
+
+    def build(route_id: str, label: str, weight: str) -> dict:
+        node_path = graph.shortest_path(walk_graph, orig_node, dest_node, weight=weight)
+        length_m = graph.route_length_m(walk_graph, node_path)
+        return {
+            "id": route_id,
+            "label": label,
+            "coordinates": graph.route_coordinates(walk_graph, node_path),
+            "length_m": round(length_m, 1),
+            "duration_s": round(length_m / config.WALKING_SPEED_M_S),
+            "shade_fraction": round(shade.route_shade_fraction(walk_graph, node_path), 4),
+            "_nodes": node_path,
+        }
+
     try:
-        node_path = graph.shortest_path(walk_graph, orig_node, dest_node, weight="length")
+        shortest = build("shortest", "Shortest route", "length")
+        shadiest = build("shadiest", "Shadiest route", "shade_cost")
     except nx.NetworkXNoPath:
         raise HTTPException(
             status_code=422,
             detail="No walking route connects those two points inside the demo area.",
         )
 
-    length_m = graph.route_length_m(walk_graph, node_path)
-    coordinates = graph.route_coordinates(walk_graph, node_path)
+    identical = shortest.pop("_nodes") == shadiest.pop("_nodes")
+    sun_position = shade_field.sun
 
     return {
-        "milestone": 1,
-        "routes": [
-            {
-                "id": "shortest",
-                "label": "Shortest route",
-                "coordinates": coordinates,
-                "length_m": round(length_m, 1),
-                "duration_s": round(length_m / config.WALKING_SPEED_M_S),
-                # Explicitly null rather than absent or zero: the shade model
-                # does not exist yet, and a 0 here would read as "no shade".
-                "shade_fraction": None,
-            }
-        ],
+        "milestone": 2,
+        "when": moment.isoformat(),
+        "shade_aversion": shade_aversion,
+        "sun": {
+            "elevation_deg": round(sun_position.elevation_deg, 2),
+            "azimuth_deg": round(sun_position.azimuth_deg, 2),
+            "is_up": sun_position.sun_is_up,
+            "casts_shadows": sun_position.casts_usable_shadows,
+        },
+        "routes": [shortest, shadiest],
+        "comparison": {
+            "identical": identical,
+            "extra_distance_m": round(shadiest["length_m"] - shortest["length_m"], 1),
+            "extra_duration_s": shadiest["duration_s"] - shortest["duration_s"],
+            "shade_gain": round(shadiest["shade_fraction"] - shortest["shade_fraction"], 4),
+        },
+        "shade_sources": {
+            "building_shadows": shade_field.building_count,
+            "tree_shadows": shade_field.tree_count,
+            "park_polygons": shade_field.park_count,
+        },
         "assumptions": {
             "walking_speed_m_s": config.WALKING_SPEED_M_S,
             "walking_speed_note": (
                 "Duration is computed from route length at a comfortable older-adult "
-                "walking pace. It is an assumption, not a measurement."
+                "walking pace of 1.1 m/s. It is an assumption, not a measurement. "
+                "Shade percentages are measured directly against modelled shadow "
+                "geometry; no temperature difference is claimed."
             ),
         },
         "snapped": {
