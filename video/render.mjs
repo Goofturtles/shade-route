@@ -15,7 +15,6 @@
 //        --scale S    output scale, 1 = 4K (3840x2160), 0.5 = 1080p preview
 //        --skip-capture  re-encode frames already on disk
 
-import { chromium } from 'file:///C:/Users/arjun/AppData/Local/Temp/claude/shade-video/node_modules/playwright/index.mjs';
 import { spawn } from 'node:child_process';
 import { mkdir, rm, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -23,6 +22,13 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+
+// Playwright is a render-time tool and deliberately not a dependency of the app
+// (§4 keeps the frontend build-step free). Point PW at its node_modules if it is
+// installed somewhere other than alongside this script.
+const { chromium } = await import(process.env.PW
+  ? `file:///${process.env.PW.replace(/\\/g, '/')}/playwright/index.mjs`
+  : 'playwright');
 
 function arg(name, fallback) {
   const i = process.argv.indexOf('--' + name);

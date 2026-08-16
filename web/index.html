@@ -758,6 +758,9 @@ summary:hover { color: var(--ink); }
   overflow: hidden;
   box-shadow: var(--lift-sm) !important;
 }
+/* .leaflet-bar clips its children, so a ring drawn outside the button is
+   invisible. Draw it inside instead. */
+.leaflet-bar a:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
 .leaflet-bar a, .leaflet-touch .leaflet-bar a {
   width: 44px; height: 44px; line-height: 44px;   /* single glyphs only */
   font-size: 20px; font-weight: 400;
@@ -927,7 +930,7 @@ summary:hover { color: var(--ink); }
   position: absolute; inset: 0; z-index: -1;
   background:
     linear-gradient(105deg, rgba(6, 20, 10, 0.94) 0%, rgba(6, 20, 10, 0.82) 42%,
-                    rgba(6, 20, 10, 0.44) 78%, rgba(6, 20, 10, 0.30) 100%);
+                    rgba(6, 20, 10, 0.58) 78%, rgba(6, 20, 10, 0.52) 100%);
 }
 .hero-eyebrow {
   margin: 0;
@@ -954,7 +957,7 @@ summary:hover { color: var(--ink); }
   margin: 0;
   flex: 1 1 340px; min-width: 280px;
   font-family: var(--font-display);
-  font-size: clamp(21px, 2.1vw, 31px);
+  font-size: clamp(24px, 2.1vw, 31px);
   font-weight: 500; line-height: 1.26;
   letter-spacing: -0.014em;
   color: #ffffff;
@@ -970,6 +973,191 @@ summary:hover { color: var(--ink); }
 @media (max-width: 700px) {
   .hero-body { gap: 4px 18px; }
   .hero-line { min-width: 0; }
+}
+
+/* ---- When to leave ------------------------------------------------------- */
+.when {
+  padding: 22px 24px 18px;
+  border-radius: var(--r-xl);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift);
+}
+.when-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px 24px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.when h2 { font-size: 22px; letter-spacing: -0.02em; line-height: 1.2; }
+.when-sub { margin: 4px 0 0; color: var(--ink-muted); font-size: 16px; line-height: 1.45; }
+.when-verdict {
+  margin: 0; flex: 0 0 auto;
+  font-size: 16px; line-height: 1.4; font-weight: 500;
+  color: var(--ink);
+  padding: 10px 16px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.when-bars {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 5px;
+  align-items: end;
+}
+.when-bars li { display: flex; }
+.when-bar {
+  appearance: none;
+  flex: 1 1 auto;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  gap: 6px;
+  padding: 6px 2px 7px;
+  min-height: 44px;                 /* the touch target, not the bar */
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.when-bar:hover { background: var(--glass-inner); transform: none; }
+/* A zero-based track the bar fills from the bottom. The point of the track is
+   that the EMPTY part is the sun: shade and exposure are read off one column
+   without needing a second series. Scaling to the observed range instead would
+   have made a 51%-vs-98% day look identical to a 90%-vs-98% one. */
+.when-bar .track {
+  position: relative;
+  width: 100%;
+  height: 128px;
+  border-radius: 8px;
+  background: repeating-linear-gradient(135deg,
+    color-mix(in srgb, var(--sun) 34%, transparent) 0 4px, transparent 4px 9px);
+  border: 1px solid var(--separator);
+  overflow: hidden;
+}
+.when-bar .col {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  border-radius: 0 0 7px 7px;
+  /* 3:1 against the panel it sits on — bars carry meaning, so they are held to
+     the non-text contrast bar, not merely to "looks fine". */
+  background: color-mix(in srgb, var(--accent) 72%, transparent);
+  border-top: 1px solid var(--accent);
+  min-height: 3px;
+}
+.when-bar .val {
+  font-size: 12px; font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+.when-bar[aria-pressed="true"] .val, .when-bar.is-best .val { color: var(--ink); }
+.when-bar .hr { font-size: 13px; letter-spacing: -0.01em; }
+.when-bar[aria-pressed="true"] {
+  background: var(--glass-strong);
+  border-color: var(--glass-border);
+  color: var(--ink);
+  font-weight: 600;
+}
+.when-bar[aria-pressed="true"] .col { background: var(--accent); }
+/* The best hour is never signalled by colour alone: it also carries a star
+   glyph and says "best" in its accessible name. */
+.when-bar.is-best .col { background: var(--accent); }
+.when-bar.is-best .hr::after { content: " ★"; }
+.when-bar.is-dark .track {
+  background: repeating-linear-gradient(135deg,
+    var(--separator) 0 5px, transparent 5px 10px);
+  border-style: dashed;
+}
+.when-foot { margin: 12px 0 0; font-size: 15px; color: var(--ink-muted); line-height: 1.5; }
+
+@media (max-width: 720px) {
+  .when-bars { gap: 3px; }
+  .when-bar .hr { font-size: 11px; }
+}
+
+/* ---- Canopy log ---------------------------------------------------------- */
+.log-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 14px 0 0; }
+.log-shoot {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 13px 22px; min-height: 48px;
+  border-radius: var(--r-pill);
+  background: var(--accent); color: var(--accent-ink);
+  font-size: 16.5px; font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--lift-sm);
+}
+.log-shoot:hover { background: var(--accent-hover); }
+/* The input is the control; hiding it visually but keeping it focusable means
+   the label is what shows and the keyboard still reaches the real thing. */
+.log-shoot input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.log-shoot:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }
+.log-status { margin: 0; font-size: 15px; color: var(--ink-muted); }
+
+.log-result {
+  display: grid; grid-template-columns: 148px 1fr; gap: 18px;
+  margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid var(--separator);
+}
+@media (max-width: 560px) { .log-result { grid-template-columns: 1fr; } }
+.log-preview {
+  width: 100%; aspect-ratio: 1; object-fit: cover;
+  border-radius: var(--r);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-inner);
+}
+.log-grade {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 46px; font-weight: 600; line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+}
+.log-grade-max { font-size: 20px; color: var(--ink-muted); margin-left: 3px; }
+.log-verdict { margin: 6px 0 0; font-size: 17px; font-weight: 600; color: var(--ink); }
+.log-ident { margin: 3px 0 0; font-size: 15px; color: var(--ink-muted); }
+.log-breakdown {
+  list-style: none; margin: 12px 0 0; padding: 0;
+  display: grid; gap: 7px;
+  /* Without a cap the label column is 1fr across the whole panel and strands
+     the bars against the far edge, where they read as unrelated to their row. */
+  max-width: 460px;
+}
+.log-breakdown li {
+  display: grid; grid-template-columns: 1fr 62px 46px; align-items: center; gap: 10px;
+  font-size: 14.5px; color: var(--ink-muted);
+}
+.log-breakdown .bar {
+  height: 7px; border-radius: 4px;
+  background: var(--separator);
+  overflow: hidden;
+}
+.log-breakdown .bar span {
+  display: block; height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+}
+.log-breakdown .pts { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+.log-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; }
+.log-list li { position: relative; }
+.log-list img {
+  width: 62px; height: 62px; object-fit: cover;
+  border-radius: 12px; border: 1px solid var(--glass-border);
+  display: block;
+}
+.log-list .tag {
+  position: absolute; right: -5px; bottom: -5px;
+  min-width: 24px; height: 24px; padding: 0 5px;
+  border-radius: 12px;
+  background: var(--accent); color: var(--accent-ink);
+  font-size: 12.5px; font-weight: 700; line-height: 24px; text-align: center;
+  font-variant-numeric: tabular-nums;
+  border: 2px solid var(--glass-strong);
 }
 
 /* ---- Three columns, as in the reference ---------------------------------- */
@@ -1311,28 +1499,34 @@ summary:hover { color: var(--ink); }
    list and letting it scroll is what mapping applications do, and it keeps the
    three columns finishing at about the same place. Focusable, because a region
    that scrolls must be reachable without a mouse. */
-.summary-steps {
-  list-style: none; margin: 0; padding: 0 4px 0 0;
+.summary-steps { list-style: none; margin: 0; padding: 0; }
+
+/* Fades the cut edge so a step sliced by the cap reads as "more below"
+   rather than as something broken. */
+.steps-wrap {
+  position: relative;
   max-height: min(58vh, 620px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--ink) 26%, transparent) transparent;
+  /* Keeps the last step clear of the fade that marks the cut edge — the
+     overlay paints OVER the text, so no amount of ancestor compositing in the
+     contrast sweep can see it. */
+  padding-bottom: 30px;
 }
-.summary-steps:focus-visible {
+.steps-wrap:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
-  border-radius: var(--r-sm, 10px);
+  border-radius: 12px;
 }
-/* Fades the cut edge so a step sliced by the cap reads as "more below"
-   rather than as something broken. */
-.steps-wrap { position: relative; }
 .steps-wrap::after {
   content: "";
   position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
   pointer-events: none;
   background: linear-gradient(to bottom, transparent, var(--glass-fade, rgba(255,255,255,0.55)));
-  opacity: 0.9;
+  opacity: 0.55;
+  position: sticky;
   border-radius: 0 0 var(--r-lg) var(--r-lg);
 }
 .summary-steps li {
@@ -1410,7 +1604,7 @@ summary:hover { color: var(--ink); }
 
 <a class="skip-link" href="#controls">Skip to route controls</a>
 
-<div class="shell">
+<main class="shell">
 
   <header class="topbar">
     <div class="brand">
@@ -1418,7 +1612,7 @@ summary:hover { color: var(--ink); }
       <h1>Shade Route</h1>
     </div>
     <nav class="navtabs" aria-label="Sections">
-      <button type="button" class="navtab" aria-current="page">Plan route</button>
+      <button type="button" class="navtab" id="nav-plan" aria-current="page">Plan route</button>
       <button type="button" class="navtab" id="nav-directions">Directions</button>
       <button type="button" class="navtab" id="nav-key">Map key</button>
     </nav>
@@ -1434,7 +1628,7 @@ summary:hover { color: var(--ink); }
   <!-- The thesis, at full size. Everything else on this page is a control or a
        table; this is the one place the finding gets to speak. Every number in
        it is computed server-side — nothing here is decorative copy. -->
-  <section class="hero" id="hero" aria-labelledby="hero-line" hidden>
+  <section class="hero" id="hero" aria-labelledby="hero-eyebrow" hidden>
     <p class="hero-eyebrow" id="hero-eyebrow"></p>
     <div class="hero-body">
       <div class="hero-figure">
@@ -1444,6 +1638,68 @@ summary:hover { color: var(--ink); }
       <p class="hero-line" id="hero-line"></p>
     </div>
     <p class="hero-foot" id="hero-foot"></p>
+  </section>
+
+  <!-- Which way to go is only half the question. Shade is a function of where
+       the sun is, so *when* to leave moves the number further than any detour
+       can. Each bar is a real route computed at that hour by the same router. -->
+  <section class="when" id="when-band" aria-labelledby="when-heading" hidden>
+    <div class="when-head">
+      <div>
+        <h2 id="when-heading">When should she leave?</h2>
+        <p class="when-sub" id="when-sub">Checking every hour of the day…</p>
+      </div>
+      <p class="when-verdict" id="when-verdict"></p>
+    </div>
+
+    <ol class="when-bars" id="when-bars"></ol>
+
+    <p class="when-foot" id="when-foot"></p>
+    <table class="visually-hidden" id="when-table">
+      <caption>Shade by departure hour</caption>
+      <thead><tr><th scope="col">Departure</th><th scope="col">Shaded</th>
+        <th scope="col">Time in direct sun</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- The canopy log. A walk you are told to take for your health is a walk you
+       stop taking; this gives the route a reason to be walked that is not
+       medical. Every one of the five sub-scores is computed from something
+       real — pixels, the model's own confidence, or pvlib's solar elevation —
+       and the breakdown is always shown, because a number nobody can inspect
+       is exactly what the rest of this project refuses to display. -->
+  <section class="panel log" id="canopy-log" aria-labelledby="log-heading">
+    <div class="section-head">
+      <h2 id="log-heading">Canopy log</h2>
+      <span class="badge"><span aria-hidden="true">🌿</span> <span id="log-count">0 logged</span></span>
+    </div>
+    <p class="panel-intro">
+      Photograph a tree or plant on your walk and it is scored out of 10 — on the
+      sharpness and exposure of the shot, how much of the frame is foliage, how
+      confidently it can be identified on your device, and the quality of the light
+      at the hour you set. Nothing is uploaded.
+    </p>
+
+    <div class="log-actions">
+      <label class="log-shoot" for="log-file">
+        <span aria-hidden="true">📷</span> Add a photo
+        <input type="file" id="log-file" accept="image/*" capture="environment">
+      </label>
+      <p class="log-status" id="log-status" role="status">Ready.</p>
+    </div>
+
+    <div class="log-result" id="log-result" hidden>
+      <img id="log-preview" alt="" class="log-preview">
+      <div class="log-score">
+        <p class="log-grade"><span id="log-grade-num">0</span><span class="log-grade-max">/10</span></p>
+        <p class="log-verdict" id="log-verdict"></p>
+        <p class="log-ident" id="log-ident"></p>
+        <ul class="log-breakdown" id="log-breakdown"></ul>
+      </div>
+    </div>
+
+    <ol class="log-list" id="log-list"></ol>
   </section>
 
   <div class="cols">
@@ -1640,9 +1896,9 @@ summary:hover { color: var(--ink); }
           <button type="button" id="dir-shadiest" aria-pressed="true">Shadiest</button>
           <button type="button" id="dir-shortest" aria-pressed="false">Shortest</button>
         </div>
-        <div class="steps-wrap">
-          <ol id="directions-list" class="summary-steps" tabindex="0"
-              role="region" aria-label="Turn-by-turn steps, scrollable"></ol>
+        <div class="steps-wrap" tabindex="0" role="region"
+             aria-label="Turn-by-turn steps, scrollable">
+          <ol id="directions-list" class="summary-steps"></ol>
         </div>
       </section>
 
@@ -1673,7 +1929,7 @@ summary:hover { color: var(--ink); }
     <span class="spacer"></span>
     <span id="milestone-note"><b>Milestones 0–5 complete.</b></span>
   </p>
-</div>
+</main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -2505,6 +2761,14 @@ summary:hover { color: var(--ink); }
 
     var line = document.getElementById('hero-line');
     line.textContent = '';
+    // The big figure beside this is aria-hidden — it is a visual duplicate and
+    // it animates. The sentence therefore has to carry the number itself, or a
+    // screen-reader user gets "of this walk stays in shade, against 44%" and
+    // never hears the headline result at all.
+    var spoken = document.createElement('span');
+    spoken.className = 'visually-hidden';
+    spoken.textContent = pct + '% ';
+    line.appendChild(spoken);
     line.appendChild(document.createTextNode('of this walk stays in shade, against '));
     var b = document.createElement('b');
     b.textContent = was + '%';
@@ -2521,6 +2785,400 @@ summary:hover { color: var(--ink); }
 
     hero.hidden = false;
   }
+
+  // --- Canopy log ------------------------------------------------------------
+  // Scores a photograph out of 10. Nothing here is a vibe: sharpness, exposure
+  // and foliage share are measured off the pixels, identification is the
+  // classifier's own reported confidence, and light quality comes from pvlib's
+  // solar elevation for the hour on the clock. If a component cannot be
+  // computed it is dropped and the total is rescaled over what remained — and
+  // the interface says which one went missing, rather than quietly awarding
+  // the points or quietly withholding them.
+  var logEntries = [];
+  var classifier = null;
+  var classifierState = 'idle';   // idle | loading | ready | unavailable
+
+  function loadClassifier() {
+    if (classifierState === 'ready' || classifierState === 'loading') {
+      return Promise.resolve();
+    }
+    classifierState = 'loading';
+
+    function script(src) {
+      return new Promise(function (resolve, reject) {
+        var el = document.createElement('script');
+        el.src = src;
+        el.onload = resolve;
+        el.onerror = function () { reject(new Error('could not load ' + src)); };
+        document.head.appendChild(el);
+      });
+    }
+
+    // Loaded on first use rather than at boot: it is ~1.5 MB of library plus
+    // the weights, and someone who never opens the camera should never pay for
+    // it. Runs entirely on the device — no key, and no photograph leaves it.
+    return script('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js')
+      .then(function () {
+        return script('https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js');
+      })
+      .then(function () { return window.mobilenet.load({ version: 2, alpha: 1.0 }); })
+      .then(function (model) { classifier = model; classifierState = 'ready'; })
+      .catch(function () { classifierState = 'unavailable'; });
+  }
+
+  // Variance of the Laplacian — the standard sharpness estimate. A blurred
+  // photograph carries little high-frequency energy, so the second derivative
+  // of its luminance stays near zero almost everywhere.
+  function measurePixels(image) {
+    var W = 220;
+    var H = Math.max(1, Math.round(image.height * (W / image.width)));
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(image, 0, 0, W, H);
+    var d = ctx.getImageData(0, 0, W, H).data;
+
+    var grey = new Float64Array(W * H);
+    var clippedHigh = 0, clippedLow = 0, foliage = 0, total = W * H, meanLum = 0;
+
+    for (var i = 0, px = 0; i < d.length; i += 4, px++) {
+      var r = d[i], g = d[i + 1], b = d[i + 2];
+      var y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      grey[px] = y;
+      meanLum += y;
+      if (y > 250) { clippedHigh++; }
+      if (y < 5) { clippedLow++; }
+      // Foliage share: green-dominant and not grey. Deliberately crude, and
+      // deliberately never described in the interface as plant detection.
+      var mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+      if (g >= mx && (mx - mn) > 26 && g > 40) { foliage++; }
+    }
+    meanLum /= total;
+
+    var lapSum = 0, lapSq = 0, n = 0;
+    for (var yy = 1; yy < H - 1; yy++) {
+      for (var xx = 1; xx < W - 1; xx++) {
+        var c = yy * W + xx;
+        var lap = -4 * grey[c] + grey[c - 1] + grey[c + 1] + grey[c - W] + grey[c + W];
+        lapSum += lap; lapSq += lap * lap; n++;
+      }
+    }
+    var variance = n ? (lapSq / n) - Math.pow(lapSum / n, 2) : 0;
+
+    return { sharpness: variance, clippedHigh: clippedHigh / total,
+             clippedLow: clippedLow / total, foliage: foliage / total, meanLum: meanLum };
+  }
+
+  function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+
+  function scorePhoto(pixels, ident, sunInfo) {
+    var parts = [];
+
+    // Square-rooted so the top of the range is a slope rather than a cliff.
+    parts.push({ key: 'Sharpness', max: 3,
+      score: 3 * clamp01(Math.sqrt(pixels.sharpness / 300)),
+      note: pixels.sharpness < 60 ? 'soft — hold steadier' : 'crisp' });
+
+    // Blown highlights are punished hardest: clipped detail cannot be
+    // recovered, whereas a dark frame usually still holds its structure.
+    var exposure = 1 - clamp01(pixels.clippedHigh * 6) * 0.75
+                     - clamp01(pixels.clippedLow * 4) * 0.35
+                     - clamp01(Math.abs(pixels.meanLum - 128) / 128) * 0.35;
+    parts.push({ key: 'Exposure', max: 2, score: 2 * clamp01(exposure),
+      note: pixels.clippedHigh > 0.06 ? 'highlights blown'
+          : pixels.meanLum < 60 ? 'underexposed' : 'well exposed' });
+
+    parts.push({ key: 'Foliage in frame', max: 1.5,
+      score: 1.5 * clamp01(pixels.foliage / 0.45),
+      note: Math.round(pixels.foliage * 100) + '% of the frame' });
+
+    if (ident && ident.available) {
+      parts.push({ key: 'Identifiable', max: 2,
+        score: 2 * clamp01(ident.confidence / 0.6),
+        note: ident.label ? ident.label : 'no confident match' });
+    }
+
+    // Straight from the solar elevation pvlib computed for the hour on the
+    // clock — the same model the routing uses, asked a photographer's question.
+    var lightPoints = { golden: 1.5, low: 1.15, flat: 0.65, harsh: 0.3, dark: 0.25 };
+    if (sunInfo) {
+      var pts = lightPoints[sunInfo.light];
+      parts.push({ key: 'Light at this hour', max: 1.5,
+        score: pts === undefined ? 0.6 : pts,
+        note: sunInfo.light === 'golden'
+          ? 'golden hour, sun ' + sunInfo.elevation_deg + ' deg'
+          : sunInfo.light === 'harsh'
+            ? 'harsh overhead sun, ' + sunInfo.elevation_deg + ' deg'
+            : sunInfo.light + ' light, sun ' + sunInfo.elevation_deg + ' deg' });
+    }
+
+    var got = parts.reduce(function (a, p) { return a + p.score; }, 0);
+    var possible = parts.reduce(function (a, p) { return a + p.max; }, 0);
+    // Rescaled over the components that actually ran, so a classifier that
+    // failed to load cannot silently cap every grade at 8.
+    var out = possible > 0 ? (got / possible) * 10 : 0;
+    return { parts: parts, total: Math.round(out * 10) / 10, rescaled: possible < 10 };
+  }
+
+  function verdictFor(score) {
+    if (score >= 9) { return 'Outstanding'; }
+    if (score >= 7.5) { return 'Very good'; }
+    if (score >= 6) { return 'Good'; }
+    if (score >= 4) { return 'Worth keeping'; }
+    return 'Have another go';
+  }
+
+  function renderLogResult(url, result, ident) {
+    document.getElementById('log-result').hidden = false;
+    var preview = document.getElementById('log-preview');
+    preview.src = url;
+    preview.alt = 'The photograph you just added, scored ' +
+      result.total.toFixed(1) + ' out of 10.';
+    document.getElementById('log-grade-num').textContent = result.total.toFixed(1);
+    document.getElementById('log-verdict').textContent = verdictFor(result.total);
+
+    var identLine = document.getElementById('log-ident');
+    if (ident && ident.available && ident.label) {
+      identLine.textContent = 'Looks like ' + ident.label + ' — ' +
+        Math.round(ident.confidence * 100) + '% confident, identified on your device.';
+    } else if (ident && ident.available) {
+      identLine.textContent = 'The classifier ran but was not confident enough to name it.';
+    } else {
+      identLine.textContent = 'Identification unavailable, so the grade is scaled over the ' +
+        'four components that could be computed.';
+    }
+
+    var list = document.getElementById('log-breakdown');
+    list.textContent = '';
+    result.parts.forEach(function (part) {
+      var li = document.createElement('li');
+      var name = document.createElement('span');
+      name.textContent = part.key + ' — ' + part.note;
+      var bar = document.createElement('span');
+      bar.className = 'bar';
+      bar.setAttribute('role', 'img');
+      bar.setAttribute('aria-label',
+        part.score.toFixed(1) + ' of a possible ' + part.max + ' points');
+      var fill = document.createElement('span');
+      fill.style.width = Math.round((part.score / part.max) * 100) + '%';
+      bar.appendChild(fill);
+      var pts = document.createElement('span');
+      pts.className = 'pts';
+      pts.textContent = part.score.toFixed(1) + '/' + part.max;
+      li.appendChild(name); li.appendChild(bar); li.appendChild(pts);
+      list.appendChild(li);
+    });
+
+    logEntries.push({ url: url, score: result.total });
+    var strip = document.getElementById('log-list');
+    strip.textContent = '';
+    logEntries.slice(-12).forEach(function (entry) {
+      var li = document.createElement('li');
+      var img = document.createElement('img');
+      img.src = entry.url;
+      img.alt = 'Logged photograph, scored ' + entry.score.toFixed(1) + ' out of 10.';
+      var tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.setAttribute('aria-hidden', 'true');   // the alt text already says it
+      tag.textContent = entry.score.toFixed(1);
+      li.appendChild(img); li.appendChild(tag);
+      strip.appendChild(li);
+    });
+
+    document.getElementById('log-count').textContent = logEntries.length + ' logged';
+    document.getElementById('log-status').textContent =
+      'Scored ' + result.total.toFixed(1) + ' out of 10. Nothing left your device.';
+  }
+
+  (function wireCanopyLog() {
+    var input = document.getElementById('log-file');
+    if (!input) { return; }
+    var status = document.getElementById('log-status');
+
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) { return; }
+
+      status.textContent = 'Reading the photo...';
+      var url = URL.createObjectURL(file);
+      var image = new Image();
+
+      image.onload = function () {
+        var pixels = measurePixels(image);
+        status.textContent = classifierState === 'ready'
+          ? 'Identifying...'
+          : 'Loading the on-device classifier — this happens once...';
+
+        var when = currentWhenISO();
+        var sunRequest = fetch('/api/sun?when=' + encodeURIComponent(when || ''))
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+
+        var identRequest = loadClassifier().then(function () {
+          if (classifierState !== 'ready' || !classifier) { return { available: false }; }
+          return classifier.classify(image, 3).then(function (predictions) {
+            var top = predictions && predictions[0];
+            return { available: true,
+                     label: top ? top.className.split(',')[0] : null,
+                     confidence: top ? top.probability : 0 };
+          }).catch(function () { return { available: false }; });
+        });
+
+        Promise.all([sunRequest, identRequest]).then(function (both) {
+          var result = scorePhoto(pixels, both[1], both[0]);
+          renderLogResult(url, result, both[1]);
+          announce('Photo scored ' + result.total.toFixed(1) + ' out of 10.');
+        });
+      };
+
+      image.onerror = function () {
+        status.textContent = 'That file could not be read as an image.';
+        URL.revokeObjectURL(url);
+      };
+      image.src = url;
+    });
+  }());
+
+  // --- When to leave ---------------------------------------------------------
+  // The router answers "which way". This answers "when", which on a hot day is
+  // the bigger lever: the same walk swings by tens of points across a day, and
+  // no detour available at 14:00 closes that gap.
+  var whenInFlight = false;
+
+  function loadBestTime() {
+    if (whenInFlight || !state.origin || !state.destination) { return; }
+    var when = currentWhenISO();
+    if (!when) { return; }
+
+    var band = document.getElementById('when-band');
+    var sub = document.getElementById('when-sub');
+    band.hidden = false;
+    sub.textContent = 'Checking every hour of the day…';
+    document.getElementById('when-verdict').textContent = '';
+    whenInFlight = true;
+
+    var params = new URLSearchParams({
+      orig_lat: state.origin.lat, orig_lon: state.origin.lon,
+      dest_lat: state.destination.lat, dest_lon: state.destination.lon,
+      date: when, shade_aversion: aversionInput.value,
+      avoid_stairs: document.getElementById('avoid-stairs').getAttribute('aria-pressed') === 'true'
+    });
+
+    fetch('/api/best-time?' + params.toString())
+      .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
+      .then(renderBestTime)
+      .catch(function () {
+        // A failure here costs a secondary panel, not the route. Hide it and
+        // say nothing rather than pushing an error at someone who did not ask.
+        band.hidden = true;
+      })
+      .then(function () { whenInFlight = false; });
+  }
+
+  function renderBestTime(data) {
+    var list = document.getElementById('when-bars');
+    var tbody = document.querySelector('#when-table tbody');
+    list.textContent = '';
+    tbody.textContent = '';
+
+    var usable = data.hours.filter(function (h) { return h.casts_shadows; });
+    if (!usable.length) { document.getElementById('when-band').hidden = true; return; }
+
+    var chosenHour = parseInt((document.getElementById('when-time').value || '15:00')
+      .split(':')[0], 10);
+    var maxSun = Math.max.apply(null, usable.map(function (h) { return h.sun_seconds; }));
+
+    data.hours.forEach(function (h) {
+      var li = document.createElement('li');
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'when-bar' + (h.hour === data.best_hour ? ' is-best' : '') +
+        (h.casts_shadows ? '' : ' is-dark');
+      button.setAttribute('aria-pressed', String(h.hour === chosenHour));
+
+      // Zero-based: the filled part is shade, the exposed track above it is
+      // sun. Taller is plainly better, and the axis is the honest 0-100%.
+      var pct = h.casts_shadows ? h.shade_fraction : 0;
+      var track = document.createElement('span');
+      track.className = 'track';
+      track.setAttribute('aria-hidden', 'true');
+      var col = document.createElement('span');
+      col.className = 'col';
+      col.style.height = Math.max(3, Math.round(pct * 126)) + 'px';
+      track.appendChild(col);
+
+      var val = document.createElement('span');
+      val.className = 'val';
+      val.setAttribute('aria-hidden', 'true');
+      val.textContent = h.casts_shadows ? Math.round(pct * 100) + '%' : '–';
+
+      var hr = document.createElement('span');
+      hr.className = 'hr';
+      hr.setAttribute('aria-hidden', 'true');
+      hr.textContent = String(h.hour);
+
+      button.appendChild(track);
+      button.appendChild(val);
+      button.appendChild(hr);
+
+      var label = h.casts_shadows
+        ? pad2(h.hour) + ':00 — ' + Math.round(h.shade_fraction * 100) + '% shaded, ' +
+          formatDuration(h.sun_seconds) + ' in direct sun' +
+          (h.hour === data.best_hour ? '. Best hour of the day' : '') +
+          '. Choose this departure time.'
+        : pad2(h.hour) + ':00 — the sun is too low to cast usable shadows.';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+
+      if (h.casts_shadows) {
+        button.addEventListener('click', function () {
+          document.getElementById('when-time').value = pad2(h.hour) + ':00';
+          announce('Departure set to ' + pad2(h.hour) + ':00. Recomputing the route.');
+          planRoute();
+        });
+      } else {
+        button.disabled = true;
+      }
+
+      li.appendChild(button);
+      list.appendChild(li);
+
+      var tr = document.createElement('tr');
+      [pad2(h.hour) + ':00',
+       h.casts_shadows ? Math.round(h.shade_fraction * 100) + '%' : 'sun too low',
+       h.casts_shadows ? formatDuration(h.sun_seconds) : '—'
+      ].forEach(function (cell) {
+        var td = document.createElement('td');
+        td.textContent = cell;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    var best = usable.filter(function (h) { return h.hour === data.best_hour; })[0];
+    var worst = usable.filter(function (h) { return h.hour === data.worst_hour; })[0];
+
+    document.getElementById('when-sub').textContent =
+      'Each bar is the shadiest route available at that hour, computed the same way as the ' +
+      'one on the map. Taller is more shade. Pick one to re-plan.';
+
+    if (best && worst && data.sun_seconds_saved > 60) {
+      document.getElementById('when-verdict').textContent =
+        'Leave at ' + pad2(best.hour) + ':00, not ' + pad2(worst.hour) + ':00 — ' +
+        formatDuration(data.sun_seconds_saved) + ' less sun';
+    } else {
+      document.getElementById('when-verdict').textContent = 'The hour barely matters today';
+    }
+
+    document.getElementById('when-foot').textContent =
+      worst ? ('The worst departure is ' + pad2(worst.hour) + ':00, when ' +
+               formatDuration(worst.sun_seconds) + ' of this walk is in direct sun. ' +
+               'Hours are ranked by time in the sun rather than by percentage, because ' +
+               'minutes of exposure is what actually causes harm.')
+            : '';
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
   function renderCompare(payload) {
     var block = document.getElementById('compare-block');
@@ -2722,6 +3380,7 @@ summary:hover { color: var(--ink); }
         renderRoutes(payload);
         renderHero(payload);
         renderDirections();
+        loadBestTime();
         announce(describeRoutes(payload));
       })
       .catch(function (error) {
@@ -2733,6 +3392,7 @@ summary:hover { color: var(--ink); }
         document.getElementById('summary-panel').hidden = true;
         document.getElementById('comfort-panel').hidden = true;
         document.getElementById('hero').hidden = true;
+        document.getElementById('when-band').hidden = true;
         announce('Could not find a route: ' + error.message, true);
       })
       .then(function () {
@@ -2750,6 +3410,14 @@ summary:hover { color: var(--ink); }
   // route before being asked to type anything. Any point she sets replaces it.
   function planExampleRoute() {
     if (state.origin || state.destination) { return; }
+
+    var originField = document.getElementById('origin-place');
+    var destField = document.getElementById('dest-place');
+    // Cold start can land this seconds after arrival. Someone already typing —
+    // or focused on either field about to — must not have it overwritten.
+    if (originField.value.trim() || destField.value.trim()) { return; }
+    if (document.activeElement === originField || document.activeElement === destField) { return; }
+
     var pool = state.places || [];
 
     function named(exact, fallback) {
@@ -3080,7 +3748,8 @@ summary:hover { color: var(--ink); }
   // The tabs are in-page navigation, not routes — they move focus to the
   // section, which is what makes them useful with a keyboard rather than
   // decorative.
-  [['nav-directions', 'directions'], ['nav-key', 'key-panel']].forEach(function (pair) {
+  [['nav-plan', 'controls'], ['nav-directions', 'directions'],
+   ['nav-key', 'key-panel']].forEach(function (pair) {
     document.getElementById(pair[0]).addEventListener('click', function () {
       var target = document.getElementById(pair[1]);
       if (!target || target.hidden) {

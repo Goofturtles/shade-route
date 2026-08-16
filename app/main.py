@@ -17,7 +17,7 @@ import networkx as nx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 
-from app import config, directions, graph, places, rest_stops, shade
+from app import config, directions, graph, places, rest_stops, shade, sun
 
 app = FastAPI(
     title="Shade Route",
@@ -340,6 +340,189 @@ def compute_route(
             "origin": [walk_graph.nodes[orig_node]["y"], walk_graph.nodes[orig_node]["x"]],
             "destination": [walk_graph.nodes[dest_node]["y"], walk_graph.nodes[dest_node]["x"]],
         },
+    }
+
+
+@app.get("/api/sun")
+def sun_at(when: str | None = Query(None, description="ISO 8601 local datetime")) -> dict:
+    """Solar position for one moment, on its own.
+
+    /api/route already returns this, but the canopy log needs the sun without
+    wanting a route — and asking for a route to learn the light angle would
+    cost a Dijkstra and a shade field for a number pvlib produces instantly.
+    """
+    moment = _parse_when(when)
+    position = sun.solar_position(moment)
+
+    # Golden hour is a real photographic quantity, not a vibe: it is the band
+    # of low solar elevation where light travels through more atmosphere, goes
+    # warm, and casts long soft shadows. Conventionally it runs from about
+    # -4 degrees (the sun just below the horizon) to about +6 degrees.
+    elevation = position.elevation_deg
+    if -4.0 <= elevation <= 6.0:
+        light = "golden"
+    elif 6.0 < elevation <= 20.0:
+        light = "low"
+    elif elevation > 55.0:
+        light = "harsh"
+    elif elevation > 20.0:
+        light = "flat"
+    else:
+        light = "dark"
+
+    return {
+        "when": moment.isoformat(),
+        "elevation_deg": round(elevation, 2),
+        "azimuth_deg": round(position.azimuth_deg, 2),
+        "is_up": position.sun_is_up,
+        "casts_shadows": position.casts_usable_shadows,
+        "light": light,
+        "month": moment.month,
+    }
+
+
+@app.get("/api/best-time")
+def best_time_to_walk(
+    orig_lat: float = Query(..., description="Origin latitude"),
+    orig_lon: float = Query(..., description="Origin longitude"),
+    dest_lat: float = Query(..., description="Destination latitude"),
+    dest_lon: float = Query(..., description="Destination longitude"),
+    date: str | None = Query(None, description="ISO date; defaults to today"),
+    shade_aversion: float = Query(1.5, ge=0.0, le=3.0),
+    avoid_stairs: bool = Query(True),
+    start_hour: int = Query(7, ge=0, le=23),
+    end_hour: int = Query(20, ge=0, le=23),
+) -> dict:
+    """Walk the same trip once per hour and report how shaded it is each time.
+
+    Which way to go is only half the question. Shade is a function of where the
+    sun is, so *when* to leave moves the number far more than any detour can:
+    on the demo trip the same walk swings from about 44% shaded at midday to
+    almost entirely shaded in the early evening, and no route choice available
+    at noon can close that gap.
+
+    This adds no new modelling. It is the existing router and the existing
+    shade field, evaluated at a series of moments — which is why it can be
+    trusted to exactly the same degree as the single-moment answer, and no more.
+    """
+    for label, lat, lon in (
+        ("origin", orig_lat, orig_lon),
+        ("destination", dest_lat, dest_lon),
+    ):
+        if not config.bbox_contains(lat, lon):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"The {label} is outside the demo area. Street data has only "
+                    "been downloaded for a 2 km by 2 km box of inner Portland."
+                ),
+            )
+
+    if end_hour <= start_hour:
+        raise HTTPException(
+            status_code=400, detail="end_hour must be later than start_hour.",
+        )
+
+    walk_graph = graph.load_graph()
+    orig_node = graph.nearest_node(walk_graph, orig_lat, orig_lon)
+    dest_node = graph.nearest_node(walk_graph, dest_lat, dest_lon)
+    if orig_node == dest_node:
+        raise HTTPException(
+            status_code=400,
+            detail="Those two points snap to the same intersection. Move them further apart.",
+        )
+
+    day = _parse_when(date).replace(minute=0, second=0, microsecond=0)
+
+    hours: list[dict] = []
+    for hour in range(start_hour, end_hour + 1):
+        moment = day.replace(hour=hour)
+        shade_field = shade.get_shade_field(moment)
+        sun_position = shade_field.sun
+
+        # Before sunrise and after sunset there is no sun to be out of. Saying
+        # "100% shaded" here would be technically true of the geometry and
+        # completely misleading as advice, so the state is reported instead.
+        if not sun_position.casts_usable_shadows:
+            hours.append({
+                "hour": hour,
+                "when": moment.isoformat(),
+                "sun_is_up": sun_position.sun_is_up,
+                "casts_shadows": False,
+                "sun_elevation_deg": round(sun_position.elevation_deg, 2),
+                "shade_fraction": None,
+                "modelled_shade_fraction": None,
+                "sun_seconds": 0,
+                "length_m": None,
+                "duration_s": None,
+            })
+            continue
+
+        # Per hour rather than around the whole sweep: this holds the shared
+        # graph's weights for one Dijkstra pair, the same contract /api/route
+        # keeps, instead of locking every other request out for the ~20 s a
+        # cold sweep takes.
+        with _routing_lock:
+            shade.annotate_graph(walk_graph, shade_field, shade_aversion)
+            for _, _, data in walk_graph.edges(data=True):
+                highway = data.get("highway")
+                if isinstance(highway, list):
+                    highway = highway[0] if highway else None
+                penalty = 1000.0 if (avoid_stairs and highway == "steps") else 1.0
+                data["walk_length"] = data["length"] * penalty
+                data["shade_cost"] = data["shade_cost"] * penalty
+
+            try:
+                node_path = graph.shortest_path(
+                    walk_graph, orig_node, dest_node, weight="shade_cost")
+            except nx.NetworkXNoPath:
+                raise HTTPException(
+                    status_code=422,
+                    detail="No walking route connects those two points inside the demo area.",
+                )
+            length_m = graph.route_length_m(walk_graph, node_path, "shade_cost")
+            fraction = shade.route_shade_fraction(walk_graph, node_path, "shade_cost")
+            modelled = shade.route_shade_fraction(
+                walk_graph, node_path, "shade_cost", "modelled_shade_fraction")
+
+        hours.append({
+            "hour": hour,
+            "when": moment.isoformat(),
+            "sun_is_up": sun_position.sun_is_up,
+            "casts_shadows": True,
+            "sun_elevation_deg": round(sun_position.elevation_deg, 2),
+            "shade_fraction": round(fraction, 4),
+            "modelled_shade_fraction": round(modelled, 4),
+            "sun_seconds": round(
+                length_m * (1.0 - fraction) / config.WALKING_SPEED_M_S),
+            "length_m": round(length_m, 1),
+            "duration_s": round(length_m / config.WALKING_SPEED_M_S),
+        })
+
+    usable = [h for h in hours if h["casts_shadows"]]
+    # Ranked by time in direct sun, not by percentage. A longer, shadier detour
+    # can post a better percentage while leaving you in the sun for longer, and
+    # minutes of exposure is the thing that actually harms the person this is
+    # built for.
+    best = min(usable, key=lambda h: h["sun_seconds"]) if usable else None
+    worst = max(usable, key=lambda h: h["sun_seconds"]) if usable else None
+
+    return {
+        "date": day.date().isoformat(),
+        "shade_aversion": shade_aversion,
+        "avoid_stairs": avoid_stairs,
+        "hours": hours,
+        "best_hour": best["hour"] if best else None,
+        "worst_hour": worst["hour"] if worst else None,
+        "sun_seconds_saved": (
+            worst["sun_seconds"] - best["sun_seconds"] if best and worst else 0
+        ),
+        "note": (
+            "Every hour is the shadiest available route at that hour, computed "
+            "by the same router and the same shadow geometry as a single "
+            "lookup. Hours are ranked by time in direct sun rather than by "
+            "percentage shaded."
+        ),
     }
 
 

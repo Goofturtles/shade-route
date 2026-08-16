@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Shade Route — launch film</title>
+
+<!--
+  The launch film. Authored at 1920x1080 CSS pixels and captured at devicePixelRatio 2,
+  so the output is a true 3840x2160.
+
+  Nothing here animates itself. There is no CSS animation, no transition and no
+  requestAnimationFrame anywhere in this file, because all three run off the wall
+  clock — and a capture loop that spends 300 ms writing a PNG would let the wall
+  clock run 300 ms further, so the film would stutter and would never render the
+  same way twice. Instead every animated value is a pure function of the frame
+  number, applied by seek(). render.mjs calls seek(n), screenshots, and repeats.
+
+  Every figure spoken on screen is a real output of the app for the route
+  Southwest 6th & Clay -> Capsule Pharmacy at 2026-08-16 15:00, and the stills are
+  screenshots of that same run, so the numbers agree from cut to cut.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@300;400;500;600;700&display=swap">
+
+<style>
+:root {
+  --deep:   #06140a;
+  --ink:    #0d1b12;
+  --leaf:   #a8e6b8;
+  --leaf-d: #4fae76;
+  --cream:  #eef8d4;
+  --paper:  #f4f9ec;
+  --display: "Fraunces", Georgia, serif;
+  --text:    "Public Sans", system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 1920px; height: 1080px;
+  overflow: hidden;
+  background: var(--deep);
+  color: #fff;
+  font-family: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+
+.shot {
+  position: absolute; inset: 0;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+/* Full-bleed photographic plate. Held in its own layer so the camera can move
+   it independently of the type sitting on top. */
+.plate { position: absolute; inset: -6%; background-size: cover; background-position: center 60%; }
+.plate.canopy { background-image: url("../web/img/canopy.jpg"); }
+
+/* Legibility scrim. Type over a photograph needs a floor under it or the
+   contrast changes with whatever the photo happens to be doing there. */
+.scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg,
+    rgba(6, 20, 10, 0.93) 0%, rgba(6, 20, 10, 0.86) 38%,
+    rgba(6, 20, 10, 0.55) 68%, rgba(6, 20, 10, 0.34) 100%);
+}
+.scrim.even { background: rgba(6, 20, 10, 0.72); }
+
+/* Grain and vignette. Both are what stop a flat CSS gradient reading as a flat
+   CSS gradient once it is encoded. */
+.vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 78% 68% at 50% 48%,
+              rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%);
+}
+#grain {
+  position: absolute; inset: 0; pointer-events: none;
+  opacity: 0.055; mix-blend-mode: overlay;
+}
+
+.wrap { position: absolute; left: 132px; right: 132px; top: 0; bottom: 0;
+        display: flex; flex-direction: column; justify-content: center; }
+.wrap.center { align-items: center; text-align: center; left: 200px; right: 200px; }
+
+.eyebrow {
+  font-size: 21px; font-weight: 600; letter-spacing: 0.26em;
+  text-transform: uppercase; color: var(--leaf);
+  margin-bottom: 34px;
+}
+
+.line {
+  font-family: var(--display);
+  font-size: 82px; line-height: 1.1; font-weight: 500;
+  letter-spacing: -0.022em;
+  max-width: 1360px;
+  text-wrap: balance;
+}
+.line.sm { font-size: 58px; max-width: 1180px; }
+.line em { font-style: normal; color: var(--leaf); }
+
+.sub {
+  margin-top: 30px;
+  font-size: 30px; line-height: 1.45; font-weight: 300;
+  color: rgba(255,255,255,0.78);
+  max-width: 1000px;
+}
+
+/* Each word is its own box so the reveal can stagger and mask from below —
+   the mask is what makes type feel like it was set rather than faded in. */
+.w { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.w > span { display: inline-block; will-change: transform, opacity; }
+
+/* --- Shot 3: the wordmark ------------------------------------------------ */
+.mark { display: flex; align-items: center; gap: 30px; }
+.mark-glyph {
+  width: 116px; height: 116px; border-radius: 34px;
+  background: rgba(255,255,255,0.94);
+  display: grid; place-items: center; font-size: 62px; line-height: 1;
+}
+.mark-type { font-family: var(--display); font-size: 96px; font-weight: 600;
+             letter-spacing: -0.028em; }
+
+/* --- Shots 4-8: product stills ------------------------------------------- */
+.frame { position: absolute; inset: 0; display: grid; place-items: center; }
+
+/* Full-bleed: the app screenshot is already 16:9, so it fills the frame exactly
+   and the caption rides over the scrim. */
+.bleed .frame { inset: 0; }
+.bleed .still { width: 1920px; height: 1080px; object-fit: cover;
+                border-radius: 0; box-shadow: none; }
+
+/* Split: a tall or square still cannot fill 16:9 without losing most of itself,
+   so it takes the right column at full height and the type takes the left. */
+.split .frame { place-items: center end; padding-right: 96px; }
+.split .still { border-radius: 18px; }
+.split .caption { left: 118px; right: auto; width: 720px; top: 50%;
+                  bottom: auto; transform: translateY(-50%); }
+.split .caption .v { font-size: 50px; max-width: 700px; }
+.split .lower-scrim {
+  left: 0; right: auto; top: 0; bottom: 0; width: 1080px; height: auto;
+  background: linear-gradient(to right,
+    rgba(6,20,10,0.97) 0%, rgba(6,20,10,0.92) 46%, rgba(6,20,10,0) 100%);
+}
+.still {
+  display: block;
+  box-shadow: 0 60px 140px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.09);
+  border-radius: 22px;
+  will-change: transform;
+}
+
+/* Caption rail that sits over product footage without fighting it. */
+.lower-scrim {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 560px;
+  background: linear-gradient(to top,
+    rgba(6, 20, 10, 0.97) 0%, rgba(6, 20, 10, 0.90) 34%,
+    rgba(6, 20, 10, 0.55) 66%, rgba(6, 20, 10, 0) 100%);
+}
+.caption {
+  position: absolute; left: 132px; bottom: 108px; right: 132px;
+}
+.caption .k {
+  font-size: 20px; font-weight: 700; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--leaf); margin-bottom: 16px;
+}
+.caption .v {
+  font-family: var(--display); font-size: 56px; font-weight: 500;
+  letter-spacing: -0.018em; line-height: 1.16; max-width: 1300px;
+}
+
+/* --- Shot 5: the trade-off ----------------------------------------------- */
+.stats { display: flex; align-items: flex-end; gap: 130px; }
+.stat .num {
+  font-family: var(--display);
+  font-size: 250px; font-weight: 600; line-height: 0.84;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.stat .num .pc { font-size: 104px; margin-left: 4px; }
+.stat .cap {
+  margin-top: 26px; font-size: 27px; font-weight: 500;
+  letter-spacing: 0.04em; color: rgba(255,255,255,0.72);
+}
+.stat.win .num { color: var(--leaf); }
+.stat.lose .num { color: rgba(255,255,255,0.42); }
+.stat.lose .cap { color: rgba(255,255,255,0.46); }
+
+.cost {
+  margin-top: 56px; font-size: 34px; font-weight: 300;
+  color: rgba(255,255,255,0.86);
+}
+.cost b { font-weight: 600; color: #fff; }
+
+/* --- Shot 9: the close --------------------------------------------------- */
+.outro-line { font-size: 30px; font-weight: 300; color: rgba(255,255,255,0.72);
+              margin-top: 34px; line-height: 1.5; }
+.chips { display: flex; gap: 16px; margin-top: 46px; }
+.chip {
+  padding: 15px 27px; border-radius: 999px;
+  border: 1px solid rgba(168,230,184,0.42);
+  background: rgba(168,230,184,0.10);
+  font-size: 22px; font-weight: 500; color: var(--leaf);
+}
+</style>
+
+<div id="stage">
+
+  <!-- 1. The person, and why this is not a convenience feature -->
+  <section class="shot" id="s1">
+    <div class="plate canopy" data-cam></div>
+    <div class="scrim"></div>
+    <div class="wrap">
+      <p class="eyebrow" data-rise>Portland, Oregon</p>
+      <p class="line" data-words>Marisol is 71. She takes a diuretic, so her body cannot shed heat.</p>
+      <p class="sub" data-rise>Three times a week she walks to the pharmacy and the bus stop.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <!-- 2. The problem, stated plainly -->
+  <section class="shot" id="s2">
+    <div class="plate canopy" data-cam style="background-position: 30% 72%"></div>
+    <div class="scrim"></div>
+    <div class="wrap">
+      <p class="line" data-words>Every map she owns routes her the <em>fastest</em> way.</p>
+      <p class="sub" data-rise>Down an exposed arterial, in full sun, with nowhere to sit down.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <!-- 3. Name it -->
+  <section class="shot" id="s3">
+    <div class="wrap center">
+      <div class="mark">
+        <div class="mark-glyph" data-pop>🌳</div>
+        <div class="mark-type" data-rise>Shade Route</div>
+      </div>
+      <p class="sub" data-rise style="text-align:center;margin-top:36px">
+        A walking planner that optimises for shadow, not speed.
+      </p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <!-- 4. The product, real -->
+  <section class="shot product bleed" id="s4">
+    <div class="frame"><img class="still" id="still-full" src="footage/full.png" alt=""></div>
+    <div class="vignette"></div>
+    <div class="lower-scrim"></div>
+    <div class="caption">
+      <p class="k" data-rise>One page, no account, no API key</p>
+      <p class="v" data-words>Pick two points and a time of day. It routes for the shade that
+        actually exists at that hour.</p>
+    </div>
+  </section>
+
+  <!-- 5. The trade-off: the whole argument in two numbers -->
+  <section class="shot" id="s5">
+    <div class="scrim even"></div>
+    <div class="wrap">
+      <p class="eyebrow" data-rise>Bus stop to pharmacy &middot; 3:00 PM</p>
+      <div class="stats">
+        <div class="stat lose">
+          <div class="num"><span data-count="44">0</span><span class="pc">%</span></div>
+          <div class="cap">shaded &mdash; fastest route</div>
+        </div>
+        <div class="stat win">
+          <div class="num"><span data-count="85">0</span><span class="pc">%</span></div>
+          <div class="cap">shaded &mdash; shadiest route</div>
+        </div>
+      </div>
+      <p class="cost" data-rise>The swap costs <b>2 minutes</b> and <b>148 metres</b>.
+        Time in direct sun falls from <b>15 minutes</b> to <b>4</b>.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <!-- 6. The proof. This is the shot that has to land. -->
+  <section class="shot product split" id="s6">
+    <div class="frame"><img class="still" id="still-shadows" src="footage/big-map-shadows.png" alt=""></div>
+    <div class="vignette"></div>
+    <div class="lower-scrim"></div>
+    <div class="caption">
+      <p class="k" data-rise>Not a guess</p>
+      <p class="v" data-words>Every building and tree shadow in the demo area, projected from the
+        sun's real position at 3:00 PM.</p>
+    </div>
+  </section>
+
+  <!-- 7. The features that exist because of her, not because of a roadmap -->
+  <section class="shot product split" id="s7">
+    <div class="frame"><img class="still" id="still-dir" src="footage/big-directions.png" alt=""></div>
+    <div class="vignette"></div>
+    <div class="lower-scrim"></div>
+    <div class="caption">
+      <p class="k" data-rise>Built for the walk, not the demo</p>
+      <p class="v" data-words>17 benches along the way &mdash; and it tells her the longest stretch
+        without one is 780 m.</p>
+    </div>
+  </section>
+
+  <!-- 8. Accessibility, which is the reason the project exists -->
+  <section class="shot" id="s8">
+    <div class="plate canopy" data-cam style="background-position: 62% 40%"></div>
+    <div class="scrim"></div>
+    <div class="wrap">
+      <p class="eyebrow" data-rise>Readable without the map</p>
+      <p class="line sm" data-words>Every route is also a paragraph. Turn by turn, in words,
+        with the shade and the benches named.</p>
+      <p class="sub" data-rise>Keyboard navigable. WCAG AA in both themes. Colour is never the
+        only signal.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <!-- 9. Close -->
+  <section class="shot" id="s9">
+    <div class="wrap center">
+      <div class="mark" data-rise>
+        <div class="mark-glyph">🌳</div>
+        <div class="mark-type">Shade Route</div>
+      </div>
+      <p class="line sm" data-rise style="text-align:center;margin-top:44px">
+        The shade was already there.
+      </p>
+      <p class="outro-line" data-rise style="text-align:center">
+        Open data, open source, no keys to hand out. Clone it and it runs.
+      </p>
+      <div class="chips">
+        <span class="chip" data-rise>OpenStreetMap</span>
+        <span class="chip" data-rise>pvlib</span>
+        <span class="chip" data-rise>OSMnx</span>
+        <span class="chip" data-rise>FastAPI</span>
+      </div>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <canvas id="grain" width="480" height="270"></canvas>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var FPS = 30;
+  // start/end are inclusive frame bounds. Shots overlap by CROSS frames so the
+  // cuts are dissolves rather than hard switches.
+  // Shots lengthen through the film: 4.5s openers, 7s on the two that carry the
+  // argument, 6s to rest on at the end.
+  var SHOTS = [
+    { el: 's1', start:    0, end:  134 },
+    { el: 's2', start:  135, end:  269 },
+    { el: 's3', start:  270, end:  374 },
+    { el: 's4', start:  375, end:  524 },
+    { el: 's5', start:  525, end:  734 },
+    { el: 's6', start:  735, end:  944 },
+    { el: 's7', start:  945, end: 1094 },
+    { el: 's8', start: 1095, end: 1244 },
+    { el: 's9', start: 1245, end: 1424 }
+  ];
+  window.TOTAL_FRAMES = SHOTS[SHOTS.length - 1].end + 1;
+
+  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  // Strong deceleration. Everything arrives quickly and settles slowly, which is
+  // what reads as "considered" rather than "sproingy".
+  function outExpo(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+  function outCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function inOutSine(t) { return -(Math.cos(Math.PI * t) - 1) / 2; }
+
+  var stage = document.getElementById('stage');
+
+  // Cache the animated pieces per shot once, so seek() is only arithmetic.
+  var shots = SHOTS.map(function (s) {
+    var el = document.getElementById(s.el);
+    var words = [];
+    el.querySelectorAll('[data-words]').forEach(function (node) {
+      // Wrap each word in a clipping box so it can slide up out of nothing.
+      var parts = node.textContent.trim().split(/\s+/);
+      var html = node.innerHTML;
+      // Preserve <em> by re-walking: simple approach — split on spaces in HTML.
+      var pieces = html.trim().split(/\s+/);
+      node.innerHTML = pieces.map(function (p) {
+        return '<span class="w"><span>' + p + '</span></span>';
+      }).join(' ');
+      node.querySelectorAll('.w > span').forEach(function (w) { words.push(w); });
+      void parts;
+    });
+    return {
+      cfg: s,
+      el: el,
+      cams: el.querySelectorAll('[data-cam]'),
+      stills: el.querySelectorAll('.still'),
+      words: words,
+      rises: el.querySelectorAll('[data-rise]'),
+      pops: el.querySelectorAll('[data-pop]'),
+      counts: el.querySelectorAll('[data-count]')
+    };
+  });
+
+  // Static film grain, drawn once. Deterministic values only — Math.random would
+  // reshuffle between runs and make the grain crawl.
+  (function grain() {
+    var c = document.getElementById('grain');
+    var ctx = c.getContext('2d');
+    var img = ctx.createImageData(c.width, c.height);
+    var seed = 20260817;
+    for (var i = 0; i < img.data.length; i += 4) {
+      seed = (seed * 1664525 + 1013904223) % 4294967296;
+      var v = 90 + (seed / 4294967296) * 150;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+      img.data[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    c.style.width = '1920px';
+    c.style.height = '1080px';
+    c.style.imageRendering = 'auto';
+  }());
+
+  // Fit a still inside the frame with a margin, then let the camera scale it.
+  function fitStill(img, marginX, marginY, reserveBottom) {
+    var availW = 1920 - marginX * 2;
+    var availH = 1080 - marginY * 2 - (reserveBottom || 0);
+    var nw = img.naturalWidth || 1, nh = img.naturalHeight || 1;
+    var k = Math.min(availW / nw, availH / nh);
+    img.style.width = (nw * k) + 'px';
+    img.style.height = (nh * k) + 'px';
+  }
+
+  function layoutStills() {
+    // The bleed still is sized by CSS. The split stills are sized to the frame
+    // height so they stay as large as 16:9 allows.
+    var s = document.getElementById('still-shadows');
+    if (s && s.naturalWidth) fitHeight(s, 1010);
+    var d = document.getElementById('still-dir');
+    if (d && d.naturalWidth) fitHeight(d, 1010);
+  }
+
+  function fitHeight(img, h) {
+    var k = h / (img.naturalHeight || 1);
+    img.style.height = h + 'px';
+    img.style.width = ((img.naturalWidth || 1) * k) + 'px';
+  }
+  window.addEventListener('load', layoutStills);
+  layoutStills();
+
+  window.seek = function (frame) {
+    layoutStills();
+
+    shots.forEach(function (s) {
+      var cfg = s.cfg;
+      var len = cfg.end - cfg.start;
+      var local = frame - cfg.start;
+
+      var vis = (local >= 0 && local <= len) ? 1 : 0;
+      s.el.style.opacity = String(vis);
+      if (!vis) { s.el.style.visibility = 'hidden'; return; }
+      s.el.style.visibility = 'visible';
+
+      var t = clamp01(local / len);          // 0..1 across the whole shot
+
+      // Camera: a continuous, very slow push on the photographic plates. Slow
+      // enough that no single frame looks like it is moving, which is the point.
+      s.cams.forEach(function (cam) {
+        var k = lerp(1.14, 1.0, inOutSine(t));
+        cam.style.transform = 'scale(' + k.toFixed(5) + ')';
+      });
+
+      // Product stills get a gentler push plus a hair of drift, so they read as
+      // filmed rather than pasted.
+      var bleed = s.el.classList.contains('bleed');
+      s.stills.forEach(function (img) {
+        var k = bleed ? lerp(1.11, 1.005, inOutSine(t)) : lerp(1.04, 0.99, inOutSine(t));
+        var dy = bleed ? 0 : lerp(12, -12, inOutSine(t));
+        img.style.transform = 'translateY(' + dy.toFixed(2) + 'px) scale(' + k.toFixed(5) + ')';
+      });
+
+      // Words: mask-reveal from below, staggered. 2.2 frames apart at 30fps is
+      // ~73 ms — fast enough to feel like one gesture, slow enough to read.
+      s.words.forEach(function (w, i) {
+        var delay = 8 + i * 2.2;
+        var p = outExpo(clamp01((local - delay) / 22));
+        w.style.transform = 'translateY(' + ((1 - p) * 108).toFixed(2) + '%)';
+        w.style.opacity = p.toFixed(3);
+      });
+
+      s.rises.forEach(function (el, i) {
+        var delay = 4 + i * 7;
+        var p = outExpo(clamp01((local - delay) / 26));
+        el.style.transform = 'translateY(' + ((1 - p) * 26).toFixed(2) + 'px)';
+        el.style.opacity = p.toFixed(3);
+      });
+
+      s.pops.forEach(function (el) {
+        var p = outExpo(clamp01((local - 4) / 24));
+        el.style.transform = 'scale(' + lerp(0.86, 1, p).toFixed(4) + ')';
+        el.style.opacity = p.toFixed(3);
+      });
+
+      // The two headline figures count up. They are the argument, so they get
+      // the longest, slowest move in the film.
+      s.counts.forEach(function (el, i) {
+        var target = +el.getAttribute('data-count');
+        var delay = 22 + i * 14;
+        var p = outCubic(clamp01((local - delay) / 62));
+        el.textContent = Math.round(target * p);
+      });
+    });
+  };
+
+  window.seek(0);
+}());
+</script>
+</html>

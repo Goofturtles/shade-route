@@ -183,7 +183,46 @@ fully legible in the fallback faces if that bet loses.
 US federal public-service interfaces, where the legibility problem is the same
 one this project has.
 
+### Two things beyond the route
+
+**When should she leave?** (`/api/best-time`) walks the same trip once per hour
+across the day and reports how shaded it is each time. This is a bigger lever
+than any detour: on the demo trip the walk swings from 51% shaded at 14:00 to
+99% at 07:00, and no route choice available at 2pm closes that gap. It adds no
+new modelling — it is the existing router and the existing shade field asked the
+same question at thirteen moments. Hours are ranked by **time in direct sun**
+rather than by percentage, because a longer, shadier detour can post a better
+percentage while leaving you exposed for longer, and minutes of exposure is what
+actually causes harm. A cold sweep takes ~27 s; every hour is then cached, so a
+repeat is ~0.3 s. Run `scripts/warm_cache.py` before demoing.
+
+**The canopy log** scores a photograph of a tree or plant out of 10. A walk you
+are told to take for your health is a walk you stop taking; this gives the route
+a reason to be walked that is not medical. Each of the five components is
+computed from something real, and the breakdown is always on screen:
+
+| Component | Max | Where the number comes from |
+|---|---|---|
+| Sharpness | 3.0 | Variance of the Laplacian over the image luminance |
+| Exposure | 2.0 | Clipped-highlight and clipped-black share, plus mean luminance |
+| Foliage in frame | 1.5 | Share of pixels that are green-dominant and not grey |
+| Identifiable | 2.0 | MobileNet v2's own top-1 confidence, run **on the device** |
+| Light at this hour | 1.5 | pvlib's solar elevation for the hour on the clock |
+
+MobileNet is ImageNet-trained, so it names a general object, not a species — it
+is scored on *confidence*, and the interface prints whatever it actually said,
+including when it is unsure. It loads from a CDN on first use (~1.5 MB), needs
+no key, and **no photograph ever leaves the device**. If it cannot load, that
+component is dropped and the grade is rescaled over the other four, with the
+interface saying so rather than quietly awarding or withholding the points.
+
+Note on scope: `CLAUDE.md` §9 originally ruled out "a machine learning model of
+any kind". That was a self-imposed scoping decision, not an OregonHacks rule —
+the official rules place no restriction on pre-trained models or libraries — and
+it was lifted deliberately rather than forgotten.
+
 ### The example route on first load
+
 
 The page opens on a worked example — **Southwest 6th & Clay → Capsule Pharmacy**,
 Marisol's actual errand — rather than an empty form. It is a real route computed

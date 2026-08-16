@@ -306,7 +306,13 @@ def cache_key(when) -> tuple:
 # time control during a demo would otherwise grow memory monotonically and
 # never give any of it back — a slow death mid-recording. Keep the last few
 # moments, which is all a demo revisits.
-_MAX_CACHED_MOMENTS = 4
+# Raised from 4 when /api/best-time began sweeping a whole day: that endpoint
+# builds one field per hour, so a cap below the sweep width made every hour
+# evict the one before it and the second sweep cost as much as the first. Still
+# bounded — the reason the cap exists at all is that each field holds thousands
+# of Shapely polygons plus an STRtree, and scrubbing the clock used to grow
+# memory without limit.
+_MAX_CACHED_MOMENTS = 16
 
 
 def _evict(store: dict, limit: int = _MAX_CACHED_MOMENTS) -> None:
