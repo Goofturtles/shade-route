@@ -141,7 +141,11 @@ def main() -> int:
     g = graph.load_graph()
     fractions = shade.edge_shade_fractions(g, field)
     elapsed = time.perf_counter() - started
-    values = list(fractions.values())
+    # edge_shade_fractions returns (total, modelled_only) per edge now — the
+    # park assumption is kept separable so the interface can decompose the
+    # headline instead of blending an assumption into a measured-looking number.
+    values = [pair[0] for pair in fractions.values()]
+    modelled_values = [pair[1] for pair in fractions.values()]
     shaded = [v for v in values if v > 0.01]
     fully = [v for v in values if v > 0.99]
     print(f"  computed {len(values):,} edge fractions in {elapsed:.1f}s")
@@ -151,6 +155,12 @@ def main() -> int:
     check("every fraction is within 0..1", all(0.0 <= v <= 1.0 for v in values))
     check("some edges are shaded", len(shaded) > 0)
     check("not every edge is fully shaded", len(fully) < len(values))
+    check("modelled shade never exceeds total shade",
+          all(m <= t + 1e-9 for t, m in zip(values, modelled_values)))
+    assumed = sum(values) - sum(modelled_values)
+    print(f"  mean modelled fraction : {sum(modelled_values) / max(len(values), 1):.3f}")
+    print(f"  share of all shade that is the park assumption: "
+          f"{100 * assumed / max(sum(values), 1e-9):.0f}%")
     check("the expensive step is fast enough to be interactive", elapsed < 60,
           f"{elapsed:.1f}s")
 
