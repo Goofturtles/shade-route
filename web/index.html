@@ -75,6 +75,9 @@
   --pin-destination: #a34700;
   --shade-bar-fill:  #2f6b45;
   --shade-bar-track: rgba(20, 36, 26, 0.13);
+  /* The drawn shadow field. Cool and desaturated, so it reads as shade on the
+     ground rather than as another data series competing with the routes. */
+  --shadow-fill: #2b3f52;
 
   /* ---- Glass ----------------------------------------------------------- */
   /* The canopy behind this measures 192-233 in luminance - bright and narrow -
@@ -148,6 +151,8 @@
     --pin-destination: #a34700;
     --shade-bar-fill:  #6fdba0;
     --shade-bar-track: rgba(255, 255, 255, 0.14);
+  --shadow-fill: #7fa8cc;
+    --shadow-fill: #7fa8cc;
 
     --glass:        rgba(14, 25, 19, 0.46);
     --glass-strong: rgba(14, 25, 19, 0.60);
@@ -1080,6 +1085,39 @@ summary:hover { color: var(--ink); }
 .legend-item.is-short { color: var(--shortest); }
 .legend-item span { color: var(--ink-2); }
 
+.provenance {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  font-size: 15px; line-height: 1.55;
+}
+.prov-head {
+  margin: 0 0 8px; font-size: 15px; font-weight: 600; color: var(--ink);
+}
+.prov-row { margin: 0 0 8px; color: var(--ink-2); }
+.prov-row:last-child { margin-bottom: 0; }
+.prov-row b { color: var(--ink); font-weight: 600; }
+.prov-sun { display: block; margin-top: 3px; color: var(--ink-muted); }
+
+.map-tools {
+  position: absolute;
+  top: 22px; left: 22px;
+  z-index: 500;
+}
+.map-tools button {
+  min-height: 42px;
+  padding: 9px 16px;
+  font-size: 15px;
+  background: var(--chrome);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift-sm);
+}
+.map-tools button[aria-pressed="true"] {
+  background: var(--accent); border-color: transparent; color: var(--accent-ink);
+}
+
 .shade-scale {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 6px 2px;
@@ -1412,6 +1450,11 @@ summary:hover { color: var(--ink); }
           <span class="legend-item is-shady"><span class="legend-line"></span><span>Shadiest route</span></span>
           <span class="legend-item is-short"><span class="legend-line" style="border-top-style:dashed"></span><span>Shortest route</span></span>
         </div>
+        <div class="map-tools">
+          <button type="button" id="toggle-shadows" aria-pressed="false">
+            <span aria-hidden="true">🌑</span> Show shadows
+          </button>
+        </div>
         <div id="map" role="region" aria-label="Map of inner Portland" aria-describedby="map-help"></div>
         <div class="shade-scale" aria-hidden="true">
           <span>More shade</span><span class="ramp"></span><span>Less shade</span>
@@ -1423,6 +1466,7 @@ summary:hover { color: var(--ink); }
         <h2 id="results-heading">The trade-off</h2>
         <p class="panel-intro" id="headline"></p>
         <div class="compare" id="compare-block"></div>
+        <div id="provenance" class="provenance" hidden></div>
         <ul id="route-list" class="route-list"></ul>
         <p class="hint" id="assumption-note"></p>
         <p class="hint" id="sources-note"></p>
@@ -1469,8 +1513,10 @@ summary:hover { color: var(--ink); }
   <p class="foot-note">
     <span aria-hidden="true">🌿</span>
     <span><b>Shade Route</b> models building and tree shadows from OpenStreetMap against the sun's
-    real position. Percentages are measured, not estimated — and no temperature claim is made,
-    because shade cuts radiant heat rather than air temperature.</span>
+    real position. Shade percentages combine <b>modelled</b> building and tree shadows with park areas
+    that are <b>assumed</b> fully shaded — the two are always reported separately, because
+    only the first is geometry we computed. No temperature claim is made: shade cuts
+    radiant heat, not air temperature.</span>
     <span class="spacer"></span>
     <span id="milestone-note"><b>Milestones 0–5 complete.</b></span>
   </p>
@@ -2283,6 +2329,47 @@ summary:hover { color: var(--ink); }
 
     block.appendChild(column('is-shady', 'Shadiest route', [percent(shadiest.shade_fraction)],
       ['shaded', formatDuration(shadiest.duration_s), formatDistance(shadiest.length_m)]));
+
+    renderProvenance(payload, shortest, shadiest);
+  }
+
+  // The single most attackable number in the project is the headline shade
+  // percentage, because a large part of it comes from parks being declared
+  // fully shaded rather than from geometry. Splitting it in the interface turns
+  // the weakest claim into the most defensible one.
+  function renderProvenance(payload, shortest, shadiest) {
+    var box = document.getElementById('provenance');
+    box.textContent = '';
+
+    function line(route, label) {
+      var assumed = Math.max(0, route.shade_fraction - route.modelled_shade_fraction);
+      var row = document.createElement('p');
+      row.className = 'prov-row';
+
+      var name = document.createElement('b');
+      name.textContent = label + ' ' + percent(route.shade_fraction) + ' shaded';
+      row.appendChild(name);
+
+      var split = document.createElement('span');
+      split.textContent = ' — ' + percent(route.modelled_shade_fraction) +
+        ' from modelled building and tree shadows, ' + percent(assumed) +
+        ' from park areas assumed fully shaded.';
+      row.appendChild(split);
+
+      var sun = document.createElement('span');
+      sun.className = 'prov-sun';
+      sun.textContent = ' ' + formatDuration(route.sun_seconds) + ' of this walk is in direct sun.';
+      row.appendChild(sun);
+      return row;
+    }
+
+    var head = document.createElement('p');
+    head.className = 'prov-head';
+    head.textContent = 'Where these numbers come from';
+    box.appendChild(head);
+    box.appendChild(line(shortest, 'Shortest:'));
+    box.appendChild(line(shadiest, 'Shadiest:'));
+    box.hidden = false;
   }
 
   function renderSummary(payload) {
@@ -2403,6 +2490,7 @@ summary:hover { color: var(--ink); }
         lastPayload = null;
         clearRoutes();
         document.getElementById('compare-block').textContent = '';
+        document.getElementById('provenance').hidden = true;
         document.getElementById('directions').hidden = true;
         document.getElementById('summary-panel').hidden = true;
         document.getElementById('comfort-panel').hidden = true;
@@ -2528,6 +2616,74 @@ summary:hover { color: var(--ink); }
     }
     window.__repaintCanopy = draw;
   }());
+
+  // --- The shadow layer -------------------------------------------------------
+  // The headline is a percentage; this is the ground that produced it. Being
+  // able to put the shadows on the map and move the clock is a far better
+  // answer to "where did 94% come from" than any paragraph.
+  var shadowLayer = null;
+  var shadowsWanted = false;
+  var shadowToggle = document.getElementById('toggle-shadows');
+
+  function clearShadows() {
+    if (shadowLayer) { map.removeLayer(shadowLayer); shadowLayer = null; }
+  }
+
+  function loadShadows() {
+    if (!shadowsWanted || !state.config) { return Promise.resolve(); }
+    var when = currentWhenISO();
+    var query = when ? '?when=' + encodeURIComponent(when) : '';
+    shadowToggle.setAttribute('aria-busy', 'true');
+    return fetch('/api/shadows' + query)
+      .then(function (response) {
+        if (!response.ok) { throw new Error('HTTP ' + response.status); }
+        return response.json();
+      })
+      .then(function (data) {
+        clearShadows();
+        if (!shadowsWanted) { return; }
+        if (!data.sun.casts_shadows) {
+          announce(data.sun.is_up
+            ? 'The sun is too low to cast usable shadows at this time.'
+            : 'The sun is below the horizon at this time, so there are no shadows.');
+          return;
+        }
+        shadowLayer = L.geoJSON(data.geojson, {
+          interactive: false,
+          style: {
+            // Non-interactive fill, so it reads as ground rather than as a
+            // clickable object, and never covers the route lines.
+            color: 'transparent',
+            fillColor: cssVar('--shadow-fill'),
+            fillOpacity: 0.42,
+            weight: 0
+          }
+        }).addTo(map);
+        if (shadowLayer.bringToBack) { shadowLayer.bringToBack(); }
+        announce('Shadows shown: ' + data.counts.building_shadows.toLocaleString() +
+          ' building and ' + data.counts.tree_shadows.toLocaleString() +
+          ' tree shadows, with the sun ' + Math.round(data.sun.elevation_deg) +
+          '° above the horizon.');
+      })
+      .catch(function (error) {
+        announce('Could not load the shadow layer: ' + error.message, true);
+      })
+      .then(function () { shadowToggle.removeAttribute('aria-busy'); });
+  }
+
+  shadowToggle.addEventListener('click', function () {
+    shadowsWanted = shadowToggle.getAttribute('aria-pressed') !== 'true';
+    shadowToggle.setAttribute('aria-pressed', String(shadowsWanted));
+    if (shadowsWanted) { loadShadows(); }
+    else { clearShadows(); announce('Shadows hidden.'); }
+  });
+
+  // Moving the clock has to move the shadows, or the layer silently lies.
+  ['when-time', 'when-date'].forEach(function (id) {
+    document.getElementById(id).addEventListener('change', function () {
+      if (shadowsWanted) { loadShadows(); }
+    });
+  });
 
   // --- Preference controls ----------------------------------------------------
   var stairsToggle = document.getElementById('avoid-stairs');

@@ -8,7 +8,7 @@ you honestly what that costs: *"+4 min walk, 61% shaded instead of 12%."*
 
 > **Status: Milestone 5 of 5 — it works end to end.** Sun position, building and tree
 > shadows, per-segment shade measurement, and shade-aware routing are all live. A mid-afternoon
-> walk across downtown Portland comes out as **+5 min for 94% shade instead of 29%**. See
+> walk across downtown Portland comes out as **+4 min for 94% shade instead of 39%** — and 1 minute in direct sun instead of 15. See
 > [Milestones](#milestones) for what is and isn't built yet.
 
 ---
@@ -158,7 +158,7 @@ crash anything — it would just quietly return bad routes.
 | Trees, parks, forest | OSM `natural=tree`, `leisure=park`, `landuse=forest` | No |
 | Named destinations for the search box | OSM `amenity`, `shop`, `highway=bus_stop`, `leisure=park` | No |
 | Solar position | pvlib (computed locally, no network) | No |
-| Benches, steps — *planned, M4, not yet used* | OSM `amenity=bench`, `highway=steps` | No |
+| Benches, drinking fountains, steps | OSM `amenity=bench`, `amenity=drinking_water`, `highway=steps` | No |
 | Air temperature — *considered and not used*, see Limitations | Open-Meteo | No |
 
 Map data © OpenStreetMap contributors, [ODbL](https://www.openstreetmap.org/copyright).
@@ -179,6 +179,17 @@ Stated up front, because a model you can't describe the failure modes of isn't a
   approaches the horizon: at 0.1° elevation a 10 m building would mathematically cast a 5.7 km
   shadow. The clamp keeps the geometry sane; it means near-sunrise and near-sunset results
   under-state shade at distance.
+- **Parks are treated as wholly shaded, and on this demo route that is nearly half the
+  headline.** An open riverside lawn is not shaded at all. Rather than hide this, the interface
+  decomposes every shade figure: the 94% route is **45.9% modelled building and tree shadows
+  plus 47.7% park area assumed fully shaded**. The two numbers are never blended into one that
+  looks measured.
+- **Shade is sampled on the street centreline, not the sidewalk.** Marisol walks 5–7 m to one
+  side. On a north–south street with a tall building on the west side, the centreline can read
+  sunlit while the east sidewalk is fully shaded — a systematic under-count, and worst exactly
+  where shade matters most. Not fixed; named.
+- **Building heights are mostly inferred.** About 9% of footprints here carry a real `height`
+  tag; the rest come from `levels × 3.2 m` or a 3-storey default.
 - **OSM tree coverage is incomplete and wildly uneven.** Some Portland neighbourhoods have
   every street tree mapped; others have none. A route through an unmapped area will look
   sunnier than it is. This is the largest source of error in the whole system.
@@ -205,12 +216,36 @@ Stated up front, because a model you can't describe the failure modes of isn't a
 | **M2** | Sun position, tree + building shadows, shade fraction, cost function, dual route comparison | **Done** |
 | **M4** | Time-of-day controls, benches, stair avoidance | **Done** |
 | **M5** | Prose turn-by-turn description, accessibility pass, polish | **Done** |
-| M2v | Optional voxel 3D view of the shadow volumes M2 computes | Not started |
+| M2v | Optional voxel 3D view of the shadow volumes | Cut — the shadow overlay does this job |
 
 *(M3 from the original plan — building shadows — was merged into M2. The pipeline is identical
 for trees and buildings; splitting them cost a checkpoint we didn't have in a one-day build.)*
 
 ---
+
+## Where this sits in the literature
+
+This is not a new idea, and pretending otherwise would be the wrong move in front of engineers.
+
+- The shadow step is **SOLWEIG's** (Lindberg, Holmer & Thorsson, 2008, *Int. J. Biometeorology*)
+  in vector form — geometric shade only, without the longwave and surface-temperature budget a
+  real mean-radiant-temperature model carries.
+- The routing formulation matches **CoolWalks** (Wolf, Vierø & Szell, *Scientific Reports* 15:14911,
+  2025) — same OSM buildings, same shade-weighted cost.
+- Their result is worth stating against ourselves: on a **regular grid with uniform building
+  heights, shade routing yields little benefit**, because every detour is symmetric. Downtown
+  Portland is a near-perfect grid. The gain here comes from what breaks that symmetry — the
+  river frontage, the parks, and 737 mapped street trees — which is also precisely why the
+  park assumption above carries so much of the number.
+- Commercial prior art renders shadows well already (ShadeMap, Shadowmap). What none of them
+  do is Marisol: benches, stairs, prose directions, and an accessibility-first interface.
+
+**What this project claims:** percentage of route in shade (decomposed into modelled and
+assumed), extra distance, extra time, minutes in direct sun, bench count, and the longest
+stretch without a seat. **What it does not claim:** any temperature. Shade principally reduces
+mean radiant temperature rather than air temperature, and computing that properly needs a
+longwave budget this does not have.
+
 
 ## Accessibility
 
@@ -239,77 +274,25 @@ either.
 - **Dark mode**, following your system preference with a manual override that persists. The map
   goes dark by filtering the tile layer only — no second tile provider, no API key — so route
   lines and pins keep their true colours.
-- **Liquid Glass floating over the map.** The map is full-bleed and the interface floats above
-  it: a glass header bar, and a glass control panel with a 40 px backdrop blur, a 28 px radius,
-  an inset edge highlight and a lifted shadow. Inside it sits a second, lighter glass layer for
-  the cards and pill buttons — two levels, never three. The route cards carry a specular gloss
-  that tracks the pointer. On narrow screens the panel becomes a bottom sheet so the map stays
-  visible above it.
+- **Liquid Glass over foliage.** The interface floats on a soft, defocused canopy painted at
+  runtime on a canvas — no image request, no key. The map is a card inside the layout rather
+  than the page background, which is what allows the panels to be genuinely see-through: at a
+  0.34 fill in light and 0.46 in dark you read the backdrop through them.
+- **Contrast is verified against the pixels actually painted**, not against the tokens —
+  the canopy is sampled at 280 points and the darkest and lightest taken, and Leaflet's own
+  chrome is checked against the post-filter tile extremes. 110 text nodes per theme, zero
+  failures. Decorative `aria-hidden` glyphs are excluded per WCAG 1.4.3 and the count of
+  exclusions is reported, so the exemption is visible rather than silent.
+- Secondary text is deliberately darker than Apple's own neutrals, because it sits on
+  translucent glass rather than on a known page.
 
-  Glass needs something worth refracting, and a live map of a city is the richest backdrop this
-  app has.
+**Honest gaps:**
 
-  **The constraint that shapes the whole design:** text floating over map tiles has no fixed
-  backdrop. A tile can be near-white paper or near-black water. So every floating surface uses a
-  heavy tint (0.86–0.88) under a deep blur, and **contrast is verified against both extremes —
-  tile luminance 0 and tile luminance 255 — and the worse result is the one that has to pass.**
-  65 text nodes per theme, zero failures, worst case 4.70:1 in light and 5.17:1 in dark.
+- The flow has **not** been driven with a real screen reader. The structure is verified —
+  ordered list, labelled sections, no heading skips, no target under 44 px — but that is a
+  different claim from "tested with NVDA".
+- Below 860 px the map still captures touch drags meant to scroll the page.
 
-  Text colours are darker than Apple's own for the same reason: secondary text is `#4f4f54`
-  rather than `#6e6e73`, which would sit at 4.2:1 against the worst-case tile.
-
-  Contrast is verified with **alpha actually composited** — page surface, then the background
-  wash, then the translucent fill, then the gloss — rather than read off the token value, which
-  would report a translucent surface as if it were opaque. 65 text nodes per theme, zero
-  failures in either.
-- **Full keyboard operation** with visible focus rings. Enter commits the place-search and
-  coordinate fields; the date and time fields use the browser's own pickers.
-- **A colourblind-safe palette derived from Okabe–Ito**, adjusted toward Apple's blues for
-  the accent. Still distinguishable under protanopia, deuteranopia and tritanopia, but the
-  exact Okabe–Ito hex values are no longer used throughout, so it is described as derived. Text contrast was swept against live computed styles; the map pins were checked
-  separately by hand, since they don't exist in the DOM until a point is placed and an automated
-  sweep therefore walks straight past them. That check is what caught the destination pin at
-  3.87:1 — full-strength `#d55e00` under white bold text fails the 4.5:1 bar, so the pin uses a
-  darkened vermillion at 6.07:1.
-- **Nothing carries meaning by colour alone.** The two map pins are distinguished by letter
-  (A / B) as well as hue; the two routes are distinguished by line pattern (dashed vs solid)
-  with the pattern named in words on each result card; and the shade bar always has its
-  percentage written out beside it.
-- **Pin colours are deliberately not themed.** Pin labels are white on a white ring over map
-  tiles, so their fill must clear 4.5:1 against *white* in either mode. An earlier dark-mode
-  override darkened them to 4.07:1 — the opposite of the intended effect — and was removed.
-- `prefers-reduced-motion` respected, including Leaflet's JS-driven inertia panning and zoom
-  animations, which a CSS-only rule does not reach.
-- **Nothing in the app's own interface is below 15 px.** The type scale runs 24 / 20 / 17 / 15:
-  the result headline at 24 px, the panel title at 20 px, route names and the route statistics
-  at 17 px, labels and hints at 15 px. An earlier pass raised the floor to 15 px and flattened
-  almost everything onto it, which left the answer — distance, walking time, percent in shade —
-  rendering identically to a footnote. Map popups carry app
-  content, so they are held to the same floor rather than Leaflet's 13 px default. The one
-  exception is Leaflet's attribution line — third-party chrome, raised from its 11 px default to
-  13 px but not to 15 px.
-- **Interactive targets are at least 44 px**, including the map's zoom controls, enlarged from
-  Leaflet's 26 px default. The exception is the two map markers at 32 px: they are sized to point
-  at a street corner accurately, and 30 px still clears WCAG 2.2's 24 px minimum. Nothing
-  requires clicking them — they are draggable-free labels, and both points are settable by search,
-  by coordinates, and by clicking the map itself.
-- Validation failures set `aria-invalid` and point the field at the error text, so tabbing back
-  re-reads the reason instead of stranding it in a live region.
-- Coordinate fields are `type="text"` with `inputmode="decimal"` rather than `type="number"`,
-  because an arrow-key press on a number input silently turns 45.522 into 44.522 — a point
-  110 km away.
-
-**Scheduled, not yet built:**
-
-- A **prose turn-by-turn description** alongside the map, with shade and rest-stop notes (M5).
-- A keyboard-and-screen-reader pass over the complete flow (M5).
-
-**Layout:** below 900 px the control panel becomes a bottom sheet over the map. Nothing on the
-page scrolls as a whole — the panel scrolls inside itself with `overscroll-behavior: contain`,
-so a swipe inside the panel never reaches the map underneath, and a swipe on the map pans the
-map. The earlier version of this note described a page-scroll gap that no longer exists.
-
----
 
 ## AI assistance
 

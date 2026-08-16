@@ -540,6 +540,68 @@ warning about them is the one thing this description must not lose.
 verified - ordered list, labelled section, no heading skips, no target under 44px - but that is
 not the same claim.
 
+## Interface rebuild and the advisory council — 16 August 2026
+
+### The UI was rebuilt four times
+
+The human supplied Apple Liquid Glass reference images and repeatedly said the result did not
+match. Each rejection was correct, and the diagnosis was wrong three times before it was right:
+
+1. First attempt: glass over a flat page wash. Had to weaken the wash for contrast, leaving the
+   material nothing to refract.
+2. Second: floated the panel over the live map. That forced the tint *up* to stay legible — "a
+   solid panel with an overlay", as the human accurately described it.
+3. Third: crushed the basemap to buy transparency, which worked visually and rendered the map
+   **blank** — minor roads sat 2.7 luminance levels above the paper background. In a
+   walking-route app that is a worse defect than a tinted panel.
+4. Finally: the backdrop became defocused foliage painted on a canvas, and the map became a
+   card inside the layout. With a controlled backdrop the fill could come off honestly — 0.34
+   in light, 0.46 in dark.
+
+A real bug was found by sampling the painted pixels rather than trusting the code: canvas
+resolves the keyword `transparent` to `rgba(0,0,0,0)`, so every bokeh disc was fading through
+**black** and darkening its own edges. The canopy measured 79–176 in luminance when the tokens
+were bright; fading to the same hue at zero alpha moved it to 192–233.
+
+The contrast sweep itself was rewritten four times, and three of those were because **the sweep
+was wrong**, not the design: it read translucent backgrounds as opaque; it parsed `#000000` with
+a digit regex into `[0, NaN, NaN]` and returned "zero failures" for meaningless dark-mode runs;
+and after the layout went floating it composited over `body`'s opaque fill instead of the map.
+Each fix immediately surfaced real failures the previous version could not see.
+
+### An advisory council of four Claude agents
+
+At the human's request, four independent Claude subagents (Architect, Skeptic, Pragmatist,
+Researcher) each investigated the repository in a fresh context and reported. Three findings
+changed the project materially, and the most important one contradicted a claim the interface
+was making.
+
+**The Skeptic measured that the headline was mostly an assumption.** On the demo route, 47.7 of
+the 94 shade points came from parks being declared fully shaded — and the shadiest route runs
+along a riverside park, an open lawn. Meanwhile the footer read "Percentages are measured, not
+estimated." That sentence was false, and it was on screen. Fixed by *decomposing* rather than
+by changing the model: every shade figure is now reported as modelled geometry plus assumed
+park area, in the interface and in this README.
+
+**The Researcher placed the work in the literature** — SOLWEIG for the shadow step, CoolWalks
+(*Scientific Reports*, 2025) for the routing formulation — and noted their finding that shade
+routing gives little benefit on a regular grid, which is now stated in the README against our
+own result. It also proposed re-expressing shade as **minutes in direct sun**, which needs no
+new science and is what a person actually feels: 15 minutes versus 1 on the demo route.
+
+**The Architect found an unbounded cache.** Each shade field holds thousands of Shapely
+polygons plus an STRtree, and scrubbing the time control grew memory monotonically — a slow
+death mid-recording. Now capped at the last four moments.
+
+**The Pragmatist found that the repository had never been pushed.** Twenty commits existed only
+on one laptop, and `cache/` was gitignored, so anyone cloning would have had to hit Overpass
+live — the service that went dark for half an hour during the build.
+
+### Also added
+
+`/api/shadows` renders the computed shadow field as GeoJSON so the model can be *seen* rather
+than asserted — 1,939 polygons unioned to 412 parts, 225 KB, redrawn as the clock moves.
+
 ---
 
 *Log continues as milestones complete.*

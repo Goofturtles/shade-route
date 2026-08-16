@@ -1,0 +1,1717 @@
+[
+ {
+  "name": "Capsule Pharmacy",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 45.526229,
+  "lon": -122.683096
+ },
+ {
+  "name": "Safeway",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 45.515731,
+  "lon": -122.684991
+ },
+ {
+  "name": "Safeway",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 45.530389,
+  "lon": -122.684751
+ },
+ {
+  "name": "600 Block Northwest Naito Parkway",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.527952,
+  "lon": -122.672843
+ },
+ {
+  "name": "600 Block Northwest Naito Parkway",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.52749,
+  "lon": -122.672614
+ },
+ {
+  "name": "900 Block Northwest Naito Parkway",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.529901,
+  "lon": -122.675506
+ },
+ {
+  "name": "900 Block Northwest Naito Parkway",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.529905,
+  "lon": -122.675153
+ },
+ {
+  "name": "FlixBus Portland",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.530621,
+  "lon": -122.678351
+ },
+ {
+  "name": "Hawthorne Bridge",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.513029,
+  "lon": -122.666206
+ },
+ {
+  "name": "Morrison Bridge",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.516457,
+  "lon": -122.665972
+ },
+ {
+  "name": "Morrison Bridge",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.517356,
+  "lon": -122.666053
+ },
+ {
+  "name": "North Interstate & Multnomah (Rose Quarter)",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.529887,
+  "lon": -122.667683
+ },
+ {
+  "name": "North Interstate & Rose Quarter TC",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.529724,
+  "lon": -122.666322
+ },
+ {
+  "name": "Northwest 5th & Davis",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.524612,
+  "lon": -122.675535
+ },
+ {
+  "name": "Northwest 5th & Davis",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.524707,
+  "lon": -122.675554
+ },
+ {
+  "name": "Northwest 5th & Hoyt",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.527691,
+  "lon": -122.675631
+ },
+ {
+  "name": "Northwest 6th & Flanders",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.525834,
+  "lon": -122.676481
+ },
+ {
+  "name": "Northwest Broadway & Irving",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.52782,
+  "lon": -122.677502
+ },
+ {
+  "name": "Northwest Everett & 11th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.525061,
+  "lon": -122.68187
+ },
+ {
+  "name": "Northwest Everett & 14th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.524984,
+  "lon": -122.685414
+ },
+ {
+  "name": "Northwest Everett & 2nd",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.525232,
+  "lon": -122.672612
+ },
+ {
+  "name": "Northwest Everett & 5th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.525182,
+  "lon": -122.675646
+ },
+ {
+  "name": "Northwest Everett & Broadway",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.525112,
+  "lon": -122.677664
+ },
+ {
+  "name": "Northwest Everett & Park",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.525096,
+  "lon": -122.67929
+ },
+ {
+  "name": "Northwest Glisan & 10th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.526585,
+  "lon": -122.681103
+ },
+ {
+  "name": "Northwest Glisan & 12th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.526578,
+  "lon": -122.683143
+ },
+ {
+  "name": "Northwest Glisan & 14th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.526532,
+  "lon": -122.685164
+ },
+ {
+  "name": "Northwest Glisan & 16th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.526503,
+  "lon": -122.687165
+ },
+ {
+  "name": "Northwest Glisan & 3rd",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.52684,
+  "lon": -122.673986
+ },
+ {
+  "name": "Northwest Glisan & Broadway",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.526665,
+  "lon": -122.677913
+ },
+ {
+  "name": "Northwest Irving & 5th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.528006,
+  "lon": -122.675918
+ },
+ {
+  "name": "Northwest Naito Parkway & Couch",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.523599,
+  "lon": -122.670404
+ },
+ {
+  "name": "Portland Union Station",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.52903,
+  "lon": -122.677211
+ },
+ {
+  "name": "Rose Quarter Transit Center",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.530709,
+  "lon": -122.666019
+ },
+ {
+  "name": "Rose Quarter Transit Center",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.530063,
+  "lon": -122.666404
+ },
+ {
+  "name": "Rose Quarter Transit Center",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.530675,
+  "lon": -122.665661
+ },
+ {
+  "name": "Southwest 5th & Alder",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.519596,
+  "lon": -122.677239
+ },
+ {
+  "name": "Southwest 5th & Clay",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.513617,
+  "lon": -122.680487
+ },
+ {
+  "name": "Southwest 5th & Columbia",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.514292,
+  "lon": -122.680129
+ },
+ {
+  "name": "Southwest 5th & Harvey Milk",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.520922,
+  "lon": -122.676509
+ },
+ {
+  "name": "Southwest 5th & Madison",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.515553,
+  "lon": -122.679412
+ },
+ {
+  "name": "Southwest 5th & Madison",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.515682,
+  "lon": -122.679352
+ },
+ {
+  "name": "Southwest 5th & Main",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.516267,
+  "lon": -122.679021
+ },
+ {
+  "name": "Southwest 5th & Morrison",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.518936,
+  "lon": -122.677571
+ },
+ {
+  "name": "Southwest 5th & Pine",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.522247,
+  "lon": -122.675851
+ },
+ {
+  "name": "Southwest 5th & Salmon",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.516939,
+  "lon": -122.678655
+ },
+ {
+  "name": "Southwest 5th & Taylor",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.517613,
+  "lon": -122.67833
+ },
+ {
+  "name": "Southwest 5th & Washington",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.520266,
+  "lon": -122.676863
+ },
+ {
+  "name": "Southwest 6th & Alder",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.519643,
+  "lon": -122.678227
+ },
+ {
+  "name": "Southwest 6th & Clay",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.513604,
+  "lon": -122.681465
+ },
+ {
+  "name": "Southwest 6th & Columbia",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.514271,
+  "lon": -122.681111
+ },
+ {
+  "name": "Southwest 6th & Harvey Milk",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.520941,
+  "lon": -122.677548
+ },
+ {
+  "name": "Southwest 6th & Jefferson",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.51487,
+  "lon": -122.680761
+ },
+ {
+  "name": "Southwest 6th & Main",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.516279,
+  "lon": -122.680059
+ },
+ {
+  "name": "Southwest 6th & Oak",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.521562,
+  "lon": -122.677179
+ },
+ {
+  "name": "Southwest 6th & Oak",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.521525,
+  "lon": -122.677172
+ },
+ {
+  "name": "Southwest 6th & Salmon",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.516941,
+  "lon": -122.6797
+ },
+ {
+  "name": "Southwest 6th & Taylor",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.517601,
+  "lon": -122.679356
+ },
+ {
+  "name": "Southwest 6th & Washington",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.520272,
+  "lon": -122.677911
+ },
+ {
+  "name": "Southwest 6th & West Burnside",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.522884,
+  "lon": -122.676411
+ },
+ {
+  "name": "Southwest 6th & Yamhill",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.518208,
+  "lon": -122.678999
+ },
+ {
+  "name": "Southwest Alder & 10th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.520677,
+  "lon": -122.681966
+ },
+ {
+  "name": "Southwest Alder & 14th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.521776,
+  "lon": -122.686098
+ },
+ {
+  "name": "Southwest Alder & 2nd",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.518655,
+  "lon": -122.674407
+ },
+ {
+  "name": "Southwest Alder & 6th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.519743,
+  "lon": -122.678424
+ },
+ {
+  "name": "Southwest Broadway & West Burnside",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.522897,
+  "lon": -122.677232
+ },
+ {
+  "name": "Southwest Columbia & 12th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.515888,
+  "lon": -122.686854
+ },
+ {
+  "name": "Southwest Columbia & 1st",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.513068,
+  "lon": -122.676336
+ },
+ {
+  "name": "Southwest Columbia & Park Avenue",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.514931,
+  "lon": -122.683288
+ },
+ {
+  "name": "Southwest Columbia between 5th & 4th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.513936,
+  "lon": -122.679605
+ },
+ {
+  "name": "Southwest Columbia between 6th & 5th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.514193,
+  "lon": -122.680532
+ },
+ {
+  "name": "Southwest Jefferson & 10th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.515986,
+  "lon": -122.684031
+ },
+ {
+  "name": "Southwest Jefferson & 13th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.516852,
+  "lon": -122.687154
+ },
+ {
+  "name": "Southwest Jefferson & 1st",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.513746,
+  "lon": -122.6756
+ },
+ {
+  "name": "Southwest Jefferson & 5th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.51481,
+  "lon": -122.679535
+ },
+ {
+  "name": "Southwest Jefferson & Broadway",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.515369,
+  "lon": -122.681601
+ },
+ {
+  "name": "Southwest Jefferson between 4th & 5th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.51471,
+  "lon": -122.679162
+ },
+ {
+  "name": "Southwest Madison & 1st",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.514459,
+  "lon": -122.675809
+ },
+ {
+  "name": "Southwest Madison & 4th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.515195,
+  "lon": -122.678577
+ },
+ {
+  "name": "Southwest Main & 2nd",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.515262,
+  "lon": -122.675566
+ },
+ {
+  "name": "Southwest Main & 6th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.516403,
+  "lon": -122.679838
+ },
+ {
+  "name": "Southwest Morrison & 12th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.52055,
+  "lon": -122.683933
+ },
+ {
+  "name": "Southwest Morrison & 14th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.521082,
+  "lon": -122.685888
+ },
+ {
+  "name": "Southwest Oak & 1st",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.520376,
+  "lon": -122.67184
+ },
+ {
+  "name": "Southwest Oak & 6th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.521748,
+  "lon": -122.676965
+ },
+ {
+  "name": "Southwest Salmon & 10th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.518031,
+  "lon": -122.68347
+ },
+ {
+  "name": "Southwest Salmon Street/Southwest 6th Avenue",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.516949,
+  "lon": -122.679398
+ },
+ {
+  "name": "Southwest Washington & 3rd",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.519597,
+  "lon": -122.674625
+ },
+ {
+  "name": "Southwest Washington & 5th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.520132,
+  "lon": -122.676605
+ },
+ {
+  "name": "Southwest Washington & 9th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.521265,
+  "lon": -122.680865
+ },
+ {
+  "name": "West Burnside & Burnside Bridge",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.523258,
+  "lon": -122.671214
+ },
+ {
+  "name": "West Burnside & Northwest 10th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.523045,
+  "lon": -122.681397
+ },
+ {
+  "name": "West Burnside & Northwest 12th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.523004,
+  "lon": -122.683629
+ },
+ {
+  "name": "West Burnside & Northwest 5th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.523182,
+  "lon": -122.675909
+ },
+ {
+  "name": "West Burnside & Northwest Park",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.523115,
+  "lon": -122.678939
+ },
+ {
+  "name": "West Burnside & Southwest 10th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.522902,
+  "lon": -122.681295
+ },
+ {
+  "name": "West Burnside & Southwest 13th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.522847,
+  "lon": -122.684288
+ },
+ {
+  "name": "West Burnside & Southwest 15th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.522789,
+  "lon": -122.686691
+ },
+ {
+  "name": "West Burnside & Southwest 2nd",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.523009,
+  "lon": -122.672529
+ },
+ {
+  "name": "West Burnside & Southwest 5th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.522977,
+  "lon": -122.675593
+ },
+ {
+  "name": "West Burnside & Southwest 6th",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 45.522943,
+  "lon": -122.676858
+ },
+ {
+  "name": "9th Avenue Mini Mart",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.530589,
+  "lon": -122.68051
+ },
+ {
+  "name": "Chevron",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.522739,
+  "lon": -122.674861
+ },
+ {
+  "name": "Chinatown Convenience Store",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.524831,
+  "lon": -122.673713
+ },
+ {
+  "name": "Downtown Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.521032,
+  "lon": -122.674987
+ },
+ {
+  "name": "Express Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.522648,
+  "lon": -122.682941
+ },
+ {
+  "name": "Galloway's Gift & Sundries",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.515909,
+  "lon": -122.678676
+ },
+ {
+  "name": "Greenleaf Sundries",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.513348,
+  "lon": -122.677682
+ },
+ {
+  "name": "Helen's Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.523242,
+  "lon": -122.677238
+ },
+ {
+  "name": "Hop City Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.51759,
+  "lon": -122.679719
+ },
+ {
+  "name": "JR's",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.516406,
+  "lon": -122.686163
+ },
+ {
+  "name": "Junior's",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.518739,
+  "lon": -122.683495
+ },
+ {
+  "name": "Ma & Pa Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.521844,
+  "lon": -122.683701
+ },
+ {
+  "name": "McCormick Pier Grocery & Deli",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.528037,
+  "lon": -122.672776
+ },
+ {
+  "name": "Old Town Grocery",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.523961,
+  "lon": -122.673213
+ },
+ {
+  "name": "Park Avenue Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.514333,
+  "lon": -122.684235
+ },
+ {
+  "name": "Pete's Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.519688,
+  "lon": -122.676206
+ },
+ {
+  "name": "Plaid Pantry",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.513077,
+  "lon": -122.685283
+ },
+ {
+  "name": "Plaid Pantry",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.516251,
+  "lon": -122.685805
+ },
+ {
+  "name": "Safeway",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.530456,
+  "lon": -122.68475
+ },
+ {
+  "name": "Safeway",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.515772,
+  "lon": -122.684793
+ },
+ {
+  "name": "TK Grocery & Deli",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.520371,
+  "lon": -122.674167
+ },
+ {
+  "name": "The Portland Exchange Grocer & Goods",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.513989,
+  "lon": -122.677209
+ },
+ {
+  "name": "Tower Sundries",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.514137,
+  "lon": -122.679177
+ },
+ {
+  "name": "Whole Foods Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.523408,
+  "lon": -122.683529
+ },
+ {
+  "name": "World Foods",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.524921,
+  "lon": -122.679845
+ },
+ {
+  "name": "Xmart",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 45.523917,
+  "lon": -122.675612
+ },
+ {
+  "name": "Allergy Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.521147,
+  "lon": -122.681889
+ },
+ {
+  "name": "GoHealth Urgent Care",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.530648,
+  "lon": -122.684271
+ },
+ {
+  "name": "Multnomah County Health Department",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.527688,
+  "lon": -122.676887
+ },
+ {
+  "name": "Multnomah County STD Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.527597,
+  "lon": -122.676875
+ },
+ {
+  "name": "Old Town Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.523212,
+  "lon": -122.678152
+ },
+ {
+  "name": "Pacific Cataract and Laser Institute",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.530479,
+  "lon": -122.685161
+ },
+ {
+  "name": "Passport Health Portland Travel Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.518682,
+  "lon": -122.683425
+ },
+ {
+  "name": "Pearl Health Center",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.528584,
+  "lon": -122.680491
+ },
+ {
+  "name": "Pearl Women's Center",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.524131,
+  "lon": -122.684914
+ },
+ {
+  "name": "Providence Express Care",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.530299,
+  "lon": -122.685631
+ },
+ {
+  "name": "ZoomCare",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.530269,
+  "lon": -122.681167
+ },
+ {
+  "name": "ZoomCare",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 45.524471,
+  "lon": -122.684033
+ },
+ {
+  "name": "Central Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 45.519163,
+  "lon": -122.683222
+ },
+ {
+  "name": "Davies Family Research Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 45.515721,
+  "lon": -122.682446
+ },
+ {
+  "name": "Chapman Square",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.515393,
+  "lon": -122.677687
+ },
+ {
+  "name": "Glisan 14",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.52668,
+  "lon": -122.686105
+ },
+ {
+  "name": "Governor Tom McCall Waterfront Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.519859,
+  "lon": -122.671167
+ },
+ {
+  "name": "Jamison Square",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.529053,
+  "lon": -122.681848
+ },
+ {
+  "name": "Lownsdale Square",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.516066,
+  "lon": -122.677319
+ },
+ {
+  "name": "Mill Ends Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.516218,
+  "lon": -122.67325
+ },
+ {
+  "name": "North Park Blocks",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.524583,
+  "lon": -122.678821
+ },
+ {
+  "name": "Printing Press Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.517816,
+  "lon": -122.673293
+ },
+ {
+  "name": "South Park Blocks",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.513086,
+  "lon": -122.684358
+ },
+ {
+  "name": "Terry Schrunk Plaza",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.514729,
+  "lon": -122.67805
+ },
+ {
+  "name": "Vera Katz Eastbank Esplanade",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 45.519148,
+  "lon": -122.667077
+ },
+ {
+  "name": "40 LBS Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.516953,
+  "lon": -122.674904
+ },
+ {
+  "name": "40 LBS Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.515705,
+  "lon": -122.675536
+ },
+ {
+  "name": "40 LBS Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.5205,
+  "lon": -122.677563
+ },
+ {
+  "name": "Above GRND",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.526098,
+  "lon": -122.677745
+ },
+ {
+  "name": "Anna's Chocolate Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.516932,
+  "lon": -122.67795
+ },
+ {
+  "name": "Azar Indulgences",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.517295,
+  "lon": -122.680983
+ },
+ {
+  "name": "Barista",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.526963,
+  "lon": -122.684482
+ },
+ {
+  "name": "Behind the Museum Caf\u00e9",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.516452,
+  "lon": -122.684281
+ },
+ {
+  "name": "Bento Coffee & Cookie",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.515502,
+  "lon": -122.678959
+ },
+ {
+  "name": "Brady's on Broadway",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.518286,
+  "lon": -122.68004
+ },
+ {
+  "name": "Bridge City Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.517681,
+  "lon": -122.677321
+ },
+ {
+  "name": "Cafe Roma",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.518041,
+  "lon": -122.673844
+ },
+ {
+  "name": "Cafe UNITED",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.523746,
+  "lon": -122.671741
+ },
+ {
+  "name": "Cafe at Harlow Hotel",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.526506,
+  "lon": -122.678337
+ },
+ {
+  "name": "Caffe Umbria",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.515961,
+  "lon": -122.681707
+ },
+ {
+  "name": "Caff\u00e8 Umbria",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.525215,
+  "lon": -122.683426
+ },
+ {
+  "name": "Capital One Caf\u00e9",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.519548,
+  "lon": -122.679809
+ },
+ {
+  "name": "Case Study Coffee Roasters",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.519173,
+  "lon": -122.68233
+ },
+ {
+  "name": "Coco Donuts",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.518114,
+  "lon": -122.678909
+ },
+ {
+  "name": "Coffee Works by p:ear",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.525833,
+  "lon": -122.676227
+ },
+ {
+  "name": "Courier Coffee Roasters",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.522765,
+  "lon": -122.680531
+ },
+ {
+  "name": "Drip Drop Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.516604,
+  "lon": -122.677369
+ },
+ {
+  "name": "Flower Temple Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.513324,
+  "lon": -122.67649
+ },
+ {
+  "name": "Forte Coffe Shop Wine Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.517024,
+  "lon": -122.677909
+ },
+ {
+  "name": "Greenleaf",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.52888,
+  "lon": -122.683167
+ },
+ {
+  "name": "Guilder Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.52311,
+  "lon": -122.681915
+ },
+ {
+  "name": "Happy Cup Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.514986,
+  "lon": -122.67896
+ },
+ {
+  "name": "Heroes",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.514355,
+  "lon": -122.683284
+ },
+ {
+  "name": "In Joy",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.514574,
+  "lon": -122.68412
+ },
+ {
+  "name": "Java Man",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.520512,
+  "lon": -122.678772
+ },
+ {
+  "name": "Jebale Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.529889,
+  "lon": -122.684832
+ },
+ {
+  "name": "Kilo D\u2019Cofi",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.522353,
+  "lon": -122.677053
+ },
+ {
+  "name": "Kure",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.515972,
+  "lon": -122.665223
+ },
+ {
+  "name": "Kure Superfood Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.528849,
+  "lon": -122.684168
+ },
+ {
+  "name": "Le Happy",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.530239,
+  "lon": -122.6877
+ },
+ {
+  "name": "Less & More Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.518205,
+  "lon": -122.679313
+ },
+ {
+  "name": "Less & More Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.516584,
+  "lon": -122.678882
+ },
+ {
+  "name": "Lotus & Bean",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.518971,
+  "lon": -122.674924
+ },
+ {
+  "name": "Lovely Rita",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.523352,
+  "lon": -122.674608
+ },
+ {
+  "name": "Mako Matcha Mill",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.522506,
+  "lon": -122.684044
+ },
+ {
+  "name": "Matta",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.525899,
+  "lon": -122.685654
+ },
+ {
+  "name": "Milk + T (Mini)",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.516928,
+  "lon": -122.675332
+ },
+ {
+  "name": "Monte Rossa Caffe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.525737,
+  "lon": -122.674667
+ },
+ {
+  "name": "Mr Frenchs Coffee Kitchen",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.51885,
+  "lon": -122.664263
+ },
+ {
+  "name": "Never Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.521433,
+  "lon": -122.683908
+ },
+ {
+  "name": "Nordstrom Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.519215,
+  "lon": -122.679894
+ },
+ {
+  "name": "Nuvrei",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.522317,
+  "lon": -122.682664
+ },
+ {
+  "name": "Oak Street Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.521664,
+  "lon": -122.678157
+ },
+ {
+  "name": "Orbit Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.529408,
+  "lon": -122.663666
+ },
+ {
+  "name": "Ovation Coffee & Tea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.518402,
+  "lon": -122.674664
+ },
+ {
+  "name": "PDX Coffee Club",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.520144,
+  "lon": -122.672168
+ },
+ {
+  "name": "PDX Starting Grounds",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.513975,
+  "lon": -122.675073
+ },
+ {
+  "name": "Park Avenue Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.513935,
+  "lon": -122.684462
+ },
+ {
+  "name": "Pints Everyday Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.5262,
+  "lon": -122.675361
+ },
+ {
+  "name": "Portland Coffee Roasters",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.527584,
+  "lon": -122.662199
+ },
+ {
+  "name": "Red Robe Tea House & Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.524417,
+  "lon": -122.673675
+ },
+ {
+  "name": "Redstraw Tea Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.51819,
+  "lon": -122.677024
+ },
+ {
+  "name": "Roseline Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.524521,
+  "lon": -122.662354
+ },
+ {
+  "name": "Roseline Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.520433,
+  "lon": -122.680325
+ },
+ {
+  "name": "Roste Chocolate House",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.526167,
+  "lon": -122.685492
+ },
+ {
+  "name": "Sharif's Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.530329,
+  "lon": -122.665575
+ },
+ {
+  "name": "Simple. Local. Coffee.",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.521963,
+  "lon": -122.671793
+ },
+ {
+  "name": "Sisters Coffee Company",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.530881,
+  "lon": -122.684303
+ },
+ {
+  "name": "Spella Caff\u00e8",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.519737,
+  "lon": -122.678644
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.530394,
+  "lon": -122.684649
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.515027,
+  "lon": -122.679905
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.523831,
+  "lon": -122.681973
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.51422,
+  "lon": -122.682676
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.515166,
+  "lon": -122.675848
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.515789,
+  "lon": -122.684619
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.519099,
+  "lon": -122.679531
+ },
+ {
+  "name": "Stumptown Coffee Roasters",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.521399,
+  "lon": -122.682775
+ },
+ {
+  "name": "Stumptown Coffee Roasters",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.52174,
+  "lon": -122.673291
+ },
+ {
+  "name": "SuperJoy Coffee Lab/Roasters",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.520609,
+  "lon": -122.686712
+ },
+ {
+  "name": "Sweet Coco G",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.526914,
+  "lon": -122.682582
+ },
+ {
+  "name": "Tea & Tea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.519141,
+  "lon": -122.681275
+ },
+ {
+  "name": "Tea Artist",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.513866,
+  "lon": -122.681215
+ },
+ {
+  "name": "The Dusted Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.517117,
+  "lon": -122.673128
+ },
+ {
+  "name": "The Mezz",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.523514,
+  "lon": -122.683355
+ },
+ {
+  "name": "The Window",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.523727,
+  "lon": -122.673988
+ },
+ {
+  "name": "Trackside Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.528956,
+  "lon": -122.676638
+ },
+ {
+  "name": "Turkey Place",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.514045,
+  "lon": -122.676468
+ },
+ {
+  "name": "Via Delizia on Broadway",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.514811,
+  "lon": -122.681807
+ },
+ {
+  "name": "Water Avenue Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.514482,
+  "lon": -122.679343
+ },
+ {
+  "name": "Water Avenue Coffee Company",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.515216,
+  "lon": -122.66543
+ },
+ {
+  "name": "Water Avenue Coffee Company",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.52206,
+  "lon": -122.681648
+ },
+ {
+  "name": "Yun Shui Teahouse \u96f2\u6c34\u8336\u6a13",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.525904,
+  "lon": -122.672931
+ },
+ {
+  "name": "f and b cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 45.524096,
+  "lon": -122.662934
+ },
+ {
+  "name": "Central Post Office",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 45.521959,
+  "lon": -122.675643
+ },
+ {
+  "name": "FedEx Office",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 45.529929,
+  "lon": -122.683112
+ },
+ {
+  "name": "Portland Main Post Office",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 45.527657,
+  "lon": -122.679271
+ },
+ {
+  "name": "The UPS Store",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 45.517292,
+  "lon": -122.675857
+ },
+ {
+  "name": "Waterfront Station Post Office",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 45.514742,
+  "lon": -122.675527
+ }
+]

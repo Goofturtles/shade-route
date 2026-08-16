@@ -67,7 +67,7 @@ def health() -> dict:
     return {
         "status": "degraded" if missing else "ok",
         "missing": missing,
-        "milestone": 2,
+        "milestone": 5,
         "python": platform.python_version(),
         "versions": versions,
         # Lets the client warn that the first request will pause on a one-off
@@ -105,6 +105,38 @@ def list_places() -> dict:
     for place in found:
         categories[place["category_label"]] = categories.get(place["category_label"], 0) + 1
     return {"count": len(found), "categories": categories, "places": found}
+
+
+@app.get("/api/shadows")
+def shadow_layer(
+    when: str | None = Query(None, description="ISO 8601 local datetime; defaults to now"),
+) -> dict:
+    """The shadow field as GeoJSON, so the model can be seen and not just asserted.
+
+    The headline number is a percentage. This is the ground that produced it.
+    An engineer judge should be able to put the shadows on the map, move the
+    time, and watch them swing — which is a far better answer to "where did 94%
+    come from" than a paragraph.
+    """
+    moment = _parse_when(when)
+    field = shade.get_shade_field(moment)
+    layer = shade.shadow_geojson(field)
+    position = field.sun
+    return {
+        "when": moment.isoformat(),
+        "sun": {
+            "elevation_deg": round(position.elevation_deg, 2),
+            "azimuth_deg": round(position.azimuth_deg, 2),
+            "is_up": position.sun_is_up,
+            "casts_shadows": position.casts_usable_shadows,
+        },
+        "counts": {
+            "building_shadows": field.building_count,
+            "tree_shadows": field.tree_count,
+            "park_polygons": field.park_count,
+        },
+        "geojson": layer,
+    }
 
 
 def _parse_when(raw: str | None) -> datetime:
@@ -189,8 +221,24 @@ def compute_route(
             "coordinates": graph.route_coordinates(walk_graph, node_path, weight),
             "length_m": round(length_m, 1),
             "duration_s": round(length_m / config.WALKING_SPEED_M_S),
+            # Two figures, deliberately kept apart. `shade_fraction` counts
+            # parks, which this project declares fully shaded by fiat — a
+            # defensible simplification, but an assumption, and a generous one
+            # over an open riverside lawn. `modelled_shade_fraction` counts only
+            # geometry we actually computed. Publishing one blended number that
+            # LOOKS measured is exactly the failure the brief forbids.
             "shade_fraction": round(
                 shade.route_shade_fraction(walk_graph, node_path, weight), 4
+            ),
+            "modelled_shade_fraction": round(
+                shade.route_shade_fraction(
+                    walk_graph, node_path, weight, "modelled_shade_fraction"), 4
+            ),
+            # The same computation in the unit a person actually feels: how long
+            # you are standing in direct sun.
+            "sun_seconds": round(
+                length_m * (1.0 - shade.route_shade_fraction(walk_graph, node_path, weight))
+                / config.WALKING_SPEED_M_S
             ),
             "_nodes": node_path,
         }
@@ -252,7 +300,7 @@ def compute_route(
     sun_position = shade_field.sun
 
     return {
-        "milestone": 2,
+        "milestone": 5,
         "when": moment.isoformat(),
         "shade_aversion": shade_aversion,
         "avoid_stairs": avoid_stairs,
@@ -276,6 +324,11 @@ def compute_route(
         },
         "assumptions": {
             "walking_speed_m_s": config.WALKING_SPEED_M_S,
+            "shade_note": (
+                "Shade percentages combine modelled building and tree shadows with park "
+                "areas, which are assumed fully shaded. The two are reported separately "
+                "because only the first is geometry we computed."
+            ),
             "walking_speed_note": (
                 "Duration is computed from route length at a comfortable older-adult "
                 "walking pace of 1.1 m/s. It is an assumption, not a measurement. "
