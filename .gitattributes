@@ -1,0 +1,2 @@
+# Normalise line endings so the repo is identical for judges on any OS.
+* text=auto eol=lf

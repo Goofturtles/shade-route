@@ -1,0 +1,16 @@
+# Pinned to the exact versions this project was built and tested against on
+# 2026-08-15 (Windows 11, Python 3.13.12). Regenerate deliberately, not casually:
+# OSMnx v1 -> v2 changed graph_from_bbox's signature, and that break is silent.
+#
+# Verify a fresh install with:  python scripts/verify_env.py
+
+fastapi==0.141.1
+uvicorn[standard]==0.52.3
+osmnx==2.1.1
+networkx==3.6.1
+shapely==2.1.2
+geopandas==1.1.4
+pvlib==0.15.2
+pandas==3.0.5
+numpy==2.5.2
+requests==2.34.2

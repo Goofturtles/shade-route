@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Cached OSM downloads — regenerated on first run, never committed
+cache/
+*.graphml
+
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

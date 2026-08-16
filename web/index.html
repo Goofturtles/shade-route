@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shade Route — walking routes that stay in the shade</title>
+<meta name="description" content="A walking route planner that finds the shadiest path between two points, not the fastest.">
+<!-- Inline favicon: a sun and the shadow it casts. Avoids a 404 on every load. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='11.5' cy='4.5' r='3' fill='%23e69f00'/%3E%3Crect x='1.5' y='9' width='10' height='5' rx='1.2' fill='%230072b2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+/* ---------------------------------------------------------------
+   Palette: Okabe–Ito, which stays distinguishable under all three
+   common forms of colour blindness. Every colour that carries
+   meaning is paired with a shape, pattern or text label as well.
+   --------------------------------------------------------------- */
+:root {
+  --ink:          #16191d;
+  --ink-muted:    #4d545c;
+  --surface:      #ffffff;
+  --surface-sunk: #f2f4f6;
+  --line:         #c9cfd6;
+
+  --shortest:     #d55e00; /* vermillion */
+  --shadiest:     #0072b2; /* blue */
+  --ok:           #007a5e; /* green, darkened for AA on white */
+  --warn:         #9a5300; /* orange, darkened for AA on white */
+  --error:        #a4262c;
+
+  --focus:        #0072b2;
+  --radius:       10px;
+  --pad:          16px;
+
+  /* Marisol is 71. Nothing in this interface is smaller than 15px,
+     and body copy sits at 17px. */
+  --font-body:    17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { height: 100%; }
+
+/* Wide screens: the app fills the viewport exactly and the sidebar scrolls
+   inside itself, so the map never gets pushed off-screen. Narrow screens undo
+   this below and let the whole page scroll normally. */
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font: var(--font-body);
+  color: var(--ink);
+  background: var(--surface);
+}
+
+/* Visible focus everywhere, on every focusable thing. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 2000;
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 0 0 var(--radius) 0;
+  text-decoration: none;
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+header {
+  flex: 0 0 auto;
+  padding: 14px var(--pad);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  align-items: baseline;
+}
+header h1 {
+  margin: 0;
+  font-size: 21px;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+header p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+#backend-status {
+  margin-left: auto;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
+#backend-status .dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--line);
+  margin-right: 7px;
+  vertical-align: 0.05em;
+}
+#backend-status.is-ok .dot    { background: var(--ok); }
+#backend-status.is-error .dot { background: var(--error); }
+#backend-status.is-error      { color: var(--error); }
+
+/* Flex-grown rather than height: calc(100% - <header height>). The header
+   wraps at narrow widths, so any hardcoded header height is a layout bug
+   waiting for a viewport that triggers it. */
+main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 390px 1fr;
+}
+
+#controls {
+  padding: var(--pad);
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+}
+
+#map {
+  min-height: 320px;
+  height: 100%;
+  background: var(--surface-sunk);
+}
+
+@media (max-width: 860px) {
+  body {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 55vh;
+  }
+  #controls { border-right: 0; border-bottom: 1px solid var(--line); overflow-y: visible; }
+}
+
+h2 {
+  font-size: 17px;
+  margin: 0 0 10px;
+  letter-spacing: -0.005em;
+  line-height: 1.35;
+}
+
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px 14px;
+  margin: 0 0 16px;
+}
+legend {
+  padding: 0 6px;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.point-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+.field label {
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--ink-muted);
+  margin-bottom: 4px;
+}
+input[type="number"] {
+  width: 100%;
+  font: inherit;
+  font-size: 16px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+button {
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  padding: 10px 16px;
+  min-height: 44px; /* comfortable target size */
+  border-radius: 8px;
+  border: 1px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+button:hover { background: var(--surface-sunk); }
+
+button.primary {
+  background: var(--shadiest);
+  border-color: var(--shadiest);
+  color: #fff;
+  width: 100%;
+  font-weight: 600;
+}
+button.primary:hover { background: #005b8f; border-color: #005b8f; }
+
+.hint {
+  color: var(--ink-muted);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 10px 0 0;
+}
+
+#status {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface-sunk);
+  border-left: 4px solid var(--line);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 24px;
+}
+#status.is-error {
+  border-left-color: var(--error);
+  color: var(--error);
+}
+
+/* Map pins: letter + colour + shape, never colour alone. */
+.pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  /* digits/letters only, so line-height 1 is safe here */
+  line-height: 1;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+.pin--origin      { background: var(--ok); }
+.pin--destination { background: var(--shortest); }
+
+.legend-key {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.legend-key .swatch {
+  flex: 0 0 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+footer {
+  padding: 12px var(--pad);
+  font-size: 15px; /* project floor — nothing in this UI goes below 15px */
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#controls">Skip to route controls</a>
+
+<header>
+  <h1>Shade Route</h1>
+  <p>Walking routes that stay in the shade, not the ones that finish first.</p>
+  <p id="backend-status"><span class="dot" aria-hidden="true"></span><span id="backend-status-text">Checking backend…</span></p>
+</header>
+
+<main>
+  <section id="controls" aria-labelledby="controls-heading" tabindex="-1">
+    <h2 id="controls-heading">Plan a walk</h2>
+
+    <p class="hint" id="area-note">Loading the demo area…</p>
+
+    <fieldset>
+      <legend>Start (A)</legend>
+      <div class="point-row">
+        <!-- The visually-hidden suffix keeps each field's accessible name unique.
+             Navigating a form by field alone, four inputs all called "Latitude"
+             or "Longitude" are indistinguishable. -->
+        <div class="field">
+          <label for="origin-lat">Latitude<span class="visually-hidden"> of the start point</span></label>
+          <input type="number" id="origin-lat" step="any" inputmode="decimal" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="origin-lon">Longitude<span class="visually-hidden"> of the start point</span></label>
+          <input type="number" id="origin-lon" step="any" inputmode="decimal" autocomplete="off">
+        </div>
+        <button type="button" id="origin-set">Set A</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Destination (B)</legend>
+      <div class="point-row">
+        <div class="field">
+          <label for="dest-lat">Latitude<span class="visually-hidden"> of the destination</span></label>
+          <input type="number" id="dest-lat" step="any" inputmode="decimal" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="dest-lon">Longitude<span class="visually-hidden"> of the destination</span></label>
+          <input type="number" id="dest-lon" step="any" inputmode="decimal" autocomplete="off">
+        </div>
+        <button type="button" id="dest-set">Set B</button>
+      </div>
+    </fieldset>
+
+    <button type="button" class="primary" id="find-route">Find the shadiest route</button>
+
+    <p id="status" role="status" aria-live="polite">Click the map to place A, then B — or type coordinates above.</p>
+
+    <h2 style="margin-top:22px">Map key</h2>
+    <p class="legend-key"><span class="swatch" style="background:var(--ok)" aria-hidden="true">A</span> Start point</p>
+    <p class="legend-key"><span class="swatch" style="background:var(--shortest)" aria-hidden="true">B</span> Destination</p>
+    <p class="hint">The dashed rectangle marks the area covered by the downloaded street data. Points must sit inside it.</p>
+
+    <footer>
+      Milestone 0 — map and point selection. Routing arrives in Milestone 1,
+      shade modelling in Milestone 2.
+    </footer>
+  </section>
+
+  <div id="map" role="application" aria-label="Map of inner Portland. Click to place the start and destination points. Coordinate entry fields in the route controls provide the same function without a mouse."></div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var state = {
+    config: null,
+    origin: null,
+    destination: null,
+    nextClickSets: 'origin'
+  };
+
+  var map, bboxRect;
+  var markers = { origin: null, destination: null };
+
+  var statusEl = document.getElementById('status');
+
+  function announce(message, isError) {
+    statusEl.textContent = message;
+    statusEl.classList.toggle('is-error', Boolean(isError));
+  }
+
+  function pinIcon(letter, kind) {
+    return L.divIcon({
+      className: '',
+      html: '<span class="pin pin--' + kind + '" aria-hidden="true">' + letter + '</span>',
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+  }
+
+  function insideBbox(lat, lon) {
+    var b = state.config.bbox;
+    return lat >= b.south && lat <= b.north && lon >= b.west && lon <= b.east;
+  }
+
+  function fmt(n) {
+    return Number(n).toFixed(6);
+  }
+
+  function setPoint(kind, lat, lon, options) {
+    options = options || {};
+    if (!state.config) {
+      announce('Still loading the demo area — try again in a moment.', true);
+      return false;
+    }
+    if (!isFinite(lat) || !isFinite(lon)) {
+      announce('That is not a valid coordinate. Latitude and longitude must both be numbers.', true);
+      return false;
+    }
+    if (!insideBbox(lat, lon)) {
+      announce(
+        'That point is outside the ' + state.config.area_label + ' demo area. ' +
+        'Street data has only been downloaded inside the dashed rectangle.',
+        true
+      );
+      return false;
+    }
+
+    state[kind] = { lat: lat, lon: lon };
+
+    var letter = kind === 'origin' ? 'A' : 'B';
+    var label = kind === 'origin' ? 'Start' : 'Destination';
+
+    if (markers[kind]) {
+      markers[kind].setLatLng([lat, lon]);
+    } else {
+      markers[kind] = L.marker([lat, lon], {
+        icon: pinIcon(letter, kind),
+        keyboard: false,
+        alt: label + ' marker'
+      }).addTo(map);
+    }
+    markers[kind].bindPopup(label + ' (' + letter + ')<br>' + fmt(lat) + ', ' + fmt(lon));
+
+    document.getElementById(kind === 'origin' ? 'origin-lat' : 'dest-lat').value = fmt(lat);
+    document.getElementById(kind === 'origin' ? 'origin-lon' : 'dest-lon').value = fmt(lon);
+
+    state.nextClickSets = kind === 'origin' ? 'destination' : 'origin';
+
+    if (!options.silent) {
+      var next = state.destination && state.origin
+        ? 'Both points are set. The next map click will move A.'
+        : 'Now place ' + (state.nextClickSets === 'origin' ? 'A' : 'B') + '.';
+      announce(label + ' set to ' + fmt(lat) + ', ' + fmt(lon) + '. ' + next);
+    }
+    return true;
+  }
+
+  function wireCoordinateEntry(kind, latId, lonId, buttonId) {
+    var latInput = document.getElementById(latId);
+    var lonInput = document.getElementById(lonId);
+
+    function apply() {
+      setPoint(kind, parseFloat(latInput.value), parseFloat(lonInput.value));
+    }
+
+    document.getElementById(buttonId).addEventListener('click', apply);
+    [latInput, lonInput].forEach(function (input) {
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          apply();
+        }
+      });
+    });
+  }
+
+  function buildMap(cfg) {
+    map = L.map('map', {
+      center: [cfg.center.lat, cfg.center.lon],
+      zoom: 15,
+      zoomControl: true
+    });
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var b = cfg.bbox;
+    bboxRect = L.rectangle(
+      [[b.south, b.west], [b.north, b.east]],
+      { color: '#16191d', weight: 2, dashArray: '8 6', fill: false, interactive: false }
+    ).addTo(map);
+
+    map.fitBounds(bboxRect.getBounds(), { padding: [18, 18] });
+
+    map.on('click', function (event) {
+      setPoint(state.nextClickSets, event.latlng.lat, event.latlng.lng);
+    });
+  }
+
+  function showBackend(ok, text) {
+    var el = document.getElementById('backend-status');
+    el.classList.toggle('is-ok', ok);
+    el.classList.toggle('is-error', !ok);
+    document.getElementById('backend-status-text').textContent = text;
+  }
+
+  document.getElementById('find-route').addEventListener('click', function () {
+    if (!state.origin || !state.destination) {
+      announce('Place both A and B first.', true);
+      return;
+    }
+    announce(
+      'Routing is not wired up yet — that is Milestone 1. Points A and B are recorded and ' +
+      'will be sent to the router as soon as it exists.'
+    );
+  });
+
+  wireCoordinateEntry('origin', 'origin-lat', 'origin-lon', 'origin-set');
+  wireCoordinateEntry('destination', 'dest-lat', 'dest-lon', 'dest-set');
+
+  fetch('/api/config')
+    .then(function (response) {
+      if (!response.ok) { throw new Error('HTTP ' + response.status); }
+      return response.json();
+    })
+    .then(function (cfg) {
+      state.config = cfg;
+      buildMap(cfg);
+      document.getElementById('area-note').textContent =
+        'Demo area: ' + cfg.area_label + ', roughly 2 km by 2 km.';
+    })
+    .catch(function (error) {
+      announce('Could not load the map configuration from the server: ' + error.message, true);
+    });
+
+  fetch('/health')
+    .then(function (response) {
+      if (!response.ok) { throw new Error('HTTP ' + response.status); }
+      return response.json();
+    })
+    .then(function (health) {
+      showBackend(true,
+        'Backend ok · Python ' + health.python +
+        ' · OSMnx ' + health.versions.osmnx +
+        ' · pvlib ' + health.versions.pvlib);
+    })
+    .catch(function (error) {
+      showBackend(false, 'Backend unreachable: ' + error.message);
+    });
+}());
+</script>
+</body>
+</html>
