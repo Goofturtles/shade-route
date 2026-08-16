@@ -9,10 +9,11 @@ from __future__ import annotations
 import importlib.metadata as importlib_metadata
 import platform
 
-from fastapi import FastAPI
+import networkx as nx
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 
-from app import config
+from app import config, graph
 
 app = FastAPI(
     title="Shade Route",
@@ -59,9 +60,12 @@ def health() -> dict:
     return {
         "status": "degraded" if missing else "ok",
         "missing": missing,
-        "milestone": 0,
+        "milestone": 1,
         "python": platform.python_version(),
         "versions": versions,
+        # Lets the client warn that the first request will pause on a one-off
+        # Overpass download rather than looking frozen.
+        "graph_cached": graph.is_cached(),
     }
 
 
@@ -79,6 +83,81 @@ def client_config() -> dict:
         "timezone": config.TIMEZONE,
         "walking_speed_m_s": config.WALKING_SPEED_M_S,
         "area_label": "Inner Portland, Oregon",
+    }
+
+
+@app.get("/api/route")
+def compute_route(
+    orig_lat: float = Query(..., description="Origin latitude"),
+    orig_lon: float = Query(..., description="Origin longitude"),
+    dest_lat: float = Query(..., description="Destination latitude"),
+    dest_lon: float = Query(..., description="Destination longitude"),
+) -> dict:
+    """Compute walking routes between two points.
+
+    Milestone 1 returns only the shortest route. The response is already shaped
+    as a *list* of routes so that M2 adds the shadiest one alongside it without
+    the client having to change how it reads the payload.
+    """
+    for label, lat, lon in (
+        ("origin", orig_lat, orig_lon),
+        ("destination", dest_lat, dest_lon),
+    ):
+        if not config.bbox_contains(lat, lon):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"The {label} is outside the demo area. Street data has only "
+                    "been downloaded for a 2 km by 2 km box of inner Portland."
+                ),
+            )
+
+    walk_graph = graph.load_graph()
+    orig_node = graph.nearest_node(walk_graph, orig_lat, orig_lon)
+    dest_node = graph.nearest_node(walk_graph, dest_lat, dest_lon)
+
+    if orig_node == dest_node:
+        raise HTTPException(
+            status_code=400,
+            detail="Those two points snap to the same intersection. Move them further apart.",
+        )
+
+    try:
+        node_path = graph.shortest_path(walk_graph, orig_node, dest_node, weight="length")
+    except nx.NetworkXNoPath:
+        raise HTTPException(
+            status_code=422,
+            detail="No walking route connects those two points inside the demo area.",
+        )
+
+    length_m = graph.route_length_m(walk_graph, node_path)
+    coordinates = graph.route_coordinates(walk_graph, node_path)
+
+    return {
+        "milestone": 1,
+        "routes": [
+            {
+                "id": "shortest",
+                "label": "Shortest route",
+                "coordinates": coordinates,
+                "length_m": round(length_m, 1),
+                "duration_s": round(length_m / config.WALKING_SPEED_M_S),
+                # Explicitly null rather than absent or zero: the shade model
+                # does not exist yet, and a 0 here would read as "no shade".
+                "shade_fraction": None,
+            }
+        ],
+        "assumptions": {
+            "walking_speed_m_s": config.WALKING_SPEED_M_S,
+            "walking_speed_note": (
+                "Duration is computed from route length at a comfortable older-adult "
+                "walking pace. It is an assumption, not a measurement."
+            ),
+        },
+        "snapped": {
+            "origin": [walk_graph.nodes[orig_node]["y"], walk_graph.nodes[orig_node]["x"]],
+            "destination": [walk_graph.nodes[dest_node]["y"], walk_graph.nodes[dest_node]["x"]],
+        },
     }
 
 

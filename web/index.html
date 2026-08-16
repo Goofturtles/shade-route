@@ -337,6 +337,44 @@ input[aria-invalid="true"] {
   padding: 3px 8px;
 }
 
+.route-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.route-item {
+  border: 1px solid var(--line);
+  border-left-width: 6px;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.route-item h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.route-item dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.route-item dt { color: var(--ink-muted); }
+.route-item dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+/* Route identity is carried by a written line-style name as well as colour and
+   the drawn dash pattern, so nothing depends on seeing hue. */
+.route-pattern {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
+
+button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
+
 .visually-hidden {
   position: absolute;
   width: 1px; height: 1px;
@@ -421,9 +459,15 @@ input[aria-invalid="true"] {
       </div>
     </fieldset>
 
-    <button type="button" class="primary" id="find-route">Find the shadiest route</button>
+    <button type="button" class="primary" id="find-route">Find route</button>
 
     <p id="status" role="status" aria-live="polite">Click the map to place A, then B — or type coordinates above.</p>
+
+    <section id="results" aria-labelledby="results-heading" hidden>
+      <h2 id="results-heading" class="section-heading-spaced">Route</h2>
+      <ul id="route-list" class="route-list"></ul>
+      <p class="hint" id="assumption-note"></p>
+    </section>
 
     <h2 class="section-heading-spaced">Map key</h2>
     <p class="legend-key"><span class="swatch swatch--origin" aria-hidden="true">A</span> Start point</p>
@@ -433,8 +477,9 @@ input[aria-invalid="true"] {
       above. With the map focused, the arrow keys pan and the plus and minus keys zoom.</p>
 
     <p class="milestone-note">
-      Milestone 0 — map and point selection. Routing arrives in Milestone 1,
-      shade modelling in Milestone 2.
+      Milestone 1 — shortest-path routing over the real walking network.
+      Shade modelling, and the comparison against a shadier route, arrive in
+      Milestone 2.
     </p>
   </section>
 
@@ -462,7 +507,8 @@ input[aria-invalid="true"] {
     config: null,
     origin: null,
     destination: null,
-    nextClickSets: 'origin'
+    nextClickSets: 'origin',
+    graphCached: null
   };
 
   var map, bboxRect;
@@ -655,15 +701,143 @@ input[aria-invalid="true"] {
     document.getElementById('backend-status-text').textContent = text;
   }
 
-  document.getElementById('find-route').addEventListener('click', function () {
+  // Keyed by the route id the server returns, so Milestone 2 adds the shadiest
+  // route by adding one entry here. Every route is identified by a written
+  // line-style name as well as a colour, so none of this depends on seeing hue.
+  var ROUTE_STYLES = {
+    shortest: { color: '#d55e00', dashArray: '12 8', patternName: 'a dashed line' },
+    shadiest: { color: '#0072b2', dashArray: null, patternName: 'a solid line' }
+  };
+
+  var routeLayers = [];
+
+  function clearRoutes() {
+    routeLayers.forEach(function (layer) { map.removeLayer(layer); });
+    routeLayers = [];
+    document.getElementById('results').hidden = true;
+    document.getElementById('route-list').textContent = '';
+  }
+
+  function formatDistance(metres) {
+    return metres >= 1000
+      ? (metres / 1000).toFixed(2) + ' km'
+      : Math.round(metres) + ' m';
+  }
+
+  function formatDuration(seconds) {
+    var minutes = Math.round(seconds / 60);
+    if (minutes < 60) { return minutes + ' min'; }
+    return Math.floor(minutes / 60) + ' h ' + (minutes % 60) + ' min';
+  }
+
+  function renderRoutes(payload) {
+    clearRoutes();
+    var list = document.getElementById('route-list');
+    var bounds = null;
+
+    payload.routes.forEach(function (route) {
+      var style = ROUTE_STYLES[route.id] || ROUTE_STYLES.shortest;
+
+      var line = L.polyline(route.coordinates, {
+        color: style.color,
+        weight: 6,
+        opacity: 0.9,
+        dashArray: style.dashArray,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+      routeLayers.push(line);
+      bounds = bounds ? bounds.extend(line.getBounds()) : line.getBounds();
+
+      var item = document.createElement('li');
+      item.className = 'route-item';
+      item.style.borderLeftColor = style.color;
+
+      var heading = document.createElement('h3');
+      heading.textContent = route.label;
+      item.appendChild(heading);
+
+      var pattern = document.createElement('p');
+      pattern.className = 'route-pattern';
+      pattern.textContent = 'Drawn as ' + style.patternName + ' on the map.';
+      item.appendChild(pattern);
+
+      var dl = document.createElement('dl');
+      [
+        ['Distance', formatDistance(route.length_m)],
+        ['Walking time', formatDuration(route.duration_s)],
+        ['In shade', route.shade_fraction === null
+          ? 'not measured yet (Milestone 2)'
+          : Math.round(route.shade_fraction * 100) + '%']
+      ].forEach(function (pair) {
+        var dt = document.createElement('dt');
+        dt.textContent = pair[0];
+        var dd = document.createElement('dd');
+        dd.textContent = pair[1];
+        dl.appendChild(dt);
+        dl.appendChild(dd);
+      });
+      item.appendChild(dl);
+      list.appendChild(item);
+    });
+
+    document.getElementById('assumption-note').textContent =
+      payload.assumptions.walking_speed_note;
+    document.getElementById('results').hidden = false;
+
+    if (bounds) { map.fitBounds(bounds, { padding: [40, 40] }); }
+  }
+
+  function describeRoutes(payload) {
+    return payload.routes.map(function (route) {
+      return route.label + ': ' + formatDistance(route.length_m) +
+             ', about ' + formatDuration(route.duration_s) + ' walk';
+    }).join('. ') + '.';
+  }
+
+  var findButton = document.getElementById('find-route');
+
+  findButton.addEventListener('click', function () {
     if (!state.origin || !state.destination) {
       announce('Place both A and B first.', true);
       return;
     }
-    announce(
-      'Routing is not wired up yet — that is Milestone 1. Points A and B are recorded and ' +
-      'will be sent to the router as soon as it exists.'
-    );
+
+    var params = new URLSearchParams({
+      orig_lat: state.origin.lat, orig_lon: state.origin.lon,
+      dest_lat: state.destination.lat, dest_lon: state.destination.lon
+    });
+
+    findButton.setAttribute('aria-busy', 'true');
+    findButton.disabled = true;
+    announce(state.graphCached === false
+      ? 'Finding the route. The street network is downloading for the first time — ' +
+        'this happens once, takes about half a minute, and is cached afterwards.'
+      : 'Finding the route…');
+
+    fetch('/api/route?' + params.toString())
+      .then(function (response) {
+        return response.json().then(function (body) {
+          if (!response.ok) {
+            throw new Error(body.detail || ('HTTP ' + response.status));
+          }
+          return body;
+        });
+      })
+      .then(function (payload) {
+        state.graphCached = true;
+        renderRoutes(payload);
+        announce(describeRoutes(payload) +
+          ' Shade comparison arrives in Milestone 2.');
+      })
+      .catch(function (error) {
+        clearRoutes();
+        announce('Could not find a route: ' + error.message, true);
+      })
+      .then(function () {
+        findButton.removeAttribute('aria-busy');
+        findButton.disabled = false;
+      });
   });
 
   wireCoordinateEntry('origin', 'origin-lat', 'origin-lon', 'origin-set');
@@ -698,10 +872,12 @@ input[aria-invalid="true"] {
           ' · run: pip install -r requirements.txt');
         return;
       }
+      state.graphCached = health.graph_cached;
       showBackend(true,
         'Backend ok · Python ' + health.python +
         ' · OSMnx ' + health.versions.osmnx +
-        ' · pvlib ' + health.versions.pvlib);
+        ' · pvlib ' + health.versions.pvlib +
+        ' · street network ' + (health.graph_cached ? 'cached' : 'not yet downloaded'));
     })
     .catch(function (error) {
       showBackend(false, 'Backend unreachable: ' + error.message);

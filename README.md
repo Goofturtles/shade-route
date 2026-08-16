@@ -6,9 +6,9 @@ Give it an origin, a destination, and a date and time. It works out where buildi
 shadows fall at that moment, then routes to maximise the time you spend in shade — and shows
 you honestly what that costs: *"+4 min walk, 61% shaded instead of 12%."*
 
-> **Status: Milestone 0 of 5.** The map, the point selection, and the server skeleton work.
-> Routing lands in M1, the shade model in M2. See [Milestones](#milestones) for what is and
-> isn't built yet.
+> **Status: Milestone 1 of 5.** Real shortest-path routing over Portland's walking network
+> works. The shade model — the thing that makes this project interesting — lands in M2. See
+> [Milestones](#milestones) for what is and isn't built yet.
 
 ---
 
@@ -69,6 +69,23 @@ python scripts/verify_env.py
 A passing run ends with `PASS - the stack imports, the signatures are known, the sun is where it
 should be.` (The script's output is deliberately pure ASCII — Windows consoles default to a
 legacy code page and would mangle anything else.)
+
+### Warm the street-network cache (recommended before a demo)
+
+```bash
+python scripts/warm_cache.py
+```
+
+The first route request otherwise triggers a one-off download of Portland's walking network from
+Overpass — about 11 seconds here, but Overpass is a shared public service that is sometimes slow
+or rate-limited, and you don't want your demo waiting on someone else's server. The graph is
+written to `cache/walk_graph.graphml` (3,363 nodes, 10,408 edges) and reloads in about 0.3 s
+thereafter. It is never re-downloaded.
+
+This script also confirms *empirically* that the bounding-box tuple was interpreted in the order
+the code assumes, by checking where the downloaded nodes actually landed. OSMnx types that
+argument as `tuple[float, float, float, float]` and passing the wrong order doesn't raise — it
+quietly returns a graph for somewhere else.
 
 ---
 
@@ -168,7 +185,7 @@ Stated up front, because a model you can't describe the failure modes of isn't a
 | | Milestone | State |
 |---|---|---|
 | **M0** | Server skeleton, `/health`, Leaflet map, click/keyboard point selection | **Done** |
-| M1 | Walking graph cached to disk, shortest path rendered | Not started |
+| **M1** | Walking graph cached to disk, shortest path rendered | **Done** |
 | M2 | Sun position, tree + building shadows, shade fraction, cost function, dual route comparison | Not started |
 | M2v | Optional voxel 3D view of the shadow volumes M2 computes | Not started |
 | M4 | Time-of-day scrubber, benches, stair avoidance | Not started |
