@@ -150,10 +150,19 @@ function encode() {
   // NVENC on the 4090 does 4K in realtime; libx264 would take many minutes.
   // yuv420p + Rec.709 tagging is what makes the file play correctly everywhere
   // instead of arriving washed out or green in QuickTime and browsers.
+  // The score is optional: without it the film still encodes, just silent. With
+  // it, -shortest trims whichever track runs long so a score generated for a
+  // slightly different duration cannot leave a tail of black or of silence.
+  const scorePath = path.join(HERE, 'score.wav');
+  const hasScore = existsSync(scorePath);
+  console.log(hasScore ? 'scoring from ' + scorePath : 'no score.wav — encoding silent');
+
   const args = [
     '-y',
     '-framerate', String(FPS),
     '-i', path.join(FRAME_DIR, '%05d.png'),
+    ...(hasScore ? ['-i', scorePath] : []),
+    ...(hasScore ? ['-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-ar', '48000', '-shortest'] : []),
     '-c:v', 'h264_nvenc',
     '-preset', 'p7', '-tune', 'hq',
     '-rc', 'vbr', '-cq', '19', '-b:v', '0', '-maxrate', '90M', '-bufsize', '180M',
@@ -179,4 +188,4 @@ if (!SKIP_CAPTURE) {
   console.log(`re-encoding ${n} existing frames`);
 }
 await encode();
-console.log('\ndone ->', path.resolve(HERE, OUT));
+console.log('\ndone ->', outPath);

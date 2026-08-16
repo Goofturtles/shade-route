@@ -324,13 +324,16 @@ html, body {
         cost = length &times; <span class="d">(</span>1 + <span class="t">aversion</span>
         <span class="d">&times; (</span>1 &minus; shade<span class="d">))</span></p>
       <div style="margin-top:50px;max-width:1180px">
-        <div class="track-ends"><span>Fastest</span><span>Shadiest</span></div>
+        <div class="track-ends">
+          <span>Fastest &middot; <b id="avVal" style="color:#fff;font-weight:600">0.0</b></span>
+          <span>Shadiest</span>
+        </div>
         <div class="track">
           <div class="fill" id="avFill"></div>
           <div class="knob" id="avKnob"></div>
         </div>
         <p class="sub" style="margin-top:24px;max-width:1180px">
-          At <b id="avVal">0.0</b> it returns the plain shortest path &mdash; which is what makes
+          At <b>zero</b> it returns the plain shortest path, exactly &mdash; which is what makes
           the comparison honest.</p>
       </div>
     </div>
@@ -357,7 +360,7 @@ html, body {
         actually asks: when should I go?</p>
       <ul class="hours" id="hourStrip" style="margin-top:44px"></ul>
       <p class="sub" data-rise style="margin-top:28px;max-width:1500px">
-        Fourteen hours, each one fully routed, ranked by <b>time in direct sun</b> rather than by
+        Thirteen daylight hours, each one fully routed, ranked by <b>time in direct sun</b> rather than by
         percentage &mdash; minutes of exposure are what actually cause harm.</p>
     </div>
     <div class="vignette"></div>

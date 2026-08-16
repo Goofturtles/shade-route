@@ -243,7 +243,8 @@ and no generated footage anywhere in it.
 ```bash
 python -m uvicorn app.main:app          # 1. the app must be running
 node video/capture_footage.mjs          # 2. stills, straight out of the app
-python video/check_claims.py            # 3. the honesty gate — must pass
+node video/score.mjs 107                # 3. the score — synthesised, not licensed
+python video/check_claims.py            # 4. the honesty gate — must pass
 node video/render.mjs --scene video/scene.html --out video/shade-route-4k.mp4
 ```
 
@@ -259,7 +260,17 @@ of the frame number, applied by `seek(n)`; the renderer calls `seek(n)`,
 screenshots, and repeats, and capture may take as long as it needs to.
 
 **Every product frame is a screenshot of this app** answering the same query the
-film is about, so no number in it can drift from what the code produces.
+film is about, so no number in it can drift from what the code produces. The
+middle act is drawn rather than screenshotted, because a screenshot can only
+show that the software *has* an answer — a diagram is the only way to show why
+the answer is that one, and the shadow geometry is the whole argument here. The
+sun in that scene really does sit on the ray that produces the shadow beneath
+it, and the shadow length really is `height / tan(elevation)`.
+
+**The score is synthesised, not licensed.** `video/score.mjs` writes a 107-second
+WAV from detuned sine partials, a Schroeder reverb and a soft limiter, with its
+harmony pinned to the film's own cut points. No audio file enters this
+repository, which is the same rule the rest of the project runs under.
 
 **`video/check_claims.py` is not optional.** A video is the easiest place in this
 project to break the rule in §7 of the brief, because nothing in a video is

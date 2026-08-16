@@ -24,3 +24,8 @@ Thumbs.db
 video/footage/
 video/*.mp4
 video/frames/
+video/score.wav
+# The rendered score is a 20 MB build product of score.mjs, and the scene
+# contact sheet is a screenshot of scene.html. Both regenerate.
+video/*.wav
+video/newscenes.png
