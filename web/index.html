@@ -1089,11 +1089,11 @@ summary:hover { color: var(--ink); }
 /* ---- Three columns, as in the reference ---------------------------------- */
 .cols {
   display: grid;
-  grid-template-columns: 372px minmax(0, 1fr) 372px;
+  grid-template-columns: 408px minmax(0, 1fr) 372px;
   gap: 16px;
   align-items: start;
 }
-@media (max-width: 1420px) { .cols { grid-template-columns: 352px minmax(0, 1fr); } }
+@media (max-width: 1420px) { .cols { grid-template-columns: 372px minmax(0, 1fr); } }
 @media (max-width: 1040px) { .cols { grid-template-columns: 1fr; } }
 
 .panel {
@@ -1946,12 +1946,20 @@ summary:hover { color: var(--ink); }
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 
-  // Always stamps a resolved theme. The palette now lives in a single
-  // [data-theme="dark"] block rather than being duplicated across a media query
-  // and an attribute selector — one source, no drift — which means the
-  // attribute has to be present for the system preference to take effect. It
-  // also makes `color-scheme` follow the manual choice, so the browser's own
-  // date and time pickers match the interface instead of the OS.
+  // Always stamps a resolved theme.
+  //
+  // The dark palette is deliberately written TWICE: once under
+  // @media (prefers-color-scheme: dark), guarded as :root:not([data-theme="light"])
+  // so it covers the moment before this function runs and the case where it
+  // never does, and once under [data-theme="dark"] so an explicit choice beats
+  // the OS in both directions. Both copies must define the same token set —
+  // --accent-text and --shadow-fill have already gone missing from the
+  // attribute block once, which left a manual switch to dark showing the light
+  // accent at 2.25:1. An earlier version of this comment claimed there was only
+  // one block, which is how that went unnoticed.
+  //
+  // Stamping also makes `color-scheme` follow the manual choice, so the
+  // browser's own date and time pickers match the interface instead of the OS.
   function applyTheme(theme) {
     var resolved = theme || (systemPrefersDark() ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', resolved);
@@ -3087,7 +3095,6 @@ summary:hover { color: var(--ink); }
         state.graphCached = true;
         lastPayload = payload;
         renderRoutes(payload);
-        renderHero(payload);
         renderDirections();
         loadBestTime();
         announce(describeRoutes(payload));
