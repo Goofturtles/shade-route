@@ -51,9 +51,14 @@ def _derive_bbox() -> tuple[float, float, float, float]:
     )
 
 
-# (west, south, east, north) — this is the ordering OSMnx v2 expects for its
-# `bbox` argument. Verified against the installed version by
-# scripts/verify_env.py rather than assumed.
+# (west, south, east, north) — believed to be the ordering OSMnx v2 expects for
+# its `bbox` argument, i.e. (left, bottom, right, top).
+#
+# NOT YET VERIFIED. scripts/verify_env.py confirms the *signature*
+# (`bbox: tuple[float, float, float, float]`) but a type annotation says nothing
+# about element order, and getting it wrong returns a graph for the wrong place
+# rather than raising. M1 must confirm this empirically from the coordinates of
+# the downloaded nodes before anything is built on top of it.
 DEMO_BBOX = _derive_bbox()
 
 

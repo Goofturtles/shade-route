@@ -1,2 +1,8 @@
 # Normalise line endings so the repo is identical for judges on any OS.
 * text=auto eol=lf
+
+# The demo video must never be line-ending mangled.
+*.mp4 binary
+*.mov binary
+*.png binary
+*.jpg binary

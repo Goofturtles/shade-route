@@ -48,12 +48,20 @@ def _installed_versions() -> dict[str, str]:
 
 @app.get("/health")
 def health() -> dict:
-    """Liveness check plus the exact dependency versions in use."""
+    """Liveness check plus the exact dependency versions in use.
+
+    Reports "degraded" rather than "ok" when part of the geo stack is missing.
+    The server itself will happily start without OSMnx or pvlib installed, and
+    an unqualified "ok" in that state would be a lie the frontend then repeats.
+    """
+    versions = _installed_versions()
+    missing = sorted(name for name, value in versions.items() if value == "not installed")
     return {
-        "status": "ok",
+        "status": "degraded" if missing else "ok",
+        "missing": missing,
         "milestone": 0,
         "python": platform.python_version(),
-        "versions": _installed_versions(),
+        "versions": versions,
     }
 
 

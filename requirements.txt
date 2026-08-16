@@ -13,4 +13,6 @@ geopandas==1.1.4
 pvlib==0.15.2
 pandas==3.0.5
 numpy==2.5.2
-requests==2.34.2
+
+# `requests` is deliberately absent: nothing here imports it yet, and OSMnx
+# already depends on it. It gets pinned here if and when Open-Meteo goes in.

@@ -5,7 +5,7 @@ solar-position frame has column names that are easy to misremember. Rather
 than trusting memory, this script interrogates the *installed* packages and
 prints what they actually expose.
 
-Runs entirely offline — no Overpass calls, no downloads.
+Runs entirely offline - no Overpass calls, no downloads.
 
     python scripts/verify_env.py
 """
@@ -21,7 +21,42 @@ def rule(title: str) -> None:
     print("-" * len(title))
 
 
+REQUIRED = ("osmnx", "networkx", "shapely", "geopandas", "pvlib", "pandas", "numpy")
+
+
+def check_imports() -> int:
+    """Import each package separately so a broken install is diagnosed, not crashed on.
+
+    This script exists precisely for the case where something failed to install.
+    Letting a bare ImportError traceback escape would fail at the one job it has.
+    """
+    rule("Import check")
+    import importlib
+
+    failed = []
+    for name in REQUIRED:
+        try:
+            importlib.import_module(name)
+        except Exception as exc:  # noqa: BLE001 - any failure is worth reporting verbatim
+            failed.append(name)
+            print(f"  {name:<12} FAILED - {type(exc).__name__}: {exc}")
+        else:
+            print(f"  {name:<12} ok")
+
+    if failed:
+        print(
+            "\n  Could not import: " + ", ".join(failed) + "\n"
+            "  Install the pinned dependencies into this interpreter:\n"
+            "      python -m pip install -r requirements.txt\n"
+            f"  (interpreter in use: {sys.executable})"
+        )
+    return len(failed)
+
+
 def main() -> int:
+    if check_imports():
+        return 1
+
     import geopandas
     import networkx
     import numpy
@@ -51,7 +86,9 @@ def main() -> int:
     tree = shapely.STRtree([shapely.box(0, 0, 1, 1), shapely.box(5, 5, 6, 6)])
     print(f"  STRtree.query signature: {inspect.signature(tree.query)}")
 
-    rule("pvlib solar position — actual column names")
+    # Output stays pure ASCII on purpose: Windows consoles default to a legacy
+    # code page, and an em dash here prints as a replacement character.
+    rule("pvlib solar position - actual column names")
     times = pd.DatetimeIndex(["2026-08-15 15:00:00"]).tz_localize("America/Los_Angeles")
     solpos = pvlib.solarposition.get_solarposition(times, 45.5220, -122.6750)
     print(f"  columns: {list(solpos.columns)}")
@@ -65,6 +102,15 @@ def main() -> int:
         "  Portland, 15:00 local on 15 Aug. Expect the sun in the west-southwest\n"
         "  (azimuth roughly 230-250 deg) and fairly high (elevation roughly 40-50 deg)."
     )
+    # The whole point of this block is that these column names might not be what
+    # we expect, so read them defensively rather than assuming they are present.
+    required_columns = {"azimuth", "apparent_elevation"}
+    absent = required_columns - set(solpos.columns)
+    if absent:
+        print(f"  FAIL - pvlib did not return the expected column(s): {sorted(absent)}")
+        print(f"  It returned: {list(solpos.columns)}")
+        return 1
+
     azimuth = float(row["azimuth"])
     elevation = float(row["apparent_elevation"])
     ok = 200.0 <= azimuth <= 270.0 and 30.0 <= elevation <= 60.0
@@ -72,9 +118,9 @@ def main() -> int:
 
     rule("Result")
     if not ok:
-        print("  FAIL — solar position is outside the expected envelope. Stop and investigate.")
+        print("  FAIL - solar position is outside the expected envelope. Stop and investigate.")
         return 1
-    print("  PASS — the stack imports, the signatures are known, the sun is where it should be.")
+    print("  PASS - the stack imports, the signatures are known, the sun is where it should be.")
     return 0
 
 

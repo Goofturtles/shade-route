@@ -29,8 +29,18 @@ def main() -> None:
     parser.add_argument("--reload", action="store_true", help="auto-reload on file changes")
     args = parser.parse_args()
 
-    print(f"Shade Route -> http://{args.host}:{args.port}")
-    uvicorn.run("app.main:app", host=args.host, port=args.port, reload=args.reload)
+    shown_host = "127.0.0.1" if args.host in ("0.0.0.0", "::") else args.host
+    print(f"Shade Route -> http://{shown_host}:{args.port}")
+
+    # Without reload_dirs, watchfiles walks the whole working directory —
+    # including .venv and its thousands of files — and every edit costs seconds.
+    uvicorn.run(
+        "app.main:app",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+        reload_dirs=[str(REPO_ROOT / "app"), str(REPO_ROOT / "web")] if args.reload else None,
+    )
 
 
 if __name__ == "__main__":

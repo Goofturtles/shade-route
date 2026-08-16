@@ -183,16 +183,37 @@ Accessibility isn't a polish pass on this project, it's the point of it. A route
 someone who can't safely take the fast route has to work for people who can't easily read a map
 either.
 
-- A **prose turn-by-turn description** sits alongside the map, with shade and rest-stop notes
-  (M5).
+**Working today (M0):**
+
 - **Full keyboard operation** with visible focus rings. Origin and destination are settable by
-  typed coordinates, not only by clicking the map.
-- **No information is carried by colour alone** — routes are distinguished by line pattern and
-  text label as well as hue.
+  typed coordinates, not only by clicking the map, and Enter commits a field.
 - **Okabe–Ito palette**, which stays distinguishable under protanopia, deuteranopia and
-  tritanopia. WCAG AA contrast minimum throughout.
-- `prefers-reduced-motion` respected.
-- Nothing is smaller than 15 px; body text is 17 px; interactive targets are at least 44 px.
+  tritanopia. Verified WCAG AA against live computed styles, including the map pins — the
+  destination pin is a darkened vermillion (6.07:1) because full-strength `#d55e00` under white
+  bold text is only 3.87:1, which fails the 4.5:1 text bar.
+- **Nothing carries meaning by colour alone.** The two map pins are distinguished by letter
+  (A / B) as well as hue, and the map key repeats both in text.
+- `prefers-reduced-motion` respected, including Leaflet's JS-driven inertia panning and zoom
+  animations, which a CSS-only rule does not reach.
+- **Nothing in the app's own interface is below 15 px**; body text is 17 px; interactive targets
+  are at least 44 px, including the map's zoom controls, which are enlarged from Leaflet's
+  26 px default. The one exception is Leaflet's attribution line — third-party chrome, raised
+  from its 11 px default to 13 px but not to 15 px.
+- Validation failures set `aria-invalid` and point the field at the error text, so tabbing back
+  re-reads the reason instead of stranding it in a live region.
+- Coordinate fields are `type="text"` with `inputmode="decimal"` rather than `type="number"`,
+  because an arrow-key press on a number input silently turns 45.522 into 44.522 — a point
+  110 km away.
+
+**Scheduled, not yet built:**
+
+- A **prose turn-by-turn description** alongside the map, with shade and rest-stop notes (M5).
+- Route lines distinguished by **line pattern and text label** as well as hue (M2, when routes
+  first exist).
+- A keyboard-and-screen-reader pass over the complete flow (M5).
+
+**Known gap:** below 860 px the page scrolls normally but the map still captures touch drags,
+so a swipe starting on the map pans the map rather than the page. Scheduled for M5.
 
 ---
 

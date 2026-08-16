@@ -21,18 +21,24 @@
   --surface-sunk: #f2f4f6;
   --line:         #c9cfd6;
 
-  --shortest:     #d55e00; /* vermillion */
+  --shortest:     #d55e00; /* vermillion — M2 route lines only (3.87:1, clears
+                              the 3:1 bar for non-text graphics, fails 4.5:1) */
   --shadiest:     #0072b2; /* blue */
   --ok:           #007a5e; /* green, darkened for AA on white */
-  --warn:         #9a5300; /* orange, darkened for AA on white */
   --error:        #a4262c;
+
+  /* Pins carry a letter, so their fill has to satisfy the *text* contrast bar
+     against white, not the graphics bar. Vermillion at full strength does not:
+     white on #d55e00 is 3.87:1. Darkened to 6.07:1 here. */
+  --pin-destination: #a34700;
 
   --focus:        #0072b2;
   --radius:       10px;
   --pad:          16px;
 
-  /* Marisol is 71. Nothing in this interface is smaller than 15px,
-     and body copy sits at 17px. */
+  /* Marisol is 71. Nothing in this app's own interface is smaller than 15px and
+     body copy sits at 17px. The single exception is Leaflet's attribution line
+     (third-party chrome, raised from 11px to 13px below). */
   --font-body:    17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -176,12 +182,17 @@ legend {
   line-height: 1.4;
 }
 
+/* auto-fit with a floor rather than a rigid 1fr 1fr auto: at 200% text zoom, or
+   at 320px wide, three fixed columns squeeze the coordinate fields until
+   "45.522000" is clipped. The keyboard path is the accessible path, so it has
+   to survive reflow (WCAG 1.4.10). */
 .point-row {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
   gap: 8px;
   align-items: end;
 }
+.point-row button { white-space: nowrap; }
 .field label {
   display: block;
   font-size: 15px;
@@ -262,7 +273,7 @@ button.primary:hover { background: #005b8f; border-color: #005b8f; }
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 .pin--origin      { background: var(--ok); }
-.pin--destination { background: var(--shortest); }
+.pin--destination { background: var(--pin-destination); }
 
 .legend-key {
   display: flex;
@@ -286,6 +297,31 @@ button.primary:hover { background: #005b8f; border-color: #005b8f; }
   font-size: 15px;
   line-height: 1;
 }
+.swatch--origin      { background: var(--ok); }
+.swatch--destination { background: var(--pin-destination); }
+
+input[aria-invalid="true"] {
+  border-color: var(--error);
+  border-width: 2px;
+}
+
+/* Leaflet's defaults undercut this project's commitments: 26px zoom buttons
+   (30px on touch) and 11px attribution text. Bring the controls up to the 44px
+   target size. The attribution is third-party chrome rather than app UI, so it
+   goes to 13px rather than the app's 15px floor — the README says so explicitly
+   instead of quietly claiming otherwise. */
+.leaflet-bar a,
+.leaflet-touch .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px; /* single glyphs (+ and −) only */
+  font-size: 22px;
+}
+.leaflet-control-attribution {
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 3px 8px;
+}
 
 .visually-hidden {
   position: absolute;
@@ -297,12 +333,16 @@ button.primary:hover { background: #005b8f; border-color: #005b8f; }
   border: 0;
 }
 
-footer {
-  padding: 12px var(--pad);
+.milestone-note {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
   font-size: 15px; /* project floor — nothing in this UI goes below 15px */
   line-height: 1.5;
   color: var(--ink-muted);
 }
+
+.section-heading-spaced { margin-top: 22px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -336,13 +376,17 @@ footer {
         <!-- The visually-hidden suffix keeps each field's accessible name unique.
              Navigating a form by field alone, four inputs all called "Latitude"
              or "Longitude" are indistinguishable. -->
+        <!-- type="text" rather than type="number" on purpose: with a number input,
+             focusing a field and pressing Down arrow to scroll the page silently
+             turns 45.522 into 44.522 — a point 110 km away. inputmode="decimal"
+             still raises the numeric keypad on touch. -->
         <div class="field">
           <label for="origin-lat">Latitude<span class="visually-hidden"> of the start point</span></label>
-          <input type="number" id="origin-lat" step="any" inputmode="decimal" autocomplete="off">
+          <input type="text" id="origin-lat" inputmode="decimal" autocomplete="off" spellcheck="false">
         </div>
         <div class="field">
           <label for="origin-lon">Longitude<span class="visually-hidden"> of the start point</span></label>
-          <input type="number" id="origin-lon" step="any" inputmode="decimal" autocomplete="off">
+          <input type="text" id="origin-lon" inputmode="decimal" autocomplete="off" spellcheck="false">
         </div>
         <button type="button" id="origin-set">Set A</button>
       </div>
@@ -353,11 +397,11 @@ footer {
       <div class="point-row">
         <div class="field">
           <label for="dest-lat">Latitude<span class="visually-hidden"> of the destination</span></label>
-          <input type="number" id="dest-lat" step="any" inputmode="decimal" autocomplete="off">
+          <input type="text" id="dest-lat" inputmode="decimal" autocomplete="off" spellcheck="false">
         </div>
         <div class="field">
           <label for="dest-lon">Longitude<span class="visually-hidden"> of the destination</span></label>
-          <input type="number" id="dest-lon" step="any" inputmode="decimal" autocomplete="off">
+          <input type="text" id="dest-lon" inputmode="decimal" autocomplete="off" spellcheck="false">
         </div>
         <button type="button" id="dest-set">Set B</button>
       </div>
@@ -367,19 +411,33 @@ footer {
 
     <p id="status" role="status" aria-live="polite">Click the map to place A, then B — or type coordinates above.</p>
 
-    <h2 style="margin-top:22px">Map key</h2>
-    <p class="legend-key"><span class="swatch" style="background:var(--ok)" aria-hidden="true">A</span> Start point</p>
-    <p class="legend-key"><span class="swatch" style="background:var(--shortest)" aria-hidden="true">B</span> Destination</p>
-    <p class="hint">The dashed rectangle marks the area covered by the downloaded street data. Points must sit inside it.</p>
+    <h2 class="section-heading-spaced">Map key</h2>
+    <p class="legend-key"><span class="swatch swatch--origin" aria-hidden="true">A</span> Start point</p>
+    <p class="legend-key"><span class="swatch swatch--destination" aria-hidden="true">B</span> Destination</p>
+    <p class="hint" id="map-help">The dashed rectangle marks the area covered by the downloaded street
+      data. Points must sit inside it. Click the map to place a point, or use the coordinate fields
+      above. With the map focused, the arrow keys pan and the plus and minus keys zoom.</p>
 
-    <footer>
+    <p class="milestone-note">
       Milestone 0 — map and point selection. Routing arrives in Milestone 1,
       shade modelling in Milestone 2.
-    </footer>
+    </p>
   </section>
 
-  <div id="map" role="application" aria-label="Map of inner Portland. Click to place the start and destination points. Coordinate entry fields in the route controls provide the same function without a mouse."></div>
+  <!-- No role="application": that drops screen readers out of browse mode for the
+       whole subtree, including Leaflet's own controls and attribution link, and we
+       have no custom key handling that would justify the trade. Leaflet already
+       makes this container focusable with arrow-pan and +/- zoom. The long
+       instructions live in aria-describedby, not in the accessible name. -->
+  <div id="map" aria-label="Map of inner Portland" aria-describedby="map-help"></div>
 </main>
+
+<noscript>
+  <p style="padding:16px;font-size:17px;line-height:1.55">
+    Shade Route needs JavaScript to draw the map and calculate routes. Please enable
+    JavaScript and reload the page.
+  </p>
+</noscript>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -398,9 +456,42 @@ footer {
 
   var statusEl = document.getElementById('status');
 
+  var FIELDS = {
+    origin:      ['origin-lat', 'origin-lon'],
+    destination: ['dest-lat', 'dest-lon']
+  };
+
+  // Assistive tech commonly suppresses a live-region update whose text is
+  // identical to what it just read. Two failed attempts with the same bad
+  // coordinates would announce once and then go silent — the worst case, since
+  // this region is the only channel carrying that feedback.
+  //
+  // Alternating an invisible zero-width space guarantees the text differs every
+  // time. Deliberately synchronous: a requestAnimationFrame version of this was
+  // tried and left the status line permanently blank in any tab that isn't
+  // compositing (backgrounded, or a non-rendering preview pane), and a timer
+  // would inherit background-tab throttling.
+  var announceToggle = false;
+
   function announce(message, isError) {
-    statusEl.textContent = message;
     statusEl.classList.toggle('is-error', Boolean(isError));
+    announceToggle = !announceToggle;
+    statusEl.textContent = message + (announceToggle ? '\u200B' : '');
+  }
+
+  function markFieldValidity(kind, isValid) {
+    FIELDS[kind].forEach(function (id) {
+      var input = document.getElementById(id);
+      if (isValid) {
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+      } else {
+        input.setAttribute('aria-invalid', 'true');
+        // Point the field at the message so tabbing back to it re-reads why it
+        // was rejected, rather than leaving the reason only in the live region.
+        input.setAttribute('aria-describedby', 'status');
+      }
+    });
   }
 
   function pinIcon(letter, kind) {
@@ -428,10 +519,12 @@ footer {
       return false;
     }
     if (!isFinite(lat) || !isFinite(lon)) {
+      markFieldValidity(kind, false);
       announce('That is not a valid coordinate. Latitude and longitude must both be numbers.', true);
       return false;
     }
     if (!insideBbox(lat, lon)) {
+      markFieldValidity(kind, false);
       announce(
         'That point is outside the ' + state.config.area_label + ' demo area. ' +
         'Street data has only been downloaded inside the dashed rectangle.',
@@ -440,6 +533,7 @@ footer {
       return false;
     }
 
+    markFieldValidity(kind, true);
     state[kind] = { lat: lat, lon: lon };
 
     var letter = kind === 'origin' ? 'A' : 'B';
@@ -462,9 +556,13 @@ footer {
     state.nextClickSets = kind === 'origin' ? 'destination' : 'origin';
 
     if (!options.silent) {
-      var next = state.destination && state.origin
-        ? 'Both points are set. The next map click will move A.'
-        : 'Now place ' + (state.nextClickSets === 'origin' ? 'A' : 'B') + '.';
+      // Always derive the next letter from state.nextClickSets. Hardcoding "A"
+      // in the both-points-set branch was wrong after re-placing A, and the live
+      // region is the only place a screen-reader user learns this mode.
+      var nextLetter = state.nextClickSets === 'origin' ? 'A' : 'B';
+      var next = (state.origin && state.destination)
+        ? 'Both points are set. The next map click will move ' + nextLetter + '.'
+        : 'Now place ' + nextLetter + '.';
       announce(label + ' set to ' + fmt(lat) + ', ' + fmt(lon) + '. ' + next);
     }
     return true;
@@ -490,10 +588,20 @@ footer {
   }
 
   function buildMap(cfg) {
+    // The blanket CSS reduced-motion rule can't reach Leaflet's inertia panning
+    // or its zoom/fade animations — those are JS-driven, so the map would keep
+    // gliding after release for a user who asked for no motion.
+    var reduceMotion = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     map = L.map('map', {
       center: [cfg.center.lat, cfg.center.lon],
       zoom: 15,
-      zoomControl: true
+      zoomControl: true,
+      inertia: !reduceMotion,
+      zoomAnimation: !reduceMotion,
+      fadeAnimation: !reduceMotion,
+      markerZoomAnimation: !reduceMotion
     });
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -556,6 +664,14 @@ footer {
       return response.json();
     })
     .then(function (health) {
+      // A missing geo package doesn't stop the server booting, so "ok" here has
+      // to mean the stack is actually present — not merely that HTTP answered.
+      if (health.status !== 'ok') {
+        showBackend(false,
+          'Backend degraded · missing: ' + (health.missing || []).join(', ') +
+          ' · run: pip install -r requirements.txt');
+        return;
+      }
       showBackend(true,
         'Backend ok · Python ' + health.python +
         ' · OSMnx ' + health.versions.osmnx +

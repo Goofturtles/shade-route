@@ -79,6 +79,51 @@ rather than recalled. Claude ran `scripts/verify_env.py` and confirmed against
 bbox tuple. The type signature doesn't reveal it. This will be confirmed empirically in M1 by
 inspecting the coordinates of the downloaded nodes, not by trusting a docstring.
 
+### Post-M0 audit round
+
+After the first M0 commit, a second AI pass (a Claude sub-agent acting as a production-readiness
+reviewer) audited the changeset for accessibility, correctness and honesty. Its findings were
+checked by hand before being acted on, not accepted on trust. What it caught that the first pass
+missed:
+
+- **A real WCAG AA failure the automated sweep structurally could not see.** The destination map
+  pin is white bold 16px text on `#d55e00`, which is **3.87:1** against a 4.5:1 requirement.
+  The first contrast sweep ran before any pin existed in the DOM — pins are Leaflet `divIcon`
+  elements created only after a point is placed. Verified the ratio by hand, then darkened the
+  pin fill to `#a34700` (6.07:1). Full-strength `#d55e00` is retained for M2 route lines, where
+  the 3:1 non-text threshold applies.
+- **A self-contradiction between two files.** A comment in `app/config.py` claimed the bbox tuple
+  ordering had been "verified by scripts/verify_env.py", while this file correctly recorded it as
+  unverified. The claim was false — a type signature says nothing about element order. Comment
+  corrected. Given the brief's honesty requirement, this was treated as a blocker.
+- **Two README overclaims.** The accessibility section promised "nothing smaller than 15px,
+  targets at least 44px" while Leaflet's attribution rendered at 11px and its zoom buttons at
+  26px; and it described colour-independent route lines in the present tense when no routes exist
+  until M2. Fixed on both sides: Leaflet's controls were enlarged to 44px and its attribution to
+  13px, and the README now separates what works today from what is scheduled, naming the 13px
+  attribution as an explicit exception.
+- **A live-region bug.** The "next click will move A" message was hardcoded, so after re-placing
+  A it named the wrong point — and that live region is the only channel carrying this state to a
+  screen-reader user.
+- Also fixed: `role="application"` removed from the map (it drops AT out of browse mode without
+  custom key handling to justify it), `prefers-reduced-motion` extended to Leaflet's JS-driven
+  inertia and zoom animations that CSS cannot reach, coordinate inputs switched off
+  `type="number"` (an arrow-key press silently moved a point 110 km), `aria-invalid` and
+  `aria-describedby` wired to validation failures, `/health` now reports `degraded` instead of
+  `ok` when the geo stack is absent, `verify_env.py` made robust to the broken-install case it
+  exists to diagnose and its output made pure ASCII for Windows consoles, and `run.py --reload`
+  scoped to `app/` and `web/` instead of watching `.venv`.
+
+**One fix introduced a bug that testing then caught.** The first attempt at forcing repeat
+live-region announcements used `requestAnimationFrame`, which never fires in a tab that isn't
+compositing — leaving the status line permanently blank. Replaced with a synchronous
+alternating zero-width space. Recorded here because "the AI wrote it and it was verified" and
+"the AI wrote it and it worked first time" are different claims, and only the first is true.
+
+**Known gap accepted, not fixed:** below 860px the map still captures touch drags that were
+meant to scroll the page. Documented in the README and scheduled for M5 rather than half-fixed
+under time pressure.
+
 ---
 
 *Log continues as milestones complete.*
