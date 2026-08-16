@@ -604,4 +604,55 @@ than asserted — 1,939 polygons unioned to 412 parts, 225 KB, redrawn as the cl
 
 ---
 
+## Interface rebuild (16 Aug, evening)
+
+**Human:** rejected the interface repeatedly and specifically — "looks nothing like the
+references", "looks like something anyone could make", "it has to look like a professional
+website" — and supplied a folder of reference mockups. Also directed that real imagery be used,
+and offered a local GPU to generate it.
+
+**Claude (this session):** the useful correction was methodological. Earlier passes tuned CSS
+token values and *asserted* the result matched; they did not. Loading the page in a real browser
+and looking at a screenshot found in one step what several rounds of measurement had missed —
+the backdrop was a flat wash, the map was zoomed to the whole metro, and the page arrived empty.
+Re-reading the actual reference images then showed the target was a defocused photograph behind
+clear glass, not the milky panel that had been built.
+
+Changed as a result:
+
+- **The backdrop is a photograph** of low sun raking tree shadows across a path — the thing this
+  project computes, photographed. It is drawn *into* the same `<canvas>` the contrast sweep
+  samples, so there is still one backdrop to measure, and the procedural painting it replaced is
+  still there underneath as the fallback if the image fails to load.
+- **A hero statement** carries the finding at full size instead of burying it in a panel — every
+  number in it is server-computed.
+- **The page opens on a worked example** rather than an empty form. See README for how that pair
+  was chosen and why it is labelled a favourable rather than typical case.
+- **Type**: Fraunces and Public Sans replaced the system stack.
+
+**Bugs this found, which no amount of token-tuning would have:**
+
+- `mapPadding()` still inset `fitBounds` by the control panel's *viewport* position, left over
+  from when the panel floated over the map. On a map that had since become a card in its own
+  column, that subtracted ~450 px from a ~600 px map, so Leaflet gave up and zoomed out to the
+  whole metro. Its companion `syncZoomOffset()` was setting two CSS variables that nothing read.
+- `--accent-text` and `--shadow-fill` were defined in the `prefers-color-scheme` media block
+  **twice each** and in the explicit `[data-theme="dark"]` block **not at all** — a 2-space
+  insertion pattern matching inside the 4-space media block, the identical failure recorded
+  earlier for `--chrome`. Manually switching to dark therefore kept the light accent, and
+  "Reset" sat at 2.25:1. Both dark blocks now carry the same 41 tokens, asserted by script.
+
+**Verification, after three earlier sweeps returned false all-clears:** the contrast sweep is now
+checked for sensitivity before it is believed — a deliberately unreadable probe and a
+deliberately readable one are planted and must come back 1.24:1 and 13.97:1. Only then is a zero
+trusted. Both themes pass AA; the hero's text is measured separately against the *brightest*
+pixel of the photograph beneath it, since that text sits on the image rather than on the canvas.
+
+**On generated imagery:** the offer of a local GPU was declined for this asset. A defocused
+forest backdrop is a case where real photography beats generation outright, CC0 stock was
+available immediately, and starting a generation stack would have cost hours that the unbuilt
+demo video needs.
+
+---
+
 *Log continues as milestones complete.*

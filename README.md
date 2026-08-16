@@ -163,6 +163,36 @@ crash anything — it would just quietly return bad routes.
 
 Map data © OpenStreetMap contributors, [ODbL](https://www.openstreetmap.org/copyright).
 
+### Interface assets
+
+None of these carry an API key either, and none of them affect a computed number.
+
+| What | Source | Licence | If it fails to load |
+|---|---|---|---|
+| `web/img/canopy.jpg` — the backdrop and hero photograph | [StockSnap.io](https://stocksnap.io) | CC0 (public domain) | The backdrop falls back to a procedurally painted canopy drawn on a `<canvas>`; nothing else changes |
+| Fraunces (display type) | Google Fonts | SIL Open Font License 1.1 | Falls back to Georgia / system serif |
+| Public Sans (body type) | Google Fonts | SIL Open Font License 1.1 | Falls back to the system UI sans stack |
+| Leaflet 1.9.4 | unpkg CDN | BSD-2-Clause | The map does not render; the prose directions still do |
+
+The photograph is committed to the repository rather than hotlinked, so it works
+offline. The two typefaces load from Google Fonts with `font-display: swap` — the
+same network bet already made on Leaflet and on the map tiles, and the page is
+fully legible in the fallback faces if that bet loses.
+
+**Public Sans** was chosen rather than defaulted to: it is the typeface drawn for
+US federal public-service interfaces, where the legibility problem is the same
+one this project has.
+
+### The example route on first load
+
+The page opens on a worked example — **Southwest 6th & Clay → Capsule Pharmacy**,
+Marisol's actual errand — rather than an empty form. It is a real route computed
+by the same endpoint any other query uses; nothing about it is hardcoded except
+the two endpoints. It was selected by measuring 30 candidate pairs in the demo
+area (see the shade-gain search in the commit history), so it is a favourable
+example, not a typical one: the median pair in that sample gained closer to
+35 percentage points of shade than 40. Any point you set replaces it.
+
 ---
 
 ## Limitations

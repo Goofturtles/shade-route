@@ -8,6 +8,15 @@
 <!-- Inline favicon: a sun and the shadow it casts. Avoids a 404 on every load. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='11.5' cy='4.5' r='3' fill='%23e69f00'/%3E%3Crect x='1.5' y='9' width='10' height='5' rx='1.2' fill='%230072b2'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<!-- Fraunces for display and Public Sans for text. Public Sans is the typeface
+     drawn for US government public-service interfaces, which is the exact
+     legibility problem this project has; Fraunces carries the warmth without
+     ever being asked to set body copy. Both load with font-display: swap and
+     fall back to the system stack, so a judge with no network still gets a
+     correctly proportioned page — the same bet already made on Leaflet. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap">
 <style>
 /* ==========================================================================
    Shade Route — Liquid Glass over foliage
@@ -30,9 +39,8 @@
 :root {
   color-scheme: light dark;
 
-  --font-display: -apple-system, BlinkMacSystemFont, system-ui, "SF Pro Display",
-                  "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-text:    -apple-system, BlinkMacSystemFont, system-ui, "SF Pro Text",
+  --font-display: "Fraunces", Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-text:    "Public Sans", -apple-system, BlinkMacSystemFont, system-ui,
                   "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
   --ease-standard: cubic-bezier(0.4, 0, 0.6, 1);
@@ -46,12 +54,14 @@
   --on-glass:   #16281d;
 
   /* ---- The foliage backdrop -------------------------------------------- */
-  --leaf-1: #dceccf;
-  --leaf-2: #c3ddb2;
-  --leaf-3: #a9cb98;
-  --leaf-4: #eaf3e2;
-  --leaf-5: #8fb87f;
-  --sky:    #eef5e8;
+  --leaf-1: #eef8d4;   /* sunlit leaf   */
+  --leaf-2: #bcdc8c;   /* lit foliage   */
+  --leaf-3: #6f9a52;   /* mid canopy    */
+  --leaf-4: #ffffff;   /* blown highlight through the leaves */
+  --leaf-5: #24401f;   /* deep shadow   */
+  --sky:    #d8ecb4;
+  --trunk:  #3a3524;   /* framing trunks, left and right */
+  --path:   #d8c39a;   /* sunlit dirt underfoot */
 
   /* ---- Accent: forest green ------------------------------------------- */
   --accent:       #2f6b45;   /* 6.3:1 under white */
@@ -82,13 +92,13 @@
   /* ---- Glass ----------------------------------------------------------- */
   /* The canopy behind this measures 192-233 in luminance - bright and narrow -
      which is what lets the pane come this far off and still read. */
-  --glass:        rgba(255, 255, 255, 0.34);
-  --glass-strong: rgba(255, 255, 255, 0.48);
-  --glass-inner:  rgba(255, 255, 255, 0.30);
-  --glass-border: rgba(255, 255, 255, 0.72);
+  --glass:        rgba(255, 255, 255, 0.32);
+  --glass-strong: rgba(255, 255, 255, 0.44);
+  --glass-inner:  rgba(255, 255, 255, 0.24);
+  --glass-border: rgba(255, 255, 255, 0.86);
   --glass-edge:   rgba(255, 255, 255, 0.95);
   --glass-under:  rgba(255, 255, 255, 0.42);
-  --glass-blur:   blur(30px) saturate(150%);
+  --glass-blur:   blur(22px) saturate(165%);
   --glass-blur-sm: blur(14px) saturate(130%);
 
   --lift:
@@ -108,7 +118,7 @@
      than glass - the one place in this interface where translucency loses. */
   --chrome: rgba(255, 255, 255, 0.94);
   --focus: #1f5c37;
-  --tile-filter: saturate(0.78) contrast(0.94) brightness(1.03);
+  --tile-filter: saturate(0.12) contrast(0.82) brightness(1.11);
 
   --r-sm:   12px;
   --r:      16px;
@@ -126,18 +136,19 @@
     --ink-muted:  #b9c9bc;
     --on-glass:   #f2f7f2;
 
-    --leaf-1: #16261b;
-    --leaf-2: #101d15;
-    --leaf-3: #1c3324;
-    --leaf-4: #0d1711;
-    --leaf-5: #24422e;
-    --sky:    #0a1210;
+    --leaf-1: #24422e;
+    --leaf-2: #16301f;
+    --leaf-3: #0f2318;
+    --leaf-4: #5c8f63;   /* moonlit gap — the highlight the dark set was missing */
+    --leaf-5: #040a06;
+    --sky:    #0b1810;
+    --trunk:  #050b07;
+    --path:   #2a3026;
 
     --accent:       #4fae76;
     --accent-hover: #63c48b;
     --accent-ink:   #05170d;
     --accent-soft:  rgba(79, 174, 118, 0.20);
-  --accent-text:  #7fd7a4;
     --accent-text:  #7fd7a4;
 
     --ok:    #5fd39a;
@@ -151,11 +162,10 @@
     --pin-destination: #a34700;
     --shade-bar-fill:  #6fdba0;
     --shade-bar-track: rgba(255, 255, 255, 0.14);
-  --shadow-fill: #7fa8cc;
     --shadow-fill: #7fa8cc;
 
-    --glass:        rgba(14, 25, 19, 0.46);
-    --glass-strong: rgba(14, 25, 19, 0.60);
+    --glass:        rgba(12, 22, 16, 0.44);
+    --glass-strong: rgba(12, 22, 16, 0.58);
     --glass-inner:  rgba(255, 255, 255, 0.06);
     --glass-border: rgba(255, 255, 255, 0.20);
     --glass-edge:   rgba(255, 255, 255, 0.28);
@@ -186,21 +196,25 @@
   --ink-muted:  #b9c9bc;
   --on-glass:   #f2f7f2;
 
-  --leaf-1: #16261b;
-  --leaf-2: #101d15;
-  --leaf-3: #1c3324;
-  --leaf-4: #0d1711;
-  --leaf-5: #24422e;
-  --sky:    #0a1210;
+  --leaf-1: #24422e;
+  --leaf-2: #16301f;
+  --leaf-3: #0f2318;
+  --leaf-4: #5c8f63;
+  --leaf-5: #040a06;
+  --sky:    #0b1810;
+  --trunk:  #050b07;
+  --path:   #2a3026;
 
   --accent:       #4fae76;
   --accent-hover: #63c48b;
   --accent-ink:   #05170d;
   --accent-soft:  rgba(79, 174, 118, 0.20);
+  --accent-text:  #7fd7a4;
 
   --ok:    #5fd39a;
   --error: #ff9ea6;
   --sun:   #ffc861;
+  --shadow-fill: #7fa8cc;
 
   --shortest:  #8fb4f5;
   --shadiest:  #6fdba0;
@@ -210,8 +224,8 @@
   --shade-bar-fill:  #6fdba0;
   --shade-bar-track: rgba(255, 255, 255, 0.14);
 
-  --glass:        rgba(14, 25, 19, 0.46);
-  --glass-strong: rgba(14, 25, 19, 0.60);
+  --glass:        rgba(12, 22, 16, 0.44);
+  --glass-strong: rgba(12, 22, 16, 0.58);
   --glass-inner:  rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.20);
   --glass-edge:   rgba(255, 255, 255, 0.28);
@@ -263,7 +277,7 @@ body {
   width: 100%;
   height: 100%;
   display: block;
-  filter: blur(var(--canopy-blur, 18px)) saturate(1.05);
+  filter: blur(var(--canopy-blur, 19px)) saturate(1.16) brightness(1.03);
   transform: scale(1.08);          /* hides the blur's soft edges */
   pointer-events: none;
 }
@@ -803,8 +817,8 @@ summary:hover { color: var(--ink); }
 .topbar {
   display: flex;
   align-items: center;
-  gap: 14px 26px;
-  flex-wrap: wrap;
+  gap: 10px 18px;
+  flex-wrap: nowrap;
   padding: 10px 16px;
   border-radius: var(--r-lg);
   background: var(--glass-strong);
@@ -824,7 +838,7 @@ summary:hover { color: var(--ink); }
   box-shadow: var(--lift-sm);
   flex: 0 0 auto;
 }
-.brand h1 { font-size: 22px; line-height: 1.15; letter-spacing: -0.02em; }
+.brand h1 { font-size: 21px; line-height: 1.15; letter-spacing: -0.015em; white-space: nowrap; }
 
 .navtabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .navtab {
@@ -849,7 +863,24 @@ summary:hover { color: var(--ink); }
   background: var(--accent);
 }
 
-.bar-end { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bar-end {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: nowrap; min-width: 0;
+}
+/* The backend line reports whatever the server says, so it is the one chip of
+   unbounded length — let it truncate rather than break the bar. */
+#backend-status { min-width: 0; }
+#backend-status-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.brand, .navtabs { flex: 0 0 auto; }
+
+@media (max-width: 1180px) {
+  .topbar { flex-wrap: wrap; }
+  .bar-end { flex-wrap: wrap; }
+  .navtabs { order: 3; }
+}
 
 .info-chip {
   display: inline-flex; align-items: center; gap: 10px;
@@ -866,6 +897,77 @@ summary:hover { color: var(--ink); }
 .info-chip .ic { font-size: 19px; line-height: 1; }
 .info-chip b { display: block; color: var(--ink); font-weight: 600; font-size: 16px; }
 .info-chip small { display: block; font-size: 15px; color: var(--ink-muted); }
+
+/* ---- The hero statement -------------------------------------------------- */
+/* Deliberately not a card. Every other block on the page is boxed, so letting
+   this one sit straight on the canopy is what marks it as the headline rather
+   than one more panel competing at the same weight. */
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  padding: clamp(26px, 3.4vw, 46px) clamp(24px, 3vw, 44px);
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift);
+  /* The one element on the page that carries the photograph sharp. Everything
+     else sits on the blurred version of the same frame, so the hero reads as
+     the page pulling into focus rather than as a different picture. */
+  background-image: url("img/canopy.jpg");
+  background-size: cover;
+  background-position: center 62%;
+}
+.hero::before {
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(105deg, rgba(6, 20, 10, 0.94) 0%, rgba(6, 20, 10, 0.82) 42%,
+                    rgba(6, 20, 10, 0.44) 78%, rgba(6, 20, 10, 0.30) 100%);
+}
+.hero-eyebrow {
+  margin: 0;
+  font-size: 15px; font-weight: 600;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: rgba(233, 246, 226, 0.82);
+}
+.hero-body {
+  display: flex; align-items: baseline; gap: 8px 30px;
+  flex-wrap: wrap;
+}
+.hero-figure {
+  display: flex; align-items: baseline;
+  color: #a8e6b8;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 0.84;
+  letter-spacing: -0.045em;
+  flex: 0 0 auto;
+}
+.hero-num { font-size: clamp(76px, 9.5vw, 148px); font-weight: 600; }
+.hero-pct { font-size: clamp(34px, 4vw, 62px); font-weight: 500; margin-left: 2px; }
+.hero-line {
+  margin: 0;
+  flex: 1 1 340px; min-width: 280px;
+  font-family: var(--font-display);
+  font-size: clamp(21px, 2.1vw, 31px);
+  font-weight: 500; line-height: 1.26;
+  letter-spacing: -0.014em;
+  color: #ffffff;
+  text-wrap: balance;
+}
+.hero-line b { font-weight: 600; color: #a8e6b8; }
+.hero-foot {
+  margin: 0;
+  font-size: 16px; line-height: 1.5;
+  color: rgba(233, 246, 226, 0.86);
+  max-width: 74ch;
+}
+@media (max-width: 700px) {
+  .hero-body { gap: 4px 18px; }
+  .hero-line { min-width: 0; }
+}
 
 /* ---- Three columns, as in the reference ---------------------------------- */
 .cols {
@@ -892,8 +994,10 @@ summary:hover { color: var(--ink); }
 
 .section-head {
   display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px; margin: 0 0 4px;
+  gap: 10px 12px; margin: 0 0 4px;
+  flex-wrap: wrap;
 }
+.section-head > h2 { white-space: nowrap; }
 .section-head h3 { font-size: 17px; letter-spacing: -0.012em; }
 .linkish {
   appearance: none; border: 0; background: none; box-shadow: none;
@@ -1295,6 +1399,21 @@ summary:hover { color: var(--ink); }
       <button type="button" id="theme-toggle" aria-pressed="false">Dark mode</button>
     </div>
   </header>
+
+  <!-- The thesis, at full size. Everything else on this page is a control or a
+       table; this is the one place the finding gets to speak. Every number in
+       it is computed server-side — nothing here is decorative copy. -->
+  <section class="hero" id="hero" aria-labelledby="hero-line" hidden>
+    <p class="hero-eyebrow" id="hero-eyebrow"></p>
+    <div class="hero-body">
+      <div class="hero-figure">
+        <span class="hero-num" id="hero-num" aria-hidden="true">0</span>
+        <span class="hero-pct" aria-hidden="true">%</span>
+      </div>
+      <p class="hero-line" id="hero-line"></p>
+    </div>
+    <p class="hero-foot" id="hero-foot"></p>
+  </section>
 
   <div class="cols">
 
@@ -1737,6 +1856,18 @@ summary:hover { color: var(--ink); }
       .catch(function () { return []; });
   }
 
+  // What goes IN the field once a place is chosen. The "(Pharmacy)" suffix
+  // earns its place in the suggestion list, where it disambiguates, but inside
+  // a 216px field it only pushed the name out of view — and a half-shown name
+  // is worse than no category. Kept when the bare name would be ambiguous,
+  // since that is the one case the suffix is actually load-bearing.
+  function fieldLabel(place) {
+    var sameName = state.places.filter(function (p) {
+      return p.name.toLowerCase() === place.name.toLowerCase();
+    });
+    return sameName.length > 1 ? placeLabel(place) : place.name;
+  }
+
   function wirePlaceInput(kind, inputId) {
     var input = document.getElementById(inputId);
     function apply() {
@@ -1756,7 +1887,7 @@ summary:hover { color: var(--ink); }
         return;
       }
       setPoint(kind, place.lat, place.lon, { name: place.name });
-      input.value = placeLabel(place);
+      input.value = fieldLabel(place);
     }
     input.addEventListener('change', apply);
     input.addEventListener('keydown', function (event) {
@@ -1834,8 +1965,8 @@ summary:hover { color: var(--ink); }
     setPoint('origin', from.lat, from.lon, { name: from.name || null, silent: true });
     setPoint('destination', to.lat, to.lon, { name: to.name || null, silent: true });
 
-    document.getElementById('origin-place').value = from.name ? placeLabel(from) : '';
-    document.getElementById('dest-place').value = to.name ? placeLabel(to) : '';
+    document.getElementById('origin-place').value = from.name ? fieldLabel(from) : '';
+    document.getElementById('dest-place').value = to.name ? fieldLabel(to) : '';
 
     var description = (from.name && to.name)
       ? from.name + ' to ' + to.name
@@ -1927,42 +2058,13 @@ summary:hover { color: var(--ink); }
   updateAversionReadout();
 
   // --- Map -------------------------------------------------------------------
-  // The control panel floats *over* the map, so fitting to the raw viewport
-  // would centre routes underneath it. Measure the panel and inset the fit by
-  // however much of the map it is actually covering — which differs between
-  // the desktop side panel and the mobile bottom sheet.
+  // The map is a card in its own column, so fitting only needs a small even
+  // inset to keep the route clear of the rounded corners and the legend pill.
+  // (It used to inset by the control panel's viewport position, from when the
+  // panel floated *over* the map — on a card that subtracted ~450px from a
+  // ~600px-wide map and fitBounds gave up and zoomed out to the whole metro.)
   function mapPadding() {
-    var panel = document.getElementById('controls').getBoundingClientRect();
-    var header = document.querySelector('header').getBoundingClientRect();
-    var narrow = window.matchMedia('(max-width: 900px)').matches;
-
-    // Never ask for more padding than the map can give. In landscape on a
-    // phone the bottom sheet is most of the height, and an unclamped request
-    // left fitBounds ~46px to work with and zoomed out to nothing.
-    var capX = window.innerWidth * 0.45;
-    var capY = window.innerHeight * 0.4;
-    var clamp = function (value, cap) { return Math.max(16, Math.min(value, cap)); };
-
-    return narrow
-      ? { paddingTopLeft: L.point(28, clamp(header.bottom + 16, capY)),
-          paddingBottomRight: L.point(28, clamp(window.innerHeight - panel.top + 16, capY)) }
-      : { paddingTopLeft: L.point(clamp(panel.right + 24, capX), clamp(header.bottom + 16, capY)),
-          paddingBottomRight: L.point(28, 28) };
-  }
-
-  // Keep the map's zoom control clear of the floating header, whatever height
-  // the header happens to be once it has wrapped.
-  function syncZoomOffset() {
-    var header = document.querySelector('header').getBoundingClientRect();
-    document.documentElement.style.setProperty('--zoom-top', Math.round(header.bottom + 12) + 'px');
-
-    // On narrow screens the panel is a bottom sheet sitting on top of Leaflet's
-    // attribution corner. Push that corner above it — the OSM credit is a
-    // licence condition, not decoration.
-    var panel = document.getElementById('controls').getBoundingClientRect();
-    var narrow = window.matchMedia('(max-width: 900px)').matches;
-    var clear = narrow ? Math.max(0, Math.round(window.innerHeight - panel.top + 8)) : 0;
-    document.documentElement.style.setProperty('--sheet-clear', clear + 'px');
+    return { paddingTopLeft: L.point(26, 52), paddingBottomRight: L.point(26, 30) };
   }
 
   function buildMap(cfg) {
@@ -1982,14 +2084,6 @@ summary:hover { color: var(--ink); }
       markerZoomAnimation: !reduceMotion
     });
     L.control.zoom({ position: 'topright' }).addTo(map);
-    syncZoomOffset();
-    window.addEventListener('resize', syncZoomOffset, { passive: true });
-    // The header grows after load — the backend status line arrives from a
-    // fetch and can wrap — so a one-shot measurement leaves the zoom control
-    // underneath it. Track the element itself, not just the window.
-    if (window.ResizeObserver) {
-      new ResizeObserver(syncZoomOffset).observe(document.querySelector('header'));
-    }
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -2049,15 +2143,68 @@ summary:hover { color: var(--ink); }
     ordered.forEach(function (route) {
       var style = ROUTE_STYLES[route.id] || ROUTE_STYLES.shortest;
       var colour = cssVar(style.varName);
+
+      var casing = L.polyline(route.coordinates, {
+        color: '#ffffff', weight: 11, opacity: 0.85,
+        lineCap: 'round', lineJoin: 'round', interactive: false
+      }).addTo(map);
+      routeLayers.push(casing);
+
       var line = L.polyline(route.coordinates, {
-        color: colour, weight: 6, opacity: 0.9,
+        color: colour, weight: 6, opacity: 0.95,
         dashArray: style.dashArray, lineCap: 'round', lineJoin: 'round'
       }).addTo(map);
       routeLayers.push(line);
       bounds = bounds ? bounds.extend(line.getBounds()) : line.getBounds();
+      drawOn(line, casing, route.id === 'shadiest');
     });
 
-    // With no sun there is no shade to measure. Printing "0%" would state a
+  // Watching the shadier line trace itself over the direct one is the clearest
+  // way to show that this is a *detour* being chosen, not a different map. The
+  // fast route settles first so there is something to depart from.
+  function drawOn(line, casing, isShady) {
+    var reduce = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var path = line.getElement && line.getElement();
+    var shell = casing && casing.getElement && casing.getElement();
+    if (reduce || !path || typeof path.getTotalLength !== 'function') { return; }
+
+    var length;
+    try { length = path.getTotalLength(); } catch (e) { return; }
+    if (!length || !isFinite(length)) { return; }
+
+    var delay = isShady ? 260 : 0;
+    var duration = isShady ? 1250 : 620;
+
+    [path, shell].forEach(function (el) {
+      if (!el) { return; }
+      // A dashed line already owns stroke-dasharray, so drawing it on that way
+      // would erase its pattern — those fade in instead.
+      var dashed = el.getAttribute('stroke-dasharray');
+      if (dashed && el === path && !isShady) {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 420ms var(--ease-out, ease-out) ' + delay + 'ms';
+        window.requestAnimationFrame(function () { el.style.opacity = ''; });
+        return;
+      }
+      el.style.transition = 'none';
+      el.style.strokeDasharray = length + ' ' + length;
+      el.style.strokeDashoffset = String(length);
+      // Force layout so the browser does not collapse the two states into one.
+      void el.getBoundingClientRect();
+      el.style.transition = 'stroke-dashoffset ' + duration +
+        'ms cubic-bezier(0.22, 1, 0.36, 1) ' + delay + 'ms';
+      el.style.strokeDashoffset = '0';
+      window.setTimeout(function () {
+        // Hand the attribute back so the dashed pattern and any later restyle work.
+        el.style.strokeDasharray = '';
+        el.style.strokeDashoffset = '';
+        el.style.transition = '';
+      }, delay + duration + 60);
+    });
+  }
+
+  // With no sun there is no shade to measure. Printing "0%" would state a
     // measurement we did not make — the same reason the API returns null rather
     // than zero before the model exists.
     var shadeMeasured = payload.sun.casts_shadows;
@@ -2139,6 +2286,7 @@ summary:hover { color: var(--ink); }
     }
 
     renderCompare(payload);
+    renderHero(payload);
     renderSummary(payload);
     document.getElementById('assumption-note').textContent = payload.assumptions.walking_speed_note;
     var sources = payload.shade_sources;
@@ -2282,9 +2430,127 @@ summary:hover { color: var(--ink); }
     });
   });
 
+  // The headline statement. Every figure in it is read straight off the payload
+  // the server computed — §7 forbids any number on screen that was not measured,
+  // so nothing here is written by hand, and the sun-minutes sentence is omitted
+  // entirely rather than guessed when the API did not report it.
+  function renderHero(payload) {
+    var hero = document.getElementById('hero');
+    var shortest = payload.routes.filter(function (r) { return r.id === 'shortest'; })[0];
+    var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
+    var cmp = payload.comparison;
+    if (!shortest || !shadiest || !payload.sun.casts_shadows) { hero.hidden = true; return; }
+
+    var target = Math.round(shadiest.shade_fraction * 100);
+    var other = Math.round(shortest.shade_fraction * 100);
+
+    document.getElementById('hero-eyebrow').textContent =
+      (state.origin && state.origin.name ? state.origin.name : 'Your start') + '  →  ' +
+      (state.destination && state.destination.name ? state.destination.name : 'your destination');
+
+    var line = document.getElementById('hero-line');
+    line.textContent = '';
+    line.appendChild(document.createTextNode('of this walk stays in shade, against '));
+    var b = document.createElement('b');
+    b.textContent = other + '%';
+    line.appendChild(b);
+    line.appendChild(document.createTextNode(' on the fastest route.'));
+
+    var foot = [];
+    if (cmp.identical) {
+      foot.push('The shadiest route here is also the shortest one — no detour to trade.');
+    } else {
+      foot.push('The swap costs ' + formatDuration(cmp.extra_duration_s) + ' and ' +
+                formatDistance(cmp.extra_distance_m) + '.');
+    }
+    if (typeof shadiest.sun_seconds === 'number' && typeof shortest.sun_seconds === 'number') {
+      foot.push('Time in direct sun falls from ' + formatDuration(shortest.sun_seconds) +
+                ' to ' + formatDuration(shadiest.sun_seconds) + '.');
+    }
+    document.getElementById('hero-foot').textContent = foot.join(' ');
+
+    hero.hidden = false;
+    countTo(document.getElementById('hero-num'), target);
+  }
+
+  // A number that lands on its value reads as a result; one that is simply
+  // printed reads as a label. Reduced-motion users get the value immediately.
+  function countTo(el, target) {
+    var reduce = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !window.requestAnimationFrame) { el.textContent = target; return; }
+
+    var start = null, from = 0, duration = 1100;
+    if (el.__anim) { window.cancelAnimationFrame(el.__anim); }
+    function step(now) {
+      if (start === null) { start = now; }
+      var t = Math.min((now - start) / duration, 1);
+      // Decelerating cubic: fast out of the gate, settling onto the figure.
+      var eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(from + (target - from) * eased);
+      if (t < 1) { el.__anim = window.requestAnimationFrame(step); }
+    }
+    el.__anim = window.requestAnimationFrame(step);
+  }
+
   // The three-up comparison from the reference: the plain route, what the swap
   // costs, and the recommendation. Built from DOM nodes rather than innerHTML
   // because every value in it comes from the server.
+  // Counts a figure up to its value. Purely presentational, so it is skipped
+  // outright under prefers-reduced-motion — and the final value is written
+  // first either way, so a screen reader never reads a number mid-count.
+  function countUp(el, target) {
+    el.textContent = String(target);
+    var reduce = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || target <= 0) { return; }
+    var start = null, ms = 900;
+    function frame(now) {
+      if (start === null) { start = now; }
+      var t = Math.min(1, (now - start) / ms);
+      var eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = String(Math.round(target * eased));
+      if (t < 1) { window.requestAnimationFrame(frame); }
+    }
+    window.requestAnimationFrame(frame);
+  }
+
+  function renderHero(payload) {
+    var hero = document.getElementById('hero');
+    var shortest = payload.routes.filter(function (r) { return r.id === 'shortest'; })[0];
+    var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
+    if (!shortest || !shadiest || !payload.sun.casts_shadows) { hero.hidden = true; return; }
+
+    var cmp = payload.comparison;
+    var pct = Math.round(shadiest.shade_fraction * 100);
+    var was = Math.round(shortest.shade_fraction * 100);
+
+    document.getElementById('hero-eyebrow').textContent =
+      (state.destination && state.destination.name)
+        ? 'Walking to ' + state.destination.name
+        : 'This walk, right now';
+
+    countUp(document.getElementById('hero-num'), pct);
+
+    var line = document.getElementById('hero-line');
+    line.textContent = '';
+    line.appendChild(document.createTextNode('of this walk stays in shade, against '));
+    var b = document.createElement('b');
+    b.textContent = was + '%';
+    line.appendChild(b);
+    line.appendChild(document.createTextNode(cmp.identical
+      ? ' on the shortest route — which today is the same route.'
+      : ' on the fastest one. The swap costs ' + formatDuration(cmp.extra_duration_s) + '.'));
+
+    var sunSaved = (shortest.sun_seconds || 0) - (shadiest.sun_seconds || 0);
+    document.getElementById('hero-foot').textContent = sunSaved > 45
+      ? 'That is about ' + formatDuration(sunSaved) + ' less time in direct sun — the ' +
+        'difference that matters on a hot afternoon.'
+      : 'Shade is modelled from building and tree shadows at the time you chose.';
+
+    hero.hidden = false;
+  }
+
   function renderCompare(payload) {
     var block = document.getElementById('compare-block');
     block.textContent = '';
@@ -2437,7 +2703,7 @@ summary:hover { color: var(--ink); }
   var findButton = document.getElementById('find-route');
   var routeInFlight = false;
 
-  findButton.addEventListener('click', function () {
+  function planRoute() {
     if (routeInFlight) { return; }
     if (!state.origin || !state.destination) {
       announce('Set both a start and a destination first. Try "Surprise me" if you want an example.', true);
@@ -2483,6 +2749,7 @@ summary:hover { color: var(--ink); }
         state.graphCached = true;
         lastPayload = payload;
         renderRoutes(payload);
+        renderHero(payload);
         renderDirections();
         announce(describeRoutes(payload));
       })
@@ -2494,13 +2761,48 @@ summary:hover { color: var(--ink); }
         document.getElementById('directions').hidden = true;
         document.getElementById('summary-panel').hidden = true;
         document.getElementById('comfort-panel').hidden = true;
+        document.getElementById('hero').hidden = true;
         announce('Could not find a route: ' + error.message, true);
       })
       .then(function () {
         routeInFlight = false;
         findButton.removeAttribute('aria-busy');
       });
-  });
+  }
+
+  findButton.addEventListener('click', planRoute);
+
+  // The page used to arrive as an empty form over an empty map, which tells a
+  // first-time visitor nothing about what this does. Landing on a worked
+  // example shows the shade/distance trade-off immediately — and it is the
+  // fastest way for Marisol to learn the interface, since she can read a real
+  // route before being asked to type anything. Any point she sets replaces it.
+  function planExampleRoute() {
+    if (state.origin || state.destination) { return; }
+    var pool = state.places || [];
+
+    function named(exact, fallback) {
+      for (var i = 0; i < pool.length; i++) {
+        if (pool[i].name === exact) { return pool[i]; }
+      }
+      return fallback;
+    }
+
+    // A fixed pair, not a random one: this is the first thing anyone sees, so
+    // it has to be reproducible on a reload and while demoing. It is also
+    // Marisol's actual errand — bus stop to pharmacy — and at 15:00 it is the
+    // clearest case the demo area contains: 84.7% shaded against 44.4% for
+    // 148 m more walking, which cuts time in direct sun from 15 min to 4.
+    var from = named('Southwest 6th & Clay', { lat: 45.513604, lon: -122.681465 });
+    var to = named('Capsule Pharmacy', { lat: 45.526229, lon: -122.683096 });
+    if (metresBetween(from, to) < 400) { return; }
+
+    setPoint('origin', from.lat, from.lon, { name: from.name || null, silent: true });
+    setPoint('destination', to.lat, to.lon, { name: to.name || null, silent: true });
+    if (from.name) { document.getElementById('origin-place').value = fieldLabel(from); }
+    if (to.name) { document.getElementById('dest-place').value = fieldLabel(to); }
+    planRoute();
+  }
 
   // The pointer-tracked specular gloss is gone with the card-in-card layout it
   // belonged to. It also sat *behind* the result text and lifted the backdrop
@@ -2539,9 +2841,47 @@ summary:hover { color: var(--ink); }
 
     function palette() {
       var css = getComputedStyle(document.documentElement);
-      return ['--leaf-1', '--leaf-2', '--leaf-3', '--leaf-4', '--leaf-5', '--sky']
+      return ['--leaf-1', '--leaf-2', '--leaf-3', '--leaf-4', '--leaf-5', '--sky',
+              '--trunk', '--path']
         .map(function (t) { return css.getPropertyValue(t).trim(); })
         .filter(Boolean);
+    }
+
+    // A real photograph of low sun raking shadows across a path — which is
+    // precisely what this project computes. Drawn INTO the same canvas the
+    // contrast sweep samples, so there is still exactly one backdrop to
+    // measure; and if it ever fails to load, the procedural scene below is
+    // already there and the page is unchanged but for the texture.
+    var photo = new Image();
+    var photoReady = false;
+    photo.onload = function () { photoReady = true; draw(); };
+    photo.src = 'img/canopy.jpg';
+
+    function drawPhoto(w, h, deep, hot) {
+      // cover-fit
+      var scale = Math.max(w / photo.width, h / photo.height);
+      var dw = photo.width * scale, dh = photo.height * scale;
+      ctx.globalAlpha = 1;
+      ctx.drawImage(photo, (w - dw) / 2, (h - dh) / 2, dw, dh);
+
+      // Grade it toward the theme so the glass tint and the photograph agree
+      // rather than fighting: lift the light theme, sink the dark one.
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+        (!document.documentElement.getAttribute('data-theme') &&
+         window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      ctx.globalAlpha = dark ? 0.62 : 0.30;
+      ctx.fillStyle = dark ? deep : hot;
+      ctx.fillRect(0, 0, w, h);
+
+      var vig = ctx.createRadialGradient(w * 0.5, h * 0.44, Math.min(w, h) * 0.18,
+                                         w * 0.5, h * 0.44, Math.max(w, h) * 0.78);
+      vig.addColorStop(0, fade(deep));
+      vig.addColorStop(1, deep);
+      ctx.globalAlpha = dark ? 0.55 : 0.34;
+      ctx.fillStyle = vig;
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalAlpha = 1;
     }
 
     function draw() {
@@ -2552,52 +2892,112 @@ summary:hover { color: var(--ink); }
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      var colours = palette();
-      if (colours.length < 6) { return; }
-      var sky = colours[5], leaves = colours.slice(0, 5);
+      var c = palette();
+      if (c.length < 8) { return; }
+      var leaf1 = c[0], leaf2 = c[1], leaf3 = c[2], hot = c[3],
+          deep = c[4], sky = c[5], trunk = c[6], path = c[7];
+
+      if (photoReady) { drawPhoto(w, h, deep, hot); return; }
+
+      var random = seeded(20260816);
+
+      function blob(x, y, r, colour, alpha, hardness) {
+        if (r <= 0) { return; }
+        var disc = ctx.createRadialGradient(x, y, 0, x, y, r);
+        disc.addColorStop(0, colour);
+        disc.addColorStop(hardness === undefined ? 0.5 : hardness, colour);
+        disc.addColorStop(1, fade(colour));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = disc;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // A defocused photograph is a composition, not a texture. Scattering
+      // discs uniformly averages them to a single flat green — the failure this
+      // replaces. The scene is built the way the view down a wooded path
+      // actually stacks: bright canopy above, dark trunks framing the sides, a
+      // sunlit path below, and the horizon where they meet is the brightest
+      // band on the page.
+      var horizon = h * 0.56;
 
       ctx.globalAlpha = 1;
-      ctx.fillStyle = sky;
+      var ground = ctx.createLinearGradient(0, 0, 0, h);
+      ground.addColorStop(0.00, leaf3);
+      ground.addColorStop(0.34, leaf2);
+      ground.addColorStop(0.56, sky);
+      ground.addColorStop(0.74, path);
+      ground.addColorStop(1.00, deep);
+      ctx.fillStyle = ground;
       ctx.fillRect(0, 0, w, h);
 
-      var wash = ctx.createLinearGradient(0, 0, w * 0.7, h);
-      wash.addColorStop(0, leaves[3]);
-      wash.addColorStop(0.55, leaves[1]);
-      wash.addColorStop(1, leaves[4]);
+      // Canopy: dense overlapping bokeh in the upper half, thinning toward the
+      // horizon. Sizes span an order of magnitude so it reads as depth rather
+      // than as one layer of dots.
+      for (var i = 0; i < 190; i++) {
+        var t = random();
+        var cy = horizon * (t * t) * 1.05 - h * 0.04;
+        var cx = random() * w;
+        var cr = w * (0.012 + random() * random() * 0.16);
+        var tone = random();
+        var colour = tone > 0.82 ? hot : tone > 0.52 ? leaf1 : tone > 0.24 ? leaf2 : leaf3;
+        // Out-of-focus highlights hold a defined edge — that hard rim is what
+        // makes them read as bokeh rather than as a soft gradient.
+        blob(cx, cy, cr, colour, 0.3 + random() * 0.45, 0.62 + random() * 0.3);
+      }
+
+      // Trunks. Soft dark verticals down each edge give the frame its depth and
+      // stop the canopy reading as wallpaper.
+      for (var k = 0; k < 9; k++) {
+        var side = k % 2 ? 1 : 0;
+        var tx = side ? w * (0.83 + random() * 0.18) : w * (random() * 0.17 - 0.02);
+        var tw = w * (0.016 + random() * 0.05);
+        var grad = ctx.createLinearGradient(tx - tw, 0, tx + tw, 0);
+        grad.addColorStop(0, fade(trunk));
+        grad.addColorStop(0.5, trunk);
+        grad.addColorStop(1, fade(trunk));
+        ctx.globalAlpha = 0.22 + random() * 0.3;
+        ctx.fillStyle = grad;
+        ctx.fillRect(tx - tw, -h * 0.05, tw * 2, horizon * (0.7 + random() * 0.5));
+      }
+
+      // The path: a wedge opening toward the viewer, brightest where it meets
+      // the horizon, with dappled light broken across it.
       ctx.globalAlpha = 0.9;
-      ctx.fillStyle = wash;
-      ctx.fillRect(0, 0, w, h);
+      var wedge = ctx.createLinearGradient(0, horizon, 0, h);
+      wedge.addColorStop(0, path);
+      wedge.addColorStop(1, fade(path));
+      ctx.fillStyle = wedge;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.38, horizon);
+      ctx.lineTo(w * 0.62, horizon);
+      ctx.lineTo(w * 1.15, h);
+      ctx.lineTo(w * -0.15, h);
+      ctx.closePath();
+      ctx.fill();
 
-      // Three passes, coarse to fine, the way depth of field stacks up.
-      var random = seeded(20260816);
-      var passes = [
-        { count: 26,  min: w * 0.16,  max: w * 0.34,  alpha: 0.50 },
-        { count: 70,  min: w * 0.06,  max: w * 0.15,  alpha: 0.40 },
-        { count: 150, min: w * 0.015, max: w * 0.055, alpha: 0.32 }
-      ];
-      passes.forEach(function (pass) {
-        for (var i = 0; i < pass.count; i++) {
-          var x = random() * w;
-          var y = random() * h;
-          var r = pass.min + random() * (pass.max - pass.min);
-          var colour = leaves[Math.floor(random() * leaves.length)];
-          var disc = ctx.createRadialGradient(x, y, 0, x, y, r);
-          disc.addColorStop(0, colour);
-          disc.addColorStop(1, fade(colour));
-          ctx.globalAlpha = pass.alpha * (0.55 + random() * 0.45);
-          ctx.fillStyle = disc;
-          ctx.beginPath();
-          ctx.arc(x, y, r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
+      for (var d = 0; d < 46; d++) {
+        var dy = horizon + random() * (h - horizon);
+        var spread = 0.12 + ((dy - horizon) / Math.max(h - horizon, 1)) * 0.9;
+        blob(w * (0.5 + (random() - 0.5) * spread * 2.1), dy,
+             w * (0.01 + random() * 0.06),
+             random() > 0.45 ? hot : path, 0.14 + random() * 0.3);
+      }
 
-      // Sunlight breaking through, upper left.
-      var shaft = ctx.createRadialGradient(w * 0.18, h * 0.08, 0, w * 0.18, h * 0.08, w * 0.55);
-      shaft.addColorStop(0, leaves[3]);
-      shaft.addColorStop(1, fade(leaves[3]));
-      ctx.globalAlpha = 0.55;
-      ctx.fillStyle = shaft;
+      // Sun burning through just above the horizon — the light the whole scene
+      // is lit by, and the reason the middle of the page is the brightest part.
+      blob(w * 0.5, horizon * 0.92, w * 0.42, hot, 0.5, 0.0);
+      blob(w * 0.5, horizon * 0.92, w * 0.15, hot, 0.55, 0.0);
+
+      // Vignette. Corners fall away so the glass panels always sit on the
+      // calmer, brighter middle of the frame.
+      var vig = ctx.createRadialGradient(w * 0.5, horizon, w * 0.16,
+                                         w * 0.5, horizon, Math.max(w, h) * 0.82);
+      vig.addColorStop(0, fade(deep));
+      vig.addColorStop(1, deep);
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = vig;
       ctx.fillRect(0, 0, w, h);
       ctx.globalAlpha = 1;
     }
@@ -2733,10 +3133,6 @@ summary:hover { color: var(--ink); }
     el.classList.toggle('is-ok', ok);
     el.classList.toggle('is-error', !ok);
     document.getElementById('backend-status-text').textContent = text;
-    // This text arrives from a fetch and can change the header's height, so
-    // re-measure here rather than relying only on ResizeObserver — which does
-    // not fire at all in a tab that is not rendering.
-    if (map) { syncZoomOffset(); }
   }
 
   fetch('/api/config')
@@ -2757,6 +3153,7 @@ summary:hover { color: var(--ink); }
       } else {
         announce('Ready. Click the map to set a start and a destination, or press "Surprise me".');
       }
+      planExampleRoute();
     })
     .catch(function (error) {
       announce('Could not load the map configuration from the server: ' + error.message, true);
