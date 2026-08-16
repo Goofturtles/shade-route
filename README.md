@@ -224,10 +224,25 @@ either.
   places from OpenStreetMap — "Capsule Pharmacy", "Central Library", "Southwest 5th & Madison" —
   or by clicking the map, or by **Use my location**, or by typing coordinates in a collapsed
   advanced section. **Surprise me** picks a real pair for you. Every path is keyboard-operable.
-- **Dark mode**, following your system preference with a manual override that persists. Both
-  themes were swept for WCAG AA against live computed styles, 65 text nodes each, zero failures.
-  The map goes dark by filtering the tile layer only — no second tile provider, no API key — so
-  route lines and pins keep their true colours.
+- **Dark mode**, following your system preference with a manual override that persists. The map
+  goes dark by filtering the tile layer only — no second tile provider, no API key — so route
+  lines and pins keep their true colours.
+- **Liquid Glass surfaces** on the header, the buttons, and the result cards: translucent fills
+  with a backdrop blur, an inset edge highlight, an ambient shadow, and a specular gloss that
+  tracks the pointer. Pill buttons, the system font stack, Apple's easing curves, hairline
+  dividers, semibold as the heaviest weight.
+
+  Three constraints were applied *over* the aesthetic, and each one changed the design:
+  glass never sits behind the coordinate inputs or the status region, because contrast there
+  must not depend on what happens to be underneath; the input cards are solid, which brought
+  glass from 32% of the viewport down to 13% and avoided a sidebar of stacked glass panels; and
+  the background wash was made much fainter after measurement showed it dragging 15px secondary
+  text to 4.36:1.
+
+  Contrast is verified with **alpha actually composited** — page surface, then the background
+  wash, then the translucent fill, then the gloss — rather than read off the token value, which
+  would report a translucent surface as if it were opaque. 65 text nodes per theme, zero
+  failures in either.
 - **Full keyboard operation** with visible focus rings, and Enter commits any field.
 - **Okabe–Ito palette**, which stays distinguishable under protanopia, deuteranopia and
   tritanopia. Text contrast was swept against live computed styles; the map pins were checked

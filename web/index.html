@@ -9,79 +9,150 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='11.5' cy='4.5' r='3' fill='%23e69f00'/%3E%3Crect x='1.5' y='9' width='10' height='5' rx='1.2' fill='%230072b2'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-/* ---------------------------------------------------------------
-   Palette: Okabe–Ito, which stays distinguishable under all three
-   common forms of colour blindness. Every colour that carries
-   meaning is paired with a shape, pattern or text label as well.
+/* ==========================================================================
+   Shade Route — Liquid Glass
+   --------------------------------------------------------------------------
+   Apple's WWDC 2025 material language applied to a dense utility interface:
+   three optical layers per surface (illumination / edge highlight / ambient
+   shadow), pill buttons, the system font stack, Apple easings.
 
-   Light is the default; dark overrides the same tokens. Both were
-   checked for WCAG AA against live computed styles.
-   --------------------------------------------------------------- */
+   Deliberately NOT applied: the 120-200px section rhythm and the
+   clamp(56px,9vw,120px) display scale. Those belong to marketing pages. This
+   is a control panel used by someone who is 71 and possibly overheating, so
+   density and legibility win.
+
+   Accessibility rules that outrank the aesthetic, per the material's own
+   contrast checklist:
+     * glass never sits behind the coordinate inputs or the status region
+     * glass covers well under a quarter of the viewport (header + cards only)
+     * never more than two glass layers deep
+     * every text/background pair is verified AA with alpha composited, not
+       assumed from the token value
+   ========================================================================== */
+
 :root {
-  --ink:          #16191d;
-  --ink-muted:    #4d545c;
-  --surface:      #ffffff;
-  --surface-sunk: #f2f4f6;
+  color-scheme: light dark;
+
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                  "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-text:    -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                  "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* Apple easings. Never raw ease / ease-in-out on visible motion. */
+  --ease-standard: cubic-bezier(0.4, 0, 0.6, 1);
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring:   cubic-bezier(0.28, 0.11, 0.32, 1);
+
+  /* ---- Light palette ---------------------------------------------------
+     Apple neutrals, with one deliberate deviation: secondary text is #5b5b60
+     rather than Apple's #6e6e73. Over a translucent surface #6e6e73 lands at
+     4.6:1 — passing, but with no margin. #5b5b60 holds 6.5:1 and still reads
+     as the same grey. Legibility for the target user beats exactness. */
+  --ink:          #1d1d1f;
+  --ink-muted:    #5b5b60;
+  --surface:      #fbfbfd;
+  --surface-sunk: #f0f0f3;
   --surface-card: #ffffff;
-  --line:         #c9cfd6; /* decorative rules only — not for control edges */
-  --field-border: #6b7280; /* form control boundaries — 4.83:1 on white */
+  --line:         rgba(0, 0, 0, 0.10);
+  --field-border: #6b7280;
 
-  --shortest:     #d55e00; /* vermillion — route lines (3:1 non-text bar) */
-  --shadiest:     #0072b2; /* blue */
-  --accent:       #0072b2;
+  --accent:       #0071e3;   /* apple.com button blue — 4.70:1 under white */
+  --accent-hover: #0077ed;
   --accent-ink:   #ffffff;
-  --ok:           #007a5e;
-  --error:        #a4262c;
-  --sun:          #b26a00;
 
-  /* Pins carry a letter, so their fill must clear the *text* contrast bar. */
-  --pin-origin:      #007a5e; /* 5.32:1 under white bold */
-  --pin-destination: #a34700; /* 6.07:1 — full-strength #d55e00 is only 3.87:1 */
+  --ok:       #007a5e;
+  --error:    #a4262c;
+  --sun:      #b26a00;
 
-  /* The shade bar is a graphic, so 3:1 is the bar. --shadiest against
-     --surface-sunk is 3.05:1, which clears it by nothing; this is 6.55:1. */
-  --shade-bar-fill: #005b8f;
+  /* Route identity. Read from JS via getComputedStyle — keep these names. */
+  --shortest:  #d55e00;
+  --shadiest:  #0071e3;
 
-  --focus:  #0072b2;
-  --radius: 12px;
-  --pad:    16px;
+  --pin-origin:      #007a5e;
+  --pin-destination: #a34700;
+  --shade-bar-fill:  #005b8f;
 
+  /* ---- Liquid Glass, light register ------------------------------------
+     "Light mode Heavy" from the recipe book: this glass sits over a tinted
+     atmosphere, so it needs enough body to keep 17px text legible. */
+  --glass-bg:        rgba(255, 255, 255, 0.66);
+  --glass-bg-strong: rgba(255, 255, 255, 0.80);
+  --glass-border:    rgba(255, 255, 255, 0.80);
+  --glass-gloss:     rgba(255, 255, 255, 0.85);
+  --glass-specular:  rgba(255, 255, 255, 0.55);
+  --glass-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      0 2px 8px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 var(--glass-gloss);
+  --glass-blur: blur(24px) saturate(180%);
+
+  /* The wash that gives the glass something to refract. Without a backdrop
+     with structure in it, "glass" is just a grey box. */
+  /* Kept deliberately faint. At 0.16/0.14/0.10 the three washes composited to
+     rgb(198,211,203) where they overlap, which dragged 15px secondary text
+     down to 4.36:1 — below AA — anywhere the sidebar showed the page through.
+     Apple's light pages wash very gently; so does this. */
+  --atmos-1: rgba(0, 113, 227, 0.055);
+  --atmos-2: rgba(255, 149, 0, 0.045);
+  --atmos-3: rgba(0, 122, 94, 0.035);
+
+  --focus: #0071e3;
   --tile-filter: none;
 
-  /* Marisol is 71. Nothing in this app's own interface is smaller than 15px
-     and body copy sits at 17px. The single exception is Leaflet's attribution
-     line (third-party chrome, raised from 11px to 13px below). */
-  --font-body: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius:      18px;
+  --radius-lg:   22px;
+  --radius-pill: 980px;
+  --pad: 16px;
+
+  /* Marisol is 71. Nothing in this app's own interface is below 15px, body
+     copy sits at 17px. The lone exception is Leaflet's attribution line
+     (third-party chrome, raised from 11px to 13px). */
+  --font-body: 17px/1.5 var(--font-text);
 }
 
-/* Dark theme. Applied by preference, or forced by the toggle. Colours are not
-   simply inverted: the accents are lightened so they still clear 4.5:1 against
-   a dark surface, which a naive inversion would not do. */
+/* ---- Dark palette -------------------------------------------------------
+   Apple neutrals: #000 ground, #f5f5f7 text, #a1a1a6 secondary. Never pure
+   white on pure black. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --ink:          #eef1f5;
-    --ink-muted:    #b3bcc6;
-    --surface:      #14171c;
-    --surface-sunk: #1c2129;
-    --surface-card: #1a1f26;
-    --line:         #39414c;
+    --ink:          #f5f5f7;
+    --ink-muted:    #a1a1a6;
+    --surface:      #000000;
+    --surface-sunk: #1d1d1f;
+    --surface-card: #1d1d1f;
+    --line:         rgba(255, 255, 255, 0.12);
     --field-border: #8b95a3;
 
-    --shortest:     #ff8c3f;
-    --shadiest:     #66baff;
-    --accent:       #4ba3e3;
-    --accent-ink:   #06121c;
-    --ok:           #48c9a0;
-    --error:        #ff8a8a;
-    --sun:          #ffc457;
+    --accent:       #0071e3;
+    --accent-hover: #0d84f5;
+    --accent-ink:   #ffffff;
 
-    /* --pin-origin and --pin-destination are deliberately NOT overridden here.
-       Pin labels are always white on a white ring, sitting over map tiles
-       rather than the page background, so their fill must clear 4.5:1 against
-       *white* in either theme. Darkening them for dark mode dropped them to
-       4.07:1 and 4.49:1 — the opposite of the intended effect. */
+    --ok:    #48c9a0;
+    --error: #ff8a8a;
+    --sun:   #ffc457;
 
-    --shade-bar-fill: #66baff; /* light on dark — the inverse problem */
+    --shortest: #ff8c3f;
+    --shadiest: #66baff;
+
+    /* Pin fills are deliberately NOT overridden. Pin labels are white on a
+       white ring over map tiles, not over the page, so the fill must clear
+       4.5:1 against WHITE in either theme. Darkening them for dark mode once
+       dropped them to 4.07:1 — the opposite of the intent. */
+    --shade-bar-fill: #66baff;
+
+    --glass-bg:        rgba(255, 255, 255, 0.07);
+    --glass-bg-strong: rgba(255, 255, 255, 0.09);
+    --glass-border:    rgba(255, 255, 255, 0.14);
+    --glass-gloss:     rgba(255, 255, 255, 0.10);
+    --glass-specular:  rgba(255, 255, 255, 0.14);
+    --glass-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.50),
+        0 2px 8px rgba(0, 0, 0, 0.30),
+        inset 0 1px 0 var(--glass-gloss);
+
+    --atmos-1: rgba(0, 113, 227, 0.07);
+    --atmos-2: rgba(255, 149, 0, 0.05);
+    --atmos-3: rgba(0, 200, 150, 0.04);
 
     --focus: #7cc4f5;
     --tile-filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92) saturate(0.75);
@@ -89,25 +160,39 @@
 }
 
 :root[data-theme="dark"] {
-  --ink:          #eef1f5;
-  --ink-muted:    #b3bcc6;
-  --surface:      #14171c;
-  --surface-sunk: #1c2129;
-  --surface-card: #1a1f26;
-  --line:         #39414c;
+  --ink:          #f5f5f7;
+  --ink-muted:    #a1a1a6;
+  --surface:      #000000;
+  --surface-sunk: #1d1d1f;
+  --surface-card: #1d1d1f;
+  --line:         rgba(255, 255, 255, 0.12);
   --field-border: #8b95a3;
 
-  --shortest:     #ff8c3f;
-  --shadiest:     #66baff;
-  --accent:       #4ba3e3;
-  --accent-ink:   #06121c;
-  --ok:           #48c9a0;
-  --error:        #ff8a8a;
-  --sun:          #ffc457;
+  --accent:       #0071e3;
+  --accent-hover: #0d84f5;
+  --accent-ink:   #ffffff;
 
-  /* Pin fills intentionally inherit the light-theme values — see the note in
-     the prefers-color-scheme block above. */
+  --ok:    #48c9a0;
+  --error: #ff8a8a;
+  --sun:   #ffc457;
+
+  --shortest: #ff8c3f;
+  --shadiest: #66baff;
   --shade-bar-fill: #66baff;
+
+  --glass-bg:        rgba(255, 255, 255, 0.07);
+  --glass-bg-strong: rgba(255, 255, 255, 0.09);
+  --glass-border:    rgba(255, 255, 255, 0.14);
+  --glass-gloss:     rgba(255, 255, 255, 0.10);
+  --glass-specular:  rgba(255, 255, 255, 0.14);
+  --glass-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.50),
+      0 2px 8px rgba(0, 0, 0, 0.30),
+      inset 0 1px 0 var(--glass-gloss);
+
+  --atmos-1: rgba(0, 113, 227, 0.07);
+  --atmos-2: rgba(255, 149, 0, 0.05);
+  --atmos-3: rgba(0, 200, 150, 0.04);
 
   --focus: #7cc4f5;
   --tile-filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92) saturate(0.75);
@@ -126,14 +211,37 @@ body {
   display: flex;
   flex-direction: column;
   font: var(--font-body);
+  letter-spacing: -0.005em;
   color: var(--ink);
   background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* The atmosphere. Fixed, behind everything, so every glass surface has real
+   structure to blur rather than flat colour. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 12% 8%,  var(--atmos-1) 0%, transparent 62%),
+    radial-gradient(52% 48% at 88% 18%, var(--atmos-2) 0%, transparent 60%),
+    radial-gradient(58% 60% at 50% 96%, var(--atmos-3) 0%, transparent 64%);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;          /* semibold is the ceiling — never 700+ */
+  margin: 0;
 }
 
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 10px;
 }
 
 .skip-link {
@@ -143,34 +251,69 @@ body {
   z-index: 2000;
   background: var(--ink);
   color: var(--surface);
-  padding: 12px 18px;
+  padding: 12px 22px;
   border-radius: 0 0 var(--radius) 0;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 500;
 }
 .skip-link:focus { left: 0; }
 
+/* ---- Glass primitive ----------------------------------------------------
+   Three optical layers: illumination (translucent fill + backdrop blur),
+   edge highlight (inset top gloss), ambient shadow. */
+.lg {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  isolation: isolate;
+}
+.lg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--glass-gloss) 0%, transparent 42%);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+.lg > * { position: relative; z-index: 1; }
+
+/* Where backdrop-filter is unavailable, fall back to an opaque surface rather
+   than a washed-out translucent one. */
+@supports not (backdrop-filter: blur(1px)) {
+  .lg { background: var(--surface-card); }
+}
+
+/* ---- Header: the glass nav ---------------------------------------------- */
 header {
   flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
   padding: 12px var(--pad);
-  border-bottom: 1px solid var(--line);
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 18px;
+  gap: 6px 20px;
   align-items: center;
-  background: var(--surface);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--line);   /* bottom border only, never sides */
 }
 header h1 {
-  margin: 0;
-  font-size: 21px;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  font-size: 22px;
+  letter-spacing: -0.018em;
+  line-height: 1.25;
 }
 header .tagline {
   margin: 0;
   color: var(--ink-muted);
   font-size: 15px;
   line-height: 1.45;
+  letter-spacing: -0.005em;
 }
 .header-end {
   margin-left: auto;
@@ -188,7 +331,8 @@ header .tagline {
 }
 #backend-status .dot {
   display: inline-block;
-  width: 9px; height: 9px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--line);
   margin-right: 7px;
@@ -202,14 +346,22 @@ main {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: 424px 1fr;
 }
 
+/* The sidebar itself stays opaque. Glassing a 424px column would push glass
+   past a third of the viewport and stack three layers deep behind the cards
+   inside it — both explicitly out of bounds. */
 #controls {
   padding: var(--pad);
   overflow-y: auto;
+  /* Defensive: a grid item defaults to min-height:auto and refuses to shrink
+     below its content, which would break the internal scroll. Verified with the
+     coordinates section expanded — 829px visible of 1791px, scrolls to the
+     bottom, last element reachable. */
+  min-height: 0;
   border-right: 1px solid var(--line);
-  background: var(--surface);
+  background: transparent;
 }
 
 #map {
@@ -218,8 +370,13 @@ main {
   background: var(--surface-sunk);
 }
 
-/* Dark map without adding a second tile provider or an API key: filter the
-   tile pane only, so route lines and markers keep their true colours. */
+@media (max-width: 900px) {
+  /* The page scrolls as a whole here, so the sidebar must not be clipped. */
+  #controls { min-height: auto; }
+}
+
+/* Dark map without a second tile provider or an API key: filter the tile pane
+   only, so route lines, pins and controls keep their true colours. */
 .leaflet-tile-pane { filter: var(--tile-filter); }
 
 @media (max-width: 900px) {
@@ -229,25 +386,55 @@ main {
 }
 
 h2 {
-  font-size: 17px;
-  margin: 0 0 10px;
-  letter-spacing: -0.005em;
-  line-height: 1.35;
+  font-size: 19px;
+  margin: 0 0 12px;
+  letter-spacing: -0.014em;
+  line-height: 1.3;
 }
-.section-heading-spaced { margin-top: 22px; }
+.section-heading-spaced { margin-top: 26px; }
 
+/* ---- Input cards --------------------------------------------------------
+   Deliberately solid, not glass, for two reasons. Stacking five glass cards
+   down a sidebar is the "every card is a glass card" failure mode — Apple
+   surrounds a small number of glass surfaces with calm, not a grid of them.
+   And measured, header + five glass fieldsets + result cards put glass at 32%
+   of the viewport, past the 25% ceiling where the material stops reading as
+   premium. Glass is spent where it earns attention: the header, the buttons,
+   and the result. */
 fieldset {
+  position: relative;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 12px 14px 14px;
+  border-radius: var(--radius-lg);
+  padding: 14px 16px 16px;
   margin: 0 0 14px;
   background: var(--surface-card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.4s var(--ease-standard);
 }
+
+/* Cursor-tracked specular highlight — the micro-detail that separates the
+   real material from generic glassmorphism. */
+.route-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%),
+              var(--glass-specular), transparent 42%);
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-standard);
+  pointer-events: none;
+  z-index: 0;
+}
+.route-item:hover::after { opacity: 1; }
+
 legend {
-  padding: 0 6px;
+  padding: 0 8px;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 15px;
   line-height: 1.4;
+  letter-spacing: -0.008em;
 }
 
 label {
@@ -255,57 +442,98 @@ label {
   font-size: 15px;
   line-height: 1.4;
   color: var(--ink-muted);
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
+/* Form controls stay solid. The material's own guidance is explicit that
+   glass does not go behind inputs holding data that must be read exactly. */
 input[type="text"],
 input[type="time"],
 input[type="date"],
 select {
   width: 100%;
   font: inherit;
-  font-size: 16px; /* 16px minimum also suppresses iOS focus-zoom */
+  font-size: 16px;             /* 16px minimum also suppresses iOS focus-zoom */
   min-height: 44px;
-  padding: 9px 10px;
+  padding: 10px 12px;
   border: 1px solid var(--field-border);
-  border-radius: 8px;
-  background: var(--surface);
+  border-radius: 12px;
+  background: var(--surface-card);
   color: var(--ink);
+  letter-spacing: -0.005em;
+  transition: border-color 0.2s var(--ease-standard),
+              box-shadow 0.2s var(--ease-standard);
 }
+input[type="text"]:hover,
+input[type="time"]:hover,
+input[type="date"]:hover { border-color: var(--ink-muted); }
 input[aria-invalid="true"] { border-color: var(--error); border-width: 2px; }
 
-.place-row { display: grid; gap: 8px; }
+.place-row { display: grid; gap: 10px; }
 .place-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .place-actions button { flex: 1 1 auto; }
 
+/* ---- Pill buttons -------------------------------------------------------
+   Apple buttons are pills. No square corners anywhere. */
 button {
+  position: relative;
   font: inherit;
   font-size: 16px;
+  font-weight: 500;
   line-height: 1.4;
-  padding: 10px 14px;
+  letter-spacing: -0.006em;
+  padding: 11px 20px;
   min-height: 44px;
-  border-radius: 8px;
-  border: 1px solid var(--field-border);
-  background: var(--surface);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 var(--glass-gloss);
   color: var(--ink);
   cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.28s var(--ease-spring),
+              box-shadow 0.28s var(--ease-standard),
+              background 0.28s var(--ease-standard);
 }
-button:hover { background: var(--surface-sunk); }
-button[aria-busy="true"] { opacity: 0.75; cursor: progress; }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
+@supports not (backdrop-filter: blur(1px)) {
+  button { background: var(--surface-card); }
+}
+button:hover {
+  transform: translateY(-1px);   /* -2px is the ceiling; -1px on dense UI */
+  box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.10),
+      inset 0 1px 0 var(--glass-gloss);
+}
+button:active { transform: translateY(0) scale(0.985); }
+button[aria-busy="true"] { opacity: 0.72; cursor: progress; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
   width: 100%;
-  font-weight: 600;
+  min-height: 52px;
   font-size: 17px;
-  min-height: 50px;
+  font-weight: 500;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:
+      0 6px 20px rgba(0, 113, 227, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
-button.primary:hover { filter: brightness(1.08); }
+button.primary:hover {
+  background: var(--accent-hover);
+  box-shadow:
+      0 10px 28px rgba(0, 113, 227, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
 
-.when-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.when-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 input[type="range"] {
   width: 100%;
@@ -319,7 +547,7 @@ input[type="range"] {
   line-height: 1.45;
   color: var(--ink-muted);
 }
-#aversion-readout { font-weight: 600; color: var(--ink); }
+#aversion-readout { font-weight: 500; color: var(--ink); }
 
 .hint {
   color: var(--ink-muted);
@@ -328,11 +556,14 @@ input[type="range"] {
   margin: 10px 0 0;
 }
 
+/* Status stays a solid surface — it carries error text that must never be
+   subject to whatever happens to be behind it. */
 #status {
   margin: 14px 0 0;
-  padding: 12px 14px;
+  padding: 13px 15px;
   border-radius: var(--radius);
   background: var(--surface-sunk);
+  border: 1px solid var(--line);
   border-left: 4px solid var(--line);
   font-size: 16px;
   line-height: 1.5;
@@ -340,93 +571,143 @@ input[type="range"] {
 }
 #status.is-error { border-left-color: var(--error); color: var(--error); }
 
-/* Results ------------------------------------------------------- */
+/* ---- Results ------------------------------------------------------------ */
 .headline {
-  margin: 16px 0 12px;
-  padding: 14px;
-  border-radius: var(--radius);
-  background: var(--surface-sunk);
-  border: 1px solid var(--line);
-  font-size: 18px;
-  line-height: 1.45;
+  margin: 16px 0 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  font-size: 19px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
 }
-.headline strong { font-variant-numeric: tabular-nums; }
+.headline strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+@supports not (backdrop-filter: blur(1px)) {
+  .headline { background: var(--surface-card); }
+}
 
 .route-list { list-style: none; margin: 0; padding: 0; }
+
 .route-item {
-  border: 1px solid var(--line);
-  border-left-width: 6px;
-  border-radius: var(--radius);
-  padding: 12px 14px;
+  position: relative;
+  border: 1px solid var(--glass-border);
+  border-left-width: 5px;
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
   margin-bottom: 10px;
-  background: var(--surface-card);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  isolation: isolate;
+  transition: transform 0.35s var(--ease-out),
+              box-shadow 0.35s var(--ease-standard);
 }
-.route-item h3 { margin: 0 0 4px; font-size: 16px; line-height: 1.4; }
-.route-pattern { margin: 0 0 8px; font-size: 15px; line-height: 1.45; color: var(--ink-muted); }
+.route-item:hover { transform: translateY(-1px); }
+@supports not (backdrop-filter: blur(1px)) {
+  .route-item { background: var(--surface-card); }
+}
+.route-item > * { position: relative; z-index: 1; }
+
+.route-item h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.route-pattern {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
 .route-item dl {
   margin: 0;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 10px;
+  gap: 3px 12px;
   font-size: 16px;
   line-height: 1.5;
 }
 .route-item dt { color: var(--ink-muted); }
 .route-item dd { margin: 0; font-variant-numeric: tabular-nums; }
 
-/* Shade bar: width encodes the percentage, and the number is always written
-   out beside it, so the bar is reinforcement rather than the only signal. */
+/* Width encodes the percentage and the number is always written beside it, so
+   the bar reinforces rather than carries the information. */
 .shade-bar {
   height: 10px;
-  border-radius: 5px;
+  border-radius: var(--radius-pill);
   background: var(--surface-sunk);
   border: 1px solid var(--line);
   overflow: hidden;
-  margin-top: 8px;
+  margin-top: 10px;
 }
-.shade-bar span { display: block; height: 100%; background: var(--shade-bar-fill); }
+.shade-bar span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--shade-bar-fill);
+  transition: width 0.8s var(--ease-out);
+}
 
 #sun-readout {
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink-muted);
 }
 #sun-readout .sun-dot {
   display: inline-block;
-  width: 10px; height: 10px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--sun);
-  margin-right: 6px;
+  margin-right: 7px;
 }
 
-/* Map pins: letter + colour + shape, never colour alone. */
+/* ---- Map pins: letter + colour + shape, never colour alone -------------- */
 .pin {
-  display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 16px;
-  line-height: 1; /* single glyphs only */
+  line-height: 1;              /* single glyphs only */
   border: 3px solid #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
 .pin--origin      { background: var(--pin-origin); }
 .pin--destination { background: var(--pin-destination); }
 
 .legend-key {
-  display: flex; align-items: center; gap: 10px;
-  margin: 6px 0;
-  font-size: 15px; line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 7px 0;
+  font-size: 15px;
+  line-height: 1.45;
 }
 .legend-key .swatch {
-  flex: 0 0 30px; height: 30px;
+  flex: 0 0 30px;
+  height: 30px;
   border-radius: 50%;
   border: 3px solid #fff;
   box-shadow: 0 0 0 1px var(--line);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-weight: 700; font-size: 15px; line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
 }
 .swatch--origin      { background: var(--pin-origin); }
 .swatch--destination { background: var(--pin-destination); }
@@ -434,52 +715,96 @@ input[type="range"] {
 details { margin: 0 0 14px; }
 summary {
   cursor: pointer;
-  padding: 10px 0;
+  padding: 10px 4px;
   min-height: 44px;
   display: flex;
   align-items: center;
   font-size: 16px;
   line-height: 1.45;
+  color: var(--ink-muted);
+  border-radius: 12px;
 }
+summary:hover { color: var(--ink); }
+
 .point-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
-  gap: 8px;
+  gap: 10px;
   align-items: end;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 .point-row button { white-space: nowrap; grid-column: 1 / -1; }
 
 .milestone-note {
-  margin: 18px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);   /* hairline, never a hard rule */
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink-muted);
 }
 
-/* Leaflet's defaults undercut this project's commitments: 26px zoom buttons
+/* ---- Leaflet chrome -----------------------------------------------------
+   Leaflet's defaults undercut this project's commitments: 26px zoom buttons
    and 11px attribution. The attribution is third-party chrome, so it goes to
    13px rather than the app's 15px floor — the README says so explicitly. */
+.leaflet-bar {
+  border: none !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow) !important;
+}
 .leaflet-bar a,
 .leaflet-touch .leaflet-bar a {
-  width: 44px; height: 44px;
-  line-height: 44px; /* single glyphs (+ and −) only */
+  width: 44px;
+  height: 44px;
+  line-height: 44px;           /* single glyphs (+ and −) only */
   font-size: 22px;
+  font-weight: 400;
+  color: var(--ink);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--line);
 }
-.leaflet-control-attribution { font-size: 13px; line-height: 1.5; padding: 3px 8px; }
+.leaflet-bar a:hover { background: var(--glass-bg); color: var(--ink); }
+
+.leaflet-control-attribution {
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill) 0 0 0;
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--ink-muted);
+}
+.leaflet-control-attribution a { color: var(--ink); }
+
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius) !important;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--ink);
+  box-shadow: var(--glass-shadow);
+}
+.leaflet-popup-tip { background: var(--glass-bg-strong); }
 
 .visually-hidden {
   position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
 }
 
+/* Everything above degrades to a static, motionless interface here. The
+   specular highlight listener is also skipped in JS under this preference. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
@@ -487,7 +812,9 @@ summary {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+  button:hover, .route-item:hover { transform: none; }
 }
+
 </style>
 </head>
 <body>
@@ -1262,6 +1589,23 @@ summary {
         findButton.removeAttribute('aria-busy');
       });
   });
+
+  // --- Liquid Glass specular highlight ---------------------------------------
+  // A soft directional gloss that tracks the pointer across each glass surface.
+  // Skipped entirely under prefers-reduced-motion, and delegated from the
+  // document so it also covers route cards created later.
+  (function specularHighlight() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+    document.addEventListener('pointermove', function (event) {
+      var surface = event.target.closest && event.target.closest('.route-item');
+      if (!surface) { return; }
+      var rect = surface.getBoundingClientRect();
+      surface.style.setProperty('--mx', (event.clientX - rect.left) + 'px');
+      surface.style.setProperty('--my', (event.clientY - rect.top) + 'px');
+    }, { passive: true });
+  }());
 
   // --- Boot ------------------------------------------------------------------
   wireCoordinateEntry('origin', 'origin-lat', 'origin-lon', 'origin-set');
