@@ -234,6 +234,42 @@ example, not a typical one: the median pair in that sample gained closer to
 
 ---
 
+## The launch film
+
+`video/` builds a 45-second 4K film about this project. It is a web page captured
+frame by frame and encoded with NVENC — there is no video editor in the pipeline
+and no generated footage anywhere in it.
+
+```bash
+python -m uvicorn app.main:app          # 1. the app must be running
+node video/capture_footage.mjs          # 2. stills, straight out of the app
+python video/check_claims.py            # 3. the honesty gate — must pass
+node video/render.mjs --scene video/scene.html --out video/shade-route-4k.mp4
+```
+
+Playwright is a render-time tool and deliberately not a dependency of the app;
+`npm i playwright` anywhere, and point `PW` at its `node_modules` if it is not
+beside the scripts. Add `--scale 0.5` for a 1080p preview.
+
+**The film cannot animate itself.** CSS animations and `requestAnimationFrame`
+both run off the wall clock, and a capture loop that spends 300 ms writing a 4K
+PNG lets the wall clock run 300 ms further — so the film would stutter, and would
+never render the same way twice. Every animated value is instead a pure function
+of the frame number, applied by `seek(n)`; the renderer calls `seek(n)`,
+screenshots, and repeats, and capture may take as long as it needs to.
+
+**Every product frame is a screenshot of this app** answering the same query the
+film is about, so no number in it can drift from what the code produces.
+
+**`video/check_claims.py` is not optional.** A video is the easiest place in this
+project to break the rule in §7 of the brief, because nothing in a video is
+recomputed — its figures are typed once and then repeated to a room. The gate
+asks the live API for the same route and checks every figure on screen against
+the answer, and rejects a list of phrasings (`°`, "degrees", "cooler by",
+"safest", "guarantee") whatever the arithmetic behind them, because shade changes
+mean radiant temperature rather than air temperature and this project cannot
+support a thermal claim.
+
 ## Limitations
 
 Stated up front, because a model you can't describe the failure modes of isn't a model.
