@@ -576,6 +576,12 @@ input[aria-invalid="true"] {
         : 'Now place ' + nextLetter + '.';
       announce(label + ' set to ' + fmt(lat) + ', ' + fmt(lon) + '. ' + next);
     }
+    // Clear-only, never set. A successful map click writes valid values into the
+    // coordinate fields, so leaving a stale aria-invalid on them would have a
+    // screen reader announce "invalid entry" immediately before the success
+    // message. Marking a field *invalid* stays with the typed-entry handler,
+    // which is the only path where the field is genuinely the thing at fault.
+    markFieldValidity(kind, true);
     return true;
   }
 
@@ -587,7 +593,13 @@ input[aria-invalid="true"] {
     // click must not paint the coordinate inputs red, since they are still
     // holding a value the user typed and we accepted.
     function apply() {
-      markFieldValidity(kind, setPoint(kind, parseFloat(latInput.value), parseFloat(lonInput.value)));
+      var accepted = setPoint(kind, parseFloat(latInput.value), parseFloat(lonInput.value));
+      // If the config hasn't loaded, the failure is the app's, not the field's —
+      // WCAG 3.3.1 is about identifying the item actually in error, and the
+      // typed value may be perfectly good.
+      if (state.config) {
+        markFieldValidity(kind, accepted);
+      }
     }
 
     document.getElementById(buttonId).addEventListener('click', apply);
