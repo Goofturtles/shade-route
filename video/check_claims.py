@@ -163,17 +163,24 @@ def main() -> int:
         hours = bt.get("hours") or []
         shown = [int(n) for n in re.findall(r"\{ h: (\d+),", html)]
         shown_pct = [int(n) for n in re.findall(r"pct: (\d+) \}", html)]
-        api_pct = {h["hour"]: round(h["shade_fraction"] * 100) for h in hours}
+        api_pct = {h["hour"]: round(h["shade_fraction"] * 100)
+                   for h in hours if h.get("shade_fraction") is not None}
         drift = [(h, api_pct.get(h), q) for h, q in zip(shown, shown_pct)
                  if api_pct.get(h) is None or abs(api_pct[h] - q) > 1]
         check(bool(shown) and not drift, "every hour bar matches the sweep",
               ("drifted: " + str(drift)) if drift else f"{len(shown)} hours checked")
-        by_sun = sorted((h for h in hours if h.get("sun_seconds") is not None),
-                        key=lambda h: h["sun_seconds"])
-        if by_sun:
-            check(by_sun[0]["hour"] in shown and by_sun[-1]["hour"] in shown,
-                  "the strip includes the real best and worst departures",
-                  f"best {by_sun[0]['hour']}:00, worst {by_sun[-1]['hour']}:00")
+        best, worst = bt.get("best_hour"), bt.get("worst_hour")
+        if best is not None and worst is not None:
+            check(best in shown and worst in shown,
+                  "the strip includes the app's own best and worst departures",
+                  f"best {best}:00, worst {worst}:00")
+            marked_best = re.search(r"entry\.h === (\d+) \? ' best'", html)
+            marked_worst = re.search(r": entry\.h === (\d+) \? ' worst'", html)
+            check(marked_best and int(marked_best.group(1)) == best and
+                  marked_worst and int(marked_worst.group(1)) == worst,
+                  "the strip highlights the right two bars",
+                  f"film marks {marked_best and marked_best.group(1)}/"
+                  f"{marked_worst and marked_worst.group(1)}")
     except Exception as exc:  # noqa: BLE001
         notes.append(f"hour strip not cross-checked ({exc})")
 

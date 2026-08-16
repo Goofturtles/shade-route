@@ -354,6 +354,27 @@ longwave budget this does not have.
 
 ## Accessibility
 
+### The keyboard flow, actually walked
+
+The brief asks for one full flow tested with the keyboard alone before calling
+this done. Walked on 16 Aug against the built interface, not asserted:
+
+| Step | Result |
+|---|---|
+| First Tab | Lands on "Skip to route controls" — it is the first stop in the document |
+| Enter on the skip link | Focus moves to the controls panel itself, not just the scroll position |
+| Tab | Start field |
+| Typing a place name | Resolves on the bare name; the category suffix is only needed to disambiguate |
+| Enter on "Find the shadiest route" | Route computes; hero, summary and all 17 steps render |
+| After the route returns | Focus is **still on the button** — it uses `aria-busy`, never `disabled`, because disabling a focused button drops focus to `<body>` and dumps a keyboard user at the top of the page mid-task |
+| Result | Announced in prose through the polite live region, not only drawn on the map |
+
+44 focusable stops in total; every one of them has a visible focus indicator,
+verified by focusing each in turn and checking for a non-`none` outline or a
+distinguishing shadow.
+
+
+
 Accessibility isn't a polish pass on this project, it's the point of it. A route planner for
 someone who can't safely take the fast route has to work for people who can't easily read a map
 either.
