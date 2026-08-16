@@ -56,7 +56,21 @@ const DPR = 2 * SCALE;
 // home directory on another Windows box, and on POSIX path.join treated it as
 // relative and created a literal "C:/Users/..." folder beside the script.
 const FRAME_DIR = path.join(os.tmpdir(), 'shade-route-film', 'frames');
-const sceneUrl = pathToFileURL(path.resolve(HERE, SCENE)).href;
+// Resolve against the working directory first, then against this script, so
+// both `node video/render.mjs --scene video/scene.html` from the repo root and
+// `node render.mjs --scene scene.html` from in here work. Resolving only
+// against the script turned the documented command into video/video/scene.html.
+function resolveIn(p) {
+  const fromCwd = path.resolve(process.cwd(), p);
+  return existsSync(fromCwd) ? fromCwd : path.resolve(HERE, p);
+}
+const scenePath = resolveIn(SCENE);
+if (!existsSync(scenePath)) {
+  console.error('scene not found: ' + SCENE);
+  process.exit(1);
+}
+const outPath = path.isAbsolute(OUT) ? OUT : path.resolve(process.cwd(), OUT);
+const sceneUrl = pathToFileURL(scenePath).href;
 
 async function capture() {
   if (existsSync(FRAME_DIR)) await rm(FRAME_DIR, { recursive: true, force: true });
@@ -148,7 +162,7 @@ function encode() {
     '-colorspace', 'bt709', '-color_primaries', 'bt709',
     '-color_trc', 'bt709', '-color_range', 'tv',
     '-movflags', '+faststart',
-    path.resolve(HERE, OUT),
+    outPath,
   ];
   console.log('encoding: ffmpeg ' + args.join(' '));
   return new Promise((resolve, reject) => {
