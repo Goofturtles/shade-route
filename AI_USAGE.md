@@ -655,4 +655,65 @@ demo video needs.
 
 ---
 
+## The launch film — 16 August 2026
+
+### What was asked for
+
+A professional, SaaS-style 4K product video, with the offer of a local RTX 4090 for generated
+footage, and permission to use HTML for the animation.
+
+### The generation offer was declined a second time, for a different reason
+
+The GPU is used here — but for **NVENC encoding**, not for generating imagery. No frame of the
+film is AI-generated video. Two reasons: generated b-roll of a person walking reads as fake,
+which is feedback the human had already given; and a product film's job is to show the product,
+so every product frame in the film is a real screenshot of the running app answering the same
+query. ComfyUI was not running, and standing it up would have cost hours the deadline did not have.
+
+### How the film is actually made
+
+Claude wrote `video/scene.html` (the film, as a web page), `video/render.mjs` (capture and
+encode), `video/capture_footage.mjs` (stills straight out of the app) and
+`video/check_claims.py` (the honesty gate). The human directed the standard and rejected earlier
+attempts as looking amateur; the diagnosis and the fixes were Claude's.
+
+**The one non-obvious design decision:** the film's page is forbidden from animating itself.
+CSS animations and `requestAnimationFrame` both run off the wall clock, and a capture loop that
+spends 300 ms writing a 4K PNG would let the wall clock run 300 ms further — so the film would
+stutter, and would never render the same way twice. Instead every animated value is a pure
+function of the frame number, applied by `seek(n)`. The renderer calls `seek(n)`, screenshots,
+and repeats, and the capture may take as long as it likes. This was verified before any content
+was built: a throwaway scene counted its own frames, and frame 60 of the *encoded file* read
+exactly `60 / 89`.
+
+### Research before building
+
+Four Claude subagents ran in parallel on SaaS-video craft, browser motion technique, the
+product's own truth, and the 4K pipeline; a fifth synthesised a frame-accurate storyboard. Three
+of its conclusions changed the film and are worth recording: cut, do not dissolve (the first
+version dissolved nine times and read as amateur); hold on a number after it lands; and let
+shots lengthen through the film. Most of the storyboard's finer detail was not implemented — it
+specified a rack focus, a match cut and an azimuth-aligned wipe that the remaining hours did not
+support.
+
+### The honesty gate
+
+`video/check_claims.py` exists because a video is the easiest place in this project to break §7:
+nothing in a video is recomputed, so its numbers are typed once and then repeated to a judging
+panel. The gate queries the live API for the same route the film is about and checks every
+figure on screen against the answer, and refuses a set of phrasings (`°`, "degrees", "cooler by",
+"safest", "guarantee") regardless of the arithmetic behind them. It passes: 85, 44, 148, 2, 15,
+4 and 17 benches all match the API.
+
+### Two bugs the film caught in the app
+
+- **The proof shot proved nothing.** The first capture of the shadow-overlay map contained no
+  shadows. The capture script had waited for the SVG path count to jump by 50 — but the entire
+  shadow field arrives as one MultiPolygon, so Leaflet draws it as a *single* `<path>` with many
+  subpaths. The wait could never have succeeded, and a fixed sleep had been silently hiding it.
+- **A duplicated function.** Two `renderHero` definitions existed simultaneously after
+  concurrent edits; the later one silently won. Removed, leaving one.
+
+---
+
 *Log continues as milestones complete.*
