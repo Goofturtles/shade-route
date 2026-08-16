@@ -19,7 +19,8 @@
   --ink-muted:    #4d545c;
   --surface:      #ffffff;
   --surface-sunk: #f2f4f6;
-  --line:         #c9cfd6;
+  --line:         #c9cfd6; /* decorative rules only — 1.57:1, not for control edges */
+  --field-border: #6b7280; /* form control boundaries — 4.83:1 on white */
 
   --shortest:     #d55e00; /* vermillion — M2 route lines only (3.87:1, clears
                               the 3:1 bar for non-text graphics, fails 4.5:1) */
@@ -192,7 +193,13 @@ legend {
   gap: 8px;
   align-items: end;
 }
-.point-row button { white-space: nowrap; }
+/* The button wraps below the two coordinate fields at every width the sidebar
+   actually takes; span the full row so it doesn't sit as a stray half-width
+   control. */
+.point-row button {
+  white-space: nowrap;
+  grid-column: 1 / -1;
+}
 .field label {
   display: block;
   font-size: 15px;
@@ -200,12 +207,19 @@ legend {
   color: var(--ink-muted);
   margin-bottom: 4px;
 }
-input[type="number"] {
+/* Selector is attribute-free on purpose: this was `input[type="number"]` and
+   silently became dead when the fields moved to type="text", dropping them to
+   the UA default 13.3px in a 21px box. Bind the styling to the row, not to a
+   type that is free to change. */
+.point-row input {
   width: 100%;
   font: inherit;
-  font-size: 16px;
+  font-size: 16px; /* 16px minimum also suppresses iOS focus-zoom */
+  min-height: 44px;
   padding: 9px 10px;
-  border: 1px solid var(--line);
+  /* --line is 1.57:1 on white — fine for decorative rules, but a form control's
+     boundary needs 3:1 (WCAG 1.4.11). --field-border is 4.83:1. */
+  border: 1px solid var(--field-border);
   border-radius: 8px;
   background: var(--surface);
   color: var(--ink);
@@ -429,7 +443,7 @@ input[aria-invalid="true"] {
        have no custom key handling that would justify the trade. Leaflet already
        makes this container focusable with arrow-pan and +/- zoom. The long
        instructions live in aria-describedby, not in the accessible name. -->
-  <div id="map" aria-label="Map of inner Portland" aria-describedby="map-help"></div>
+  <div id="map" role="region" aria-label="Map of inner Portland" aria-describedby="map-help"></div>
 </main>
 
 <noscript>
@@ -519,12 +533,10 @@ input[aria-invalid="true"] {
       return false;
     }
     if (!isFinite(lat) || !isFinite(lon)) {
-      markFieldValidity(kind, false);
       announce('That is not a valid coordinate. Latitude and longitude must both be numbers.', true);
       return false;
     }
     if (!insideBbox(lat, lon)) {
-      markFieldValidity(kind, false);
       announce(
         'That point is outside the ' + state.config.area_label + ' demo area. ' +
         'Street data has only been downloaded inside the dashed rectangle.',
@@ -533,7 +545,6 @@ input[aria-invalid="true"] {
       return false;
     }
 
-    markFieldValidity(kind, true);
     state[kind] = { lat: lat, lon: lon };
 
     var letter = kind === 'origin' ? 'A' : 'B';
@@ -572,8 +583,11 @@ input[aria-invalid="true"] {
     var latInput = document.getElementById(latId);
     var lonInput = document.getElementById(lonId);
 
+    // Field validity is marked here rather than inside setPoint: a rejected map
+    // click must not paint the coordinate inputs red, since they are still
+    // holding a value the user typed and we accepted.
     function apply() {
-      setPoint(kind, parseFloat(latInput.value), parseFloat(lonInput.value));
+      markFieldValidity(kind, setPoint(kind, parseFloat(latInput.value), parseFloat(lonInput.value)));
     }
 
     document.getElementById(buttonId).addEventListener('click', apply);

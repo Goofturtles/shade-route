@@ -124,6 +124,28 @@ alternating zero-width space. Recorded here because "the AI wrote it and it was 
 meant to scroll the page. Documented in the README and scheduled for M5 rather than half-fixed
 under time pressure.
 
+### Second audit round — verifying the fixes
+
+The fix commit was itself audited. It had introduced a regression: switching the coordinate
+inputs from `type="number"` to `type="text"` silently orphaned the `input[type="number"]` style
+block, so all four fields fell back to browser defaults — **13.3px text in 21px-tall boxes**,
+against a README that claims a 15px floor and 44px targets. Confirmed in the live page before
+fixing (measured 13.3333px / 21px), then bound the styling to `.point-row input` so it can't be
+broken again by changing an attribute. Fields now measure 16px in 45px boxes.
+
+That is the second time in this project that an AI-authored fix introduced a defect that only
+testing caught. Both are recorded here rather than quietly corrected, because the accuracy of
+this disclosure is the point of it.
+
+Also fixed in this round: the input border used a decorative `#c9cfd6` (1.57:1) where a form
+control boundary needs 3:1, so a dedicated `--field-border` token at 4.83:1 was added; `#map`
+regained `role="region"`, because ARIA does not allow naming a bare `<div>` and removing
+`role="application"` had left its label potentially unexposed; validation marking moved out of
+`setPoint` so a rejected *map click* no longer paints the typed coordinate fields red while they
+hold a value we accepted; and two README statements were corrected — a quoted script output line
+that no longer matched after the ASCII change, and a claim that the map pins were covered by the
+automated contrast sweep when they were in fact checked by hand.
+
 ---
 
 *Log continues as milestones complete.*

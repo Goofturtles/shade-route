@@ -66,8 +66,9 @@ seconds.
 python scripts/verify_env.py
 ```
 
-A passing run ends with `PASS — the stack imports, the signatures are known, the sun is where
-it should be.`
+A passing run ends with `PASS - the stack imports, the signatures are known, the sun is where it
+should be.` (The script's output is deliberately pure ASCII — Windows consoles default to a
+legacy code page and would mangle anything else.)
 
 ---
 
@@ -188,9 +189,11 @@ either.
 - **Full keyboard operation** with visible focus rings. Origin and destination are settable by
   typed coordinates, not only by clicking the map, and Enter commits a field.
 - **Okabe–Ito palette**, which stays distinguishable under protanopia, deuteranopia and
-  tritanopia. Verified WCAG AA against live computed styles, including the map pins — the
-  destination pin is a darkened vermillion (6.07:1) because full-strength `#d55e00` under white
-  bold text is only 3.87:1, which fails the 4.5:1 text bar.
+  tritanopia. Text contrast was swept against live computed styles; the map pins were checked
+  separately by hand, since they don't exist in the DOM until a point is placed and an automated
+  sweep therefore walks straight past them. That check is what caught the destination pin at
+  3.87:1 — full-strength `#d55e00` under white bold text fails the 4.5:1 bar, so the pin uses a
+  darkened vermillion at 6.07:1.
 - **Nothing carries meaning by colour alone.** The two map pins are distinguished by letter
   (A / B) as well as hue, and the map key repeats both in text.
 - `prefers-reduced-motion` respected, including Leaflet's JS-driven inertia panning and zoom
