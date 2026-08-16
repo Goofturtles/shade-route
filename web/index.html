@@ -50,11 +50,11 @@
      through 0.72 glass; #4f4f54 would be 4.1:1 and fail. */
   --ink:          #141416;
   --ink-2:        #2c2c30;
-  --ink-muted:    #3a3a3e;
+  --ink-muted:    #2e2e32;
   --surface:      #eceef2;
   --group:        rgba(120, 130, 150, 0.11);   /* grouped-list fill */
   --group-hover:  rgba(120, 130, 150, 0.17);
-  --field:        rgba(255, 255, 255, 0.62);
+  --field:        rgba(255, 255, 255, 0.42);
   --separator:    rgba(60, 60, 67, 0.16);      /* hairline, iOS-style */
   --line:         rgba(60, 60, 67, 0.14);
   --field-border: rgba(60, 60, 67, 0.30);
@@ -67,7 +67,9 @@
   --accent-ink:   #ffffff;
 
   --ok:    #00795c;
-  --error: #a4262c;
+  /* Deep enough to survive being read on clear glass over a dark tile:
+     #a4262c measured 2.96:1 there, against a 4.5:1 requirement. */
+  --error: #660d14;
   --sun:   #9a5a00;
 
   /* Route identity. Read from JS via getComputedStyle — keep these names. */
@@ -79,14 +81,21 @@
   --shade-bar-fill:  #0071e3;
   --shade-bar-track: rgba(60, 60, 67, 0.14);
 
-  /* Clear, not frosted. You should see the city move behind this. */
-  --glass-panel:  rgba(255, 255, 255, 0.72);
-  --glass-chrome: rgba(255, 255, 255, 0.62);   /* buttons, inputs — inside the
+  /* Clear, not frosted, and not a panel with an overlay: a pane you see
+     through. Two things make that survivable. The tile filter below crushes the
+     basemap into a narrow bright band, and the rim tokens carry the material -
+     at this fill it is the lit edge, not the tint, doing the work. The floor is
+     set by a vivid route line passing beneath the panel, not by the map. */
+  /* 0.60, not 0.55. The corrected sweep — which composites over the MAP
+     rather than over body's opaque fill — showed 0.55 dropping secondary text
+     to 4.2:1 against the darkest post-filter tile (luminance 56). */
+  --glass-panel:  rgba(255, 255, 255, 0.45);
+  --glass-chrome: rgba(255, 255, 255, 0.34);   /* buttons, inputs — inside the
                                                   panel, so they composite on
                                                   top of it and can be clearer */
-  --glass-border: rgba(255, 255, 255, 0.55);
-  --glass-edge:   rgba(255, 255, 255, 0.98);   /* top rim: the lit edge */
-  --glass-under:  rgba(255, 255, 255, 0.45);   /* bottom rim: bounce light */
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-edge:   rgba(255, 255, 255, 1);   /* top rim: the lit edge */
+  --glass-under:  rgba(255, 255, 255, 0.60);   /* bottom rim: bounce light */
   --glass-blur:   blur(44px) saturate(190%);
   /* Four layers, and the two inset ones are what sell it: a bright lit rim
      along the top edge and a softer bounce along the bottom, the way a real
@@ -99,11 +108,15 @@
       inset 0 -1px 0 var(--glass-under);
 
   --focus: #0071e3;
-  --tile-filter: none;
+  /* contrast(0.62) then brightness(1.16) compresses tile luminance from
+     [0,255] into roughly [89,207]: a pale, calm basemap like the field Apple's
+     glass sits on. It is not decoration - raising the DARKEST possible backdrop
+     is precisely what lets the glass above it go clear and stay legible. */
+  --tile-filter: saturate(0.16) contrast(0.12) brightness(1.75);
 
   --radius:      12px;
   --radius-lg:   16px;
-  --radius-xl:   26px;
+  --radius-xl:   30px;
   --radius-pill: 980px;
 
   --font-body: 17px/1.5 var(--font-text);
@@ -124,7 +137,7 @@
   --surface:      #08080a;
   --group:        rgba(255, 255, 255, 0.08);
   --group-hover:  rgba(255, 255, 255, 0.13);
-  --field:        rgba(40, 42, 50, 0.55);
+  --field:        rgba(40, 42, 50, 0.45);
   --separator:    rgba(255, 255, 255, 0.13);
   --line:         rgba(255, 255, 255, 0.13);
   --field-border: rgba(255, 255, 255, 0.24);
@@ -148,10 +161,10 @@
   --shade-bar-fill:  #6cc0ff;
   --shade-bar-track: rgba(255, 255, 255, 0.14);
 
-  --glass-panel:  rgba(18, 18, 22, 0.72);
-  --glass-chrome: rgba(40, 42, 50, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.20);
-  --glass-edge:   rgba(255, 255, 255, 0.34);
+  --glass-panel:  rgba(14, 14, 18, 0.66);
+  --glass-chrome: rgba(40, 42, 50, 0.42);
+  --glass-border: rgba(255, 255, 255, 0.30);
+  --glass-edge:   rgba(255, 255, 255, 0.42);
   --glass-under:  rgba(255, 255, 255, 0.10);
   --glass-lift:
       0 24px 64px rgba(0, 0, 0, 0.70),
@@ -161,7 +174,7 @@
       inset 0 -1px 0 var(--glass-under);
 
   --focus: #7cc4f5;
-  --tile-filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.90) saturate(0.7);
+  --tile-filter: invert(1) hue-rotate(180deg) saturate(0.18) contrast(0.16) brightness(0.42);
 }
 
 * { box-sizing: border-box; }
@@ -261,7 +274,7 @@ header .tagline { margin: 0; color: var(--ink-muted); font-size: 15px; line-heig
   overflow-y: auto;
   overscroll-behavior: contain;
   z-index: 20;
-  padding: 20px;
+  padding: 24px;
   border-radius: var(--radius-xl);
   background: var(--glass-panel);
   /* Declared twice on purpose: if url() is unsupported the second declaration
@@ -315,10 +328,12 @@ h2 {
    hairline separators between rows. */
 fieldset {
   border: 0;
-  padding: 0;
-  margin: 0 0 20px;
+  padding: 0 0 22px;
+  margin: 0 0 22px;
   min-width: 0;
+  border-bottom: 1px solid var(--separator);
 }
+#controls fieldset:last-of-type { border-bottom: 0; }
 /* Section header: full-strength ink at 600. Previously this was muted at 600
    and the field labels were muted at 400 — at the same size, a weight step
    alone is close to invisible, so the two roles read as one. */
@@ -332,12 +347,14 @@ legend {
   color: var(--ink);
 }
 
+/* No fills inside the glass. Every reference frame shows content sitting
+   directly on the pane with generous space around it — never a grey box inside
+   a glass box. Space and a hairline do the grouping instead. */
 .place-row,
 .when-row,
 .aversion-group {
-  background: var(--group);
-  border-radius: var(--radius-lg);
-  padding: 14px;
+  background: transparent;
+  padding: 0;
 }
 .place-row { display: grid; gap: 12px; }
 /* auto-fit, not a rigid 1fr 1fr: at 360px each field fell to ~106px inner
@@ -442,10 +459,8 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
 
 #status {
   margin: 16px 0 0;
-  padding: 12px 14px;
-  border-radius: var(--radius-lg);
-  background: var(--group);
-  border-left: 3px solid var(--line);
+  padding: 12px 0 0;
+  border-top: 1px solid var(--separator);
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink-2);
@@ -554,10 +569,9 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
 }
 
 .rest-summary {
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border-radius: var(--radius-lg);
-  background: var(--group);
+  margin: 0 0 16px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--separator);
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink-2);
@@ -649,9 +663,6 @@ summary::marker { color: var(--ink-muted); }
   gap: 10px;
   align-items: end;
   margin: 6px 0 14px;
-  background: var(--group);
-  border-radius: var(--radius-lg);
-  padding: 14px;
 }
 .point-row button { white-space: nowrap; grid-column: 1 / -1; }
 
@@ -1592,8 +1603,14 @@ summary::marker { color: var(--ink-muted); }
     // to sit down. The brief asks for a rest stop roughly every 300 m.
     var gap = document.createElement('span');
     gap.className = rest.meets_300m_target ? '' : 'warn';
+    // The miss is stated in words, not just in red. Colour alone would never
+    // reach a screen-reader user, and would not tell a colourblind one that a
+    // 300 m target exists at all.
     gap.textContent = ' Longest stretch without a seat: ' +
-      formatDistance(rest.longest_gap_m) + '.';
+      formatDistance(rest.longest_gap_m) +
+      (rest.meets_300m_target
+        ? ' — within the 300 m target.'
+        : ' — more than the 300 m target.');
     summary.appendChild(gap);
 
     if (route.directions.has_steps) {

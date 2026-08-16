@@ -201,21 +201,33 @@ def compute_route(
     # those weights between our annotate and our Dijkstra, and we would return a
     # route computed against somebody else's settings. That is a wrong number
     # rather than a crash, which is precisely what the brief forbids.
+    stops = rest_stops.all_rest_stops()
+    destination_label = dest_name or None
+
     with _routing_lock:
         shade.annotate_graph(walk_graph, shade_field, shade_aversion)
+
         # Steps are impassable for the person this is built for, so they are
         # priced out of the graph rather than merely discouraged. Not infinite:
         # if the ONLY connection is a staircase we would rather return a route
         # and say it has steps than return nothing at all.
-        if avoid_stairs:
-            for _, _, data in walk_graph.edges(data=True):
-                highway = data.get("highway")
-                if isinstance(highway, list):
-                    highway = highway[0] if highway else None
-                if highway == "steps":
-                    data["shade_cost"] = data["shade_cost"] * 1000.0
+        #
+        # The penalty is applied to BOTH weights. Putting it only on shade_cost
+        # meant the "shortest" baseline still climbed stairs while the caller
+        # had asked to avoid them, and — worse — it broke the invariant this
+        # endpoint's docstring rests on: at shade_aversion 0 the two weights
+        # must be identical, or the honest A/B comparison silently stops being
+        # one.
+        for _, _, data in walk_graph.edges(data=True):
+            highway = data.get("highway")
+            if isinstance(highway, list):
+                highway = highway[0] if highway else None
+            penalty = 1000.0 if (avoid_stairs and highway == "steps") else 1.0
+            data["walk_length"] = data["length"] * penalty
+            data["shade_cost"] = data["shade_cost"] * penalty
+
         try:
-            shortest = build("shortest", "Shortest route", "length")
+            shortest = build("shortest", "Shortest route", "walk_length")
             shadiest = build("shadiest", "Shadiest route", "shade_cost")
         except nx.NetworkXNoPath:
             raise HTTPException(
@@ -223,18 +235,18 @@ def compute_route(
                 detail="No walking route connects those two points inside the demo area.",
             )
 
-    # Directions are built inside the lock: they read shade_fraction off the
-    # same edges the router just chose.
-    stops = rest_stops.all_rest_stops()
-    destination_label = dest_name or None
-    for route_entry in (shortest, shadiest):
-        route_entry["directions"] = directions.build_directions(
-            walk_graph, route_entry["_nodes"],
-            "length" if route_entry["id"] == "shortest" else "shade_cost",
-            sun_casts_shadows=shade_field.sun.casts_usable_shadows,
-            rest_stops=stops,
-            destination_name=destination_label,
-        )
+        # Built inside the lock, and this time actually inside it. These read
+        # shade_fraction off the very edges the router just chose; a concurrent
+        # request re-annotating between the Dijkstra and the prose would have
+        # described a different hour than the headline percentage.
+        for route_entry in (shortest, shadiest):
+            route_entry["directions"] = directions.build_directions(
+                walk_graph, route_entry["_nodes"],
+                "walk_length" if route_entry["id"] == "shortest" else "shade_cost",
+                sun_casts_shadows=shade_field.sun.casts_usable_shadows,
+                rest_stops=stops,
+                destination_name=destination_label,
+            )
 
     identical = shortest.pop("_nodes") == shadiest.pop("_nodes")
     sun_position = shade_field.sun

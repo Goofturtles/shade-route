@@ -131,9 +131,19 @@ def build_legs(graph, route: list[int], weight: str = "length") -> list[dict]:
         shaded = length * float(data.get("shade_fraction", 0.0))
         is_steps = _way_kind(data) == "a flight of steps"
 
-        # Extend the current leg when the street name is unchanged; a walker
-        # does not want an instruction per OSM way segment.
-        if legs and legs[-1]["label"] == label and not is_steps and not legs[-1]["steps"]:
+        # Extend the current leg when the street name is unchanged AND the
+        # direction has barely changed. The bearing gate is not optional:
+        # _way_kind collapses every unnamed footway to "a footpath", so without
+        # it two unnamed paths meeting at a right angle merged into a single
+        # leg and the corner disappeared from the directions entirely — the one
+        # failure that makes a route undescribable without a map. Comparing
+        # against end_bearing lets a gradual curve accumulate while a real
+        # corner splits.
+        continues_straight = bool(legs) and abs(
+            (heading - legs[-1]["end_bearing"] + 540.0) % 360.0 - 180.0
+        ) < SLIGHT
+        same_leg = bool(legs) and legs[-1]["label"] == label
+        if same_leg and continues_straight and not is_steps and not legs[-1]["steps"]:
             leg = legs[-1]
             leg["length_m"] += length
             leg["shaded_m"] += shaded
@@ -299,7 +309,9 @@ def build_directions(graph, route: list[int], weight: str, *,
 
         # Benches that fall within this leg, described relative to it.
         leg_start, leg_end = travelled, travelled + leg["length_m"]
-        here = [b for b in benches if leg_start - 1 <= b["along_m"] < leg_end + 1]
+        # Half-open interval. The previous 2 m overlap window let a bench on a
+        # leg boundary be announced twice.
+        here = [b for b in benches if leg_start <= b["along_m"] < leg_end]
         seats = [b for b in here if b["kind"] == "bench"]
         if seats:
             if len(seats) == 1:
