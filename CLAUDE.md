@@ -104,9 +104,29 @@ Original 40-hour plan, re-scoped for a one-day build:
 | **M1** Plain routing | 3 h | 1.5 h | graph cached to `.graphml`, never re-downloaded |
 | **M2** Shade engine | 6 h | 4.0 h | **merged with M3** — trees first, then buildings |
 | **M3** Building shadows | 6 h | — | folded into M2 |
-| **M4** Marisol's features | 5 h | 2.0 h | benches, no stairs, time scrubber, fountains |
-| **M5** Polish + a11y + README | 5 h | 2.0 h | text route description is not cuttable |
-| Video + submit | 4 h | 1.5 h | |
+| **M2v** Voxel 3D view | — | 1.5 h | **added mid-build**, see below |
+| **M4** Marisol's features | 5 h | 1.5 h | benches, no stairs, time scrubber; **fountains cut** |
+| **M5** Polish + a11y + README | 5 h | 1.5 h | text route description is not cuttable |
+| Video + submit | 4 h | 1.0 h | |
+
+### M2v — voxel 3D view (added 15 Aug, mid-build)
+
+An optional 3D voxel view of the demo area, in the spirit of the ghostbus voxel map, rendering
+the building shadow volumes M2 already computes. Decisions made when it was added:
+
+- **It is an additive panel, not a replacement.** The Leaflet map and the prose route description
+  remain the primary path. A WebGL canvas has no accessible equivalent, and accessibility is 20%
+  of the score and the reason this project exists — the 3D view must never become the only way to
+  read a route.
+- **It reuses M2's geometry.** The extruded shadow polygons are already computed for the shade
+  fraction; the voxel view extrudes and renders those rather than building a second pipeline.
+  This is why it is sequenced *after* M2 — built before it, there would be nothing to draw.
+- **No build step.** Three.js as an ES module from a CDN, consistent with §4. No npm, no bundler.
+- **Coverage stays 2 km × 2 km.** Expanding to the Greater Toronto Area was considered and
+  rejected: ~7,100 km² is roughly 1,780× the demo area, Overpass will not serve a building query
+  at that scale, routing degrades to minutes per request, and it would move the demo off
+  Marisol's Portland. §9's "stop me if I ask for multi-city support" applied.
+- **Paid for by cutting drinking fountains** from M4, and by trimming M5 and the video block.
 
 **M0** — FastAPI app, `/health`, `index.html` with a Leaflet map centred on Portland,
 click-to-set origin and destination. Commit.

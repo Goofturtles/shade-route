@@ -170,7 +170,8 @@ Stated up front, because a model you can't describe the failure modes of isn't a
 | **M0** | Server skeleton, `/health`, Leaflet map, click/keyboard point selection | **Done** |
 | M1 | Walking graph cached to disk, shortest path rendered | Not started |
 | M2 | Sun position, tree + building shadows, shade fraction, cost function, dual route comparison | Not started |
-| M4 | Time-of-day scrubber, benches, stair avoidance, drinking fountains | Not started |
+| M2v | Optional voxel 3D view of the shadow volumes M2 computes | Not started |
+| M4 | Time-of-day scrubber, benches, stair avoidance | Not started |
 | M5 | Text route description, accessibility pass, polish | Not started |
 
 *(M3 from the original plan — building shadows — was merged into M2. The pipeline is identical
