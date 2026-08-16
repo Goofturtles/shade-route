@@ -4,33 +4,40 @@
 <title>Shade Route — launch film</title>
 
 <!--
-  The launch film. Authored at 1920x1080 CSS pixels and captured at devicePixelRatio 2,
-  so the output is a true 3840x2160.
+  The launch film. Authored at 1920x1080 CSS pixels, captured at
+  devicePixelRatio 2, so the output is a true 3840x2160.
 
   Nothing here animates itself. There is no CSS animation, no transition and no
-  requestAnimationFrame anywhere in this file, because all three run off the wall
-  clock — and a capture loop that spends 300 ms writing a PNG would let the wall
-  clock run 300 ms further, so the film would stutter and would never render the
-  same way twice. Instead every animated value is a pure function of the frame
-  number, applied by seek(). render.mjs calls seek(n), screenshots, and repeats.
+  requestAnimationFrame anywhere in this file, because all three run off the
+  wall clock — and a capture loop that spends over a second writing a 4K PNG
+  would let the wall clock run that far ahead, so the film would stutter and
+  would never render the same way twice. Every animated value is instead a pure
+  function of the frame number, applied by seek(). render.mjs calls seek(n),
+  screenshots, and repeats, and capture may take as long as it needs to.
 
   Every figure spoken on screen is a real output of the app for the route
-  Southwest 6th & Clay -> Capsule Pharmacy at 2026-08-16 15:00, and the stills are
-  screenshots of that same run, so the numbers agree from cut to cut.
+  Southwest 6th & Clay -> Capsule Pharmacy at 2026-08-16 15:00, and every
+  product still is a screenshot of that same run. video/check_claims.py fails
+  the build if any of them stops matching the API.
+
+  The middle act is drawn rather than screenshotted. A screenshot can show that
+  the software has an answer; only a diagram can show why the answer is that
+  one — and the shadow geometry is the entire argument of the project.
 -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@200;300;400;500;600;700&display=swap">
 
 <style>
 :root {
-  --deep:   #06140a;
-  --ink:    #0d1b12;
+  --black:  #060d08;
   --leaf:   #a8e6b8;
   --leaf-d: #4fae76;
-  --cream:  #eef8d4;
-  --paper:  #f4f9ec;
+  --sun:    #f2c14e;
+  --line:   rgba(168, 230, 184, 0.16);
+  --dim:    rgba(255, 255, 255, 0.52);
+  --dimmer: rgba(255, 255, 255, 0.30);
   --display: "Fraunces", Georgia, serif;
   --text:    "Public Sans", system-ui, sans-serif;
 }
@@ -38,177 +45,156 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
-  width: 1920px; height: 1080px;
-  overflow: hidden;
-  background: var(--deep);
-  color: #fff;
-  font-family: var(--text);
-  -webkit-font-smoothing: antialiased;
+  width: 1920px; height: 1080px; overflow: hidden;
+  background: var(--black); color: #fff;
+  font-family: var(--text); -webkit-font-smoothing: antialiased;
 }
-
 #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+.shot { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
 
-.shot {
-  position: absolute; inset: 0;
-  opacity: 0;
-  will-change: opacity, transform;
-}
-
-/* Full-bleed photographic plate. Held in its own layer so the camera can move
-   it independently of the type sitting on top. */
+/* ---- shared furniture --------------------------------------------------- */
 .plate { position: absolute; inset: -6%; background-size: cover; background-position: center 60%; }
 .plate.canopy { background-image: url("../web/img/canopy.jpg"); }
-
-/* Legibility scrim. Type over a photograph needs a floor under it or the
-   contrast changes with whatever the photo happens to be doing there. */
 .scrim {
   position: absolute; inset: 0;
-  background: linear-gradient(100deg,
-    rgba(6, 20, 10, 0.93) 0%, rgba(6, 20, 10, 0.86) 38%,
-    rgba(6, 20, 10, 0.55) 68%, rgba(6, 20, 10, 0.34) 100%);
+  background: linear-gradient(100deg, rgba(6,13,8,0.94) 0%, rgba(6,13,8,0.88) 38%,
+              rgba(6,13,8,0.58) 70%, rgba(6,13,8,0.36) 100%);
 }
-.scrim.even { background: rgba(6, 20, 10, 0.72); }
-
-/* Grain and vignette. Both are what stop a flat CSS gradient reading as a flat
-   CSS gradient once it is encoded. */
 .vignette {
   position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 78% 68% at 50% 48%,
-              rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%);
+  background: radial-gradient(ellipse 76% 66% at 50% 48%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.62) 100%);
 }
-#grain {
-  position: absolute; inset: 0; pointer-events: none;
-  opacity: 0.055; mix-blend-mode: overlay;
-}
+#grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.05; mix-blend-mode: overlay; }
 
 .wrap { position: absolute; left: 132px; right: 132px; top: 0; bottom: 0;
         display: flex; flex-direction: column; justify-content: center; }
-.wrap.center { align-items: center; text-align: center; left: 200px; right: 200px; }
+.wrap.center { align-items: center; text-align: center; left: 180px; right: 180px; }
 
-.eyebrow {
-  font-size: 21px; font-weight: 600; letter-spacing: 0.26em;
-  text-transform: uppercase; color: var(--leaf);
-  margin-bottom: 34px;
-}
+.eyebrow { font-size: 19px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
+           color: var(--leaf); margin-bottom: 30px; }
+.eyebrow.plain { color: var(--dimmer); }
 
-.line {
-  font-family: var(--display);
-  font-size: 82px; line-height: 1.1; font-weight: 500;
-  letter-spacing: -0.022em;
-  max-width: 1360px;
-  text-wrap: balance;
-}
-.line.sm { font-size: 58px; max-width: 1180px; }
+.line { font-family: var(--display); font-size: 84px; line-height: 1.08; font-weight: 500;
+        letter-spacing: -0.024em; max-width: 1400px; text-wrap: balance; }
+.line.sm { font-size: 58px; max-width: 1240px; }
+.line.xl { font-size: 104px; max-width: 1500px; }
 .line em { font-style: normal; color: var(--leaf); }
 
-.sub {
-  margin-top: 30px;
-  font-size: 30px; line-height: 1.45; font-weight: 300;
-  color: rgba(255,255,255,0.78);
-  max-width: 1000px;
-}
+.sub { margin-top: 28px; font-size: 29px; line-height: 1.5; font-weight: 300;
+       color: var(--dim); max-width: 1040px; }
+.sub b { color: #fff; font-weight: 600; }
 
-/* Each word is its own box so the reveal can stagger and mask from below —
-   the mask is what makes type feel like it was set rather than faded in. */
-.w { display: inline-block; overflow: hidden; vertical-align: bottom; }
+/* Each word is clipped so the reveal masks from below — what makes type read as
+   set rather than faded on. */
+.w { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: 0.14em;
+     margin-bottom: -0.14em; }
 .w > span { display: inline-block; will-change: transform, opacity; }
 
-/* --- Shot 3: the wordmark ------------------------------------------------ */
-.mark { display: flex; align-items: center; gap: 30px; }
-.mark-glyph {
-  width: 116px; height: 116px; border-radius: 34px;
-  background: rgba(255,255,255,0.94);
-  display: grid; place-items: center; font-size: 62px; line-height: 1;
-}
-.mark-type { font-family: var(--display); font-size: 96px; font-weight: 600;
-             letter-spacing: -0.028em; }
+.mark { display: flex; align-items: center; gap: 28px; }
+.mark-glyph { width: 108px; height: 108px; border-radius: 32px; background: #fff;
+              display: grid; place-items: center; font-size: 58px; line-height: 1; }
+.mark-type { font-family: var(--display); font-size: 92px; font-weight: 600; letter-spacing: -0.03em; }
 
-/* --- Shots 4-8: product stills ------------------------------------------- */
+/* ---- product stills ----------------------------------------------------- */
 .frame { position: absolute; inset: 0; display: grid; place-items: center; }
+.still { display: block; border-radius: 20px;
+         box-shadow: 0 60px 150px rgba(0,0,0,0.72), 0 0 0 1px rgba(255,255,255,0.08); }
+.bleed .still { width: 1920px; height: 1080px; object-fit: cover; border-radius: 0; box-shadow: none; }
+.split .frame { place-items: center end; padding-right: 92px; }
+.scrim-side { position: absolute; left: 0; top: 0; bottom: 0; width: 1100px;
+  background: linear-gradient(to right, rgba(6,13,8,0.97) 0%, rgba(6,13,8,0.93) 44%, rgba(6,13,8,0) 100%); }
+.scrim-bottom { position: absolute; left: 0; right: 0; bottom: 0; height: 540px;
+  background: linear-gradient(to top, rgba(6,13,8,0.97) 0%, rgba(6,13,8,0.90) 34%, rgba(6,13,8,0) 100%); }
+.caption { position: absolute; left: 132px; bottom: 104px; right: 132px; }
+.split .caption { width: 730px; right: auto; top: 50%; bottom: auto; transform: translateY(-50%); }
+.caption .k { font-size: 19px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase;
+              color: var(--leaf); margin-bottom: 18px; }
+.caption .v { font-family: var(--display); font-size: 54px; font-weight: 500;
+              letter-spacing: -0.018em; line-height: 1.16; max-width: 1280px; }
+.split .caption .v { font-size: 48px; max-width: 700px; }
 
-/* Full-bleed: the app screenshot is already 16:9, so it fills the frame exactly
-   and the caption rides over the scrim. */
-.bleed .frame { inset: 0; }
-.bleed .still { width: 1920px; height: 1080px; object-fit: cover;
-                border-radius: 0; box-shadow: none; }
-
-/* Split: a tall or square still cannot fill 16:9 without losing most of itself,
-   so it takes the right column at full height and the type takes the left. */
-.split .frame { place-items: center end; padding-right: 96px; }
-.split .still { border-radius: 18px; }
-.split .caption { left: 118px; right: auto; width: 720px; top: 50%;
-                  bottom: auto; transform: translateY(-50%); }
-.split .caption .v { font-size: 50px; max-width: 700px; }
-.split .lower-scrim {
-  left: 0; right: auto; top: 0; bottom: 0; width: 1080px; height: auto;
-  background: linear-gradient(to right,
-    rgba(6,20,10,0.97) 0%, rgba(6,20,10,0.92) 46%, rgba(6,20,10,0) 100%);
-}
-.still {
-  display: block;
-  box-shadow: 0 60px 140px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.09);
-  border-radius: 22px;
-  will-change: transform;
-}
-
-/* Caption rail that sits over product footage without fighting it. */
-.lower-scrim {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 560px;
-  background: linear-gradient(to top,
-    rgba(6, 20, 10, 0.97) 0%, rgba(6, 20, 10, 0.90) 34%,
-    rgba(6, 20, 10, 0.55) 66%, rgba(6, 20, 10, 0) 100%);
-}
-.caption {
-  position: absolute; left: 132px; bottom: 108px; right: 132px;
-}
-.caption .k {
-  font-size: 20px; font-weight: 700; letter-spacing: 0.24em;
-  text-transform: uppercase; color: var(--leaf); margin-bottom: 16px;
-}
-.caption .v {
-  font-family: var(--display); font-size: 56px; font-weight: 500;
-  letter-spacing: -0.018em; line-height: 1.16; max-width: 1300px;
-}
-
-/* --- Shot 5: the trade-off ----------------------------------------------- */
-.stats { display: flex; align-items: flex-end; gap: 130px; }
-.stat .num {
-  font-family: var(--display);
-  font-size: 250px; font-weight: 600; line-height: 0.84;
-  letter-spacing: -0.05em;
-  font-variant-numeric: tabular-nums lining-nums;
-}
-.stat .num .pc { font-size: 104px; margin-left: 4px; }
-.stat .cap {
-  margin-top: 26px; font-size: 27px; font-weight: 500;
-  letter-spacing: 0.04em; color: rgba(255,255,255,0.72);
-}
+/* ---- the two-number comparison ------------------------------------------ */
+.stats { display: flex; align-items: flex-end; gap: 140px; }
+.stat .num { font-family: var(--display); font-size: 250px; font-weight: 600; line-height: 0.84;
+             letter-spacing: -0.05em; font-variant-numeric: tabular-nums lining-nums; }
+.stat .num .pc { font-size: 100px; margin-left: 4px; }
+.stat .cap { margin-top: 24px; font-size: 26px; font-weight: 500; letter-spacing: 0.04em; color: var(--dim); }
 .stat.win .num { color: var(--leaf); }
-.stat.lose .num { color: rgba(255,255,255,0.42); }
-.stat.lose .cap { color: rgba(255,255,255,0.46); }
-
-.cost {
-  margin-top: 56px; font-size: 34px; font-weight: 300;
-  color: rgba(255,255,255,0.86);
-}
+.stat.lose .num { color: rgba(255,255,255,0.34); }
+.stat.lose .cap { color: var(--dimmer); }
+.cost { margin-top: 54px; font-size: 33px; font-weight: 300; color: rgba(255,255,255,0.86); }
 .cost b { font-weight: 600; color: #fff; }
 
-/* --- Shot 9: the close --------------------------------------------------- */
-.outro-line { font-size: 30px; font-weight: 300; color: rgba(255,255,255,0.72);
-              margin-top: 34px; line-height: 1.5; }
-.chips { display: flex; gap: 16px; margin-top: 46px; }
-.chip {
-  padding: 15px 27px; border-radius: 999px;
-  border: 1px solid rgba(168,230,184,0.42);
-  background: rgba(168,230,184,0.10);
-  font-size: 22px; font-weight: 500; color: var(--leaf);
-}
+.act { display: flex; align-items: center; gap: 34px; }
+.act-num { font-family: var(--display); font-size: 30px; font-weight: 600; color: var(--leaf-d);
+           font-variant-numeric: tabular-nums; }
+.act-rule { height: 1px; flex: 1 1 auto; background: var(--line); }
+
+/* ---- drawn diagrams ----------------------------------------------------- */
+.diagram { position: absolute; inset: 0; display: grid; place-items: center; }
+.diagram svg { display: block; }
+.readout { position: absolute; left: 132px; top: 150px; font-variant-numeric: tabular-nums; }
+.readout .rk { font-size: 18px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase;
+               color: var(--dimmer); margin-bottom: 12px; }
+.readout .rv { font-family: var(--display); font-size: 74px; font-weight: 600;
+               letter-spacing: -0.03em; line-height: 1; }
+.readout .rv small { font-size: 32px; color: var(--dim); margin-left: 6px; }
+
+.formula { font-family: var(--display); font-size: 46px; font-weight: 500; letter-spacing: -0.01em; }
+.formula .t { color: var(--leaf); }
+.formula .d { color: var(--dimmer); }
+
+.track { position: relative; height: 14px; margin-top: 16px; border-radius: 7px;
+         background: rgba(255,255,255,0.10); }
+.track .fill { position: absolute; top: 0; bottom: 0; left: 0; width: 0; border-radius: 7px;
+               background: linear-gradient(90deg, var(--leaf-d), var(--leaf)); }
+.track .knob { position: absolute; top: 50%; left: 0; width: 38px; height: 38px;
+               margin: -19px 0 0 -19px; border-radius: 50%; background: #fff;
+               box-shadow: 0 8px 26px rgba(0,0,0,0.6); }
+.track-ends { display: flex; justify-content: space-between; font-size: 21px; color: var(--dimmer);
+              letter-spacing: 0.18em; text-transform: uppercase; }
+
+/* ---- the hour strip ----------------------------------------------------- */
+.hours { display: flex; align-items: flex-end; gap: 13px; height: 340px; list-style: none; }
+.hour { flex: 1 1 0; display: flex; flex-direction: column; justify-content: flex-end;
+        align-items: center; gap: 14px; }
+.hour .bar { width: 100%; border-radius: 10px 10px 4px 4px; background: var(--leaf-d); }
+.hour.best .bar { background: var(--leaf); }
+.hour.worst .bar { background: var(--sun); }
+.hour .hl { font-size: 21px; color: var(--dimmer); font-variant-numeric: tabular-nums; }
+.hour.best .hl, .hour.worst .hl { color: #fff; font-weight: 600; }
+
+/* ---- counters ----------------------------------------------------------- */
+.counts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 44px; width: 100%; }
+.count .cv { font-family: var(--display); font-size: 104px; font-weight: 600; letter-spacing: -0.04em;
+             line-height: 1; font-variant-numeric: tabular-nums; color: var(--leaf); }
+.count .ck { margin-top: 18px; font-size: 22px; line-height: 1.4; color: var(--dim); }
+.count.zero .cv { color: #fff; }
+
+.limits { display: grid; gap: 24px; margin-top: 12px; }
+.limit { display: flex; align-items: baseline; gap: 22px; font-size: 30px; line-height: 1.4;
+         color: rgba(255,255,255,0.88); font-weight: 300; }
+.limit i { font-style: normal; color: var(--sun); font-size: 26px; flex: 0 0 auto; }
+
+.chips { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; justify-content: center; }
+.chip { padding: 14px 26px; border-radius: 999px; border: 1px solid var(--line);
+        background: rgba(168,230,184,0.08); font-size: 21px; font-weight: 500; color: var(--leaf); }
+.outro-line { font-size: 28px; font-weight: 300; color: var(--dim); margin-top: 28px; line-height: 1.5; }
 </style>
 
 <div id="stage">
 
-  <!-- 1. The person, and why this is not a convenience feature -->
+  <!-- ============ ACT 1 — the problem ============ -->
+
   <section class="shot" id="s1">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>A walking route planner</p>
+      <p class="line xl" data-words>Every map you own optimises for <em>time</em>.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <section class="shot" id="s2">
     <div class="plate canopy" data-cam></div>
     <div class="scrim"></div>
     <div class="wrap">
@@ -220,46 +206,50 @@ html, body {
     <div class="vignette"></div>
   </section>
 
-  <!-- 2. The problem, stated plainly -->
-  <section class="shot" id="s2">
-    <div class="plate canopy" data-cam style="background-position: 30% 72%"></div>
+  <section class="shot" id="s3">
+    <div class="plate canopy" data-cam style="background-position: 28% 74%"></div>
     <div class="scrim"></div>
     <div class="wrap">
-      <p class="line" data-words>Every map she owns routes her the <em>fastest</em> way.</p>
-      <p class="sub" data-rise>Down an exposed arterial, in full sun, with nowhere to sit down.</p>
+      <p class="line" data-words>So the fastest route sends her down an exposed arterial, in full
+        sun, with nowhere to sit down.</p>
     </div>
     <div class="vignette"></div>
   </section>
 
-  <!-- 3. Name it -->
-  <section class="shot" id="s3">
+  <section class="shot" id="s4">
+    <div class="wrap center">
+      <p class="line xl" data-words>Shade isn't on the map.</p>
+      <p class="sub" data-rise style="text-align:center">So we put it there.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <!-- ============ ACT 2 — the product ============ -->
+
+  <section class="shot" id="s5">
     <div class="wrap center">
       <div class="mark">
         <div class="mark-glyph" data-pop>🌳</div>
         <div class="mark-type" data-rise>Shade Route</div>
       </div>
-      <p class="sub" data-rise style="text-align:center;margin-top:36px">
-        A walking planner that optimises for shadow, not speed.
-      </p>
+      <p class="sub" data-rise style="text-align:center;margin-top:34px">
+        A walking planner that optimises for shadow, not speed.</p>
     </div>
     <div class="vignette"></div>
   </section>
 
-  <!-- 4. The product, real -->
-  <section class="shot product bleed" id="s4">
+  <section class="shot bleed" id="s6">
     <div class="frame"><img class="still" id="still-full" src="footage/full.png" alt=""></div>
     <div class="vignette"></div>
-    <div class="lower-scrim"></div>
+    <div class="scrim-bottom"></div>
     <div class="caption">
-      <p class="k" data-rise>One page, no account, no API key</p>
-      <p class="v" data-words>Pick two points and a time of day. It routes for the shade that
-        actually exists at that hour.</p>
+      <p class="k" data-rise>One page &middot; no account &middot; no API key</p>
+      <p class="v" data-words>Two points and a time of day. It routes for the shade that actually
+        exists at that hour.</p>
     </div>
   </section>
 
-  <!-- 5. The trade-off: the whole argument in two numbers -->
-  <section class="shot" id="s5">
-    <div class="scrim even"></div>
+  <section class="shot" id="s7">
     <div class="wrap">
       <p class="eyebrow" data-rise>Bus stop to pharmacy &middot; 3:00 PM</p>
       <div class="stats">
@@ -278,61 +268,178 @@ html, body {
     <div class="vignette"></div>
   </section>
 
-  <!-- 6. The proof. This is the shot that has to land. -->
-  <section class="shot product split" id="s6">
+  <!-- ============ ACT 3 — how it knows (drawn) ============ -->
+
+  <section class="shot" id="s8">
+    <div class="wrap">
+      <div class="act" data-rise><span class="act-num">01</span><span class="act-rule"></span></div>
+      <p class="line" data-words style="margin-top:38px">How it knows where the shade is.</p>
+      <p class="sub" data-rise>No imagery and no weather model. Sun geometry and building
+        footprints.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <section class="shot" id="s9">
+    <div class="diagram">
+      <svg id="sundiag" width="1520" height="760" viewBox="0 0 1520 760" aria-hidden="true">
+        <defs>
+          <linearGradient id="shadowGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#4fae76" stop-opacity="0.62"/>
+            <stop offset="1" stop-color="#4fae76" stop-opacity="0.08"/>
+          </linearGradient>
+        </defs>
+        <line x1="90" y1="620" x2="1430" y2="620" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
+        <polygon id="shadowPoly" points="" fill="url(#shadowGrad)"/>
+        <rect id="bldg" x="560" y="380" width="150" height="240" rx="4"
+              fill="#16281c" stroke="rgba(168,230,184,0.55)" stroke-width="2"/>
+        <line id="ray" x1="0" y1="0" x2="0" y2="0" stroke="#f2c14e" stroke-width="2"
+              stroke-dasharray="9 8" opacity="0.85"/>
+        <circle id="sun" cx="0" cy="0" r="24" fill="#f2c14e"/>
+        <path id="elevArc" d="" fill="none" stroke="rgba(242,193,78,0.55)" stroke-width="2"/>
+        <text id="elevLabel" x="0" y="0" fill="#f2c14e" font-size="25"
+              font-family="Public Sans, sans-serif">51&deg;</text>
+      </svg>
+    </div>
+    <div class="readout">
+      <p class="rk">Solar elevation &middot; pvlib</p>
+      <p class="rv"><span id="elevOut">51.1</span><small>&deg;</small></p>
+      <p class="rk" style="margin-top:36px">Shadow length</p>
+      <p class="rv"><span id="lenOut">19</span><small>m</small></p>
+    </div>
+    <div class="caption" style="bottom:74px">
+      <p class="v" data-words style="font-size:42px;max-width:1560px">
+        shadow length = height &divide; tan(elevation), cast along the sun's azimuth &mdash; for
+        every footprint, at the hour you asked for.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <section class="shot" id="s10">
+    <div class="wrap">
+      <div class="act" data-rise><span class="act-num">02</span><span class="act-rule"></span></div>
+      <p class="line sm" data-words style="margin-top:34px">Then shade becomes a cost the router
+        can weigh.</p>
+      <p class="formula" data-rise style="margin-top:44px">
+        cost = length &times; <span class="d">(</span>1 + <span class="t">aversion</span>
+        <span class="d">&times; (</span>1 &minus; shade<span class="d">))</span></p>
+      <div style="margin-top:50px;max-width:1180px">
+        <div class="track-ends"><span>Fastest</span><span>Shadiest</span></div>
+        <div class="track">
+          <div class="fill" id="avFill"></div>
+          <div class="knob" id="avKnob"></div>
+        </div>
+        <p class="sub" style="margin-top:24px;max-width:1180px">
+          At <b id="avVal">0.0</b> it returns the plain shortest path &mdash; which is what makes
+          the comparison honest.</p>
+      </div>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <section class="shot split" id="s11">
     <div class="frame"><img class="still" id="still-shadows" src="footage/big-map-shadows.png" alt=""></div>
     <div class="vignette"></div>
-    <div class="lower-scrim"></div>
+    <div class="scrim-side"></div>
     <div class="caption">
       <p class="k" data-rise>Modelled, not guessed</p>
-      <p class="v" data-words>Every building and tree OpenStreetMap knows about, projected from
-        the sun's real position at 3:00 PM.</p>
+      <p class="v" data-words>1,186 building shadows and 737 tree shadows, projected from the sun's
+        real position at 3:00 PM.</p>
     </div>
   </section>
 
-  <!-- 7. The features that exist because of her, not because of a roadmap -->
-  <section class="shot product split" id="s7">
+  <!-- ============ ACT 4 — built for her ============ -->
+
+  <section class="shot" id="s12">
+    <div class="wrap">
+      <div class="act" data-rise><span class="act-num">03</span><span class="act-rule"></span></div>
+      <p class="line sm" data-words style="margin-top:30px">It also answers the question she
+        actually asks: when should I go?</p>
+      <ul class="hours" id="hourStrip" style="margin-top:44px"></ul>
+      <p class="sub" data-rise style="margin-top:28px;max-width:1500px">
+        Fourteen hours, each one fully routed, ranked by <b>time in direct sun</b> rather than by
+        percentage &mdash; minutes of exposure are what actually cause harm.</p>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <section class="shot split" id="s13">
     <div class="frame"><img class="still" id="still-dir" src="footage/big-directions.png" alt=""></div>
     <div class="vignette"></div>
-    <div class="lower-scrim"></div>
+    <div class="scrim-side"></div>
     <div class="caption">
       <p class="k" data-rise>Built for the walk, not the demo</p>
-      <p class="v" data-words>17 benches along the way &mdash; and it tells her the longest stretch
+      <p class="v" data-words>17 benches along the way &mdash; and it says the longest stretch
         without one is 780 m.</p>
     </div>
   </section>
 
-  <!-- 8. Accessibility, which is the reason the project exists -->
-  <section class="shot" id="s8">
-    <div class="plate canopy" data-cam style="background-position: 62% 40%"></div>
+  <section class="shot" id="s14">
+    <div class="plate canopy" data-cam style="background-position: 62% 38%"></div>
     <div class="scrim"></div>
     <div class="wrap">
       <p class="eyebrow" data-rise>Readable without the map</p>
-      <p class="line sm" data-words>Every route is also a paragraph. Turn by turn, in words,
-        with the shade and the benches named.</p>
-      <p class="sub" data-rise>Keyboard navigable. AA contrast in both themes. Colour is never
-        the only signal.</p>
+      <p class="line sm" data-words>Every route is also a paragraph. Turn by turn, in words, with
+        the shade and the benches named.</p>
+      <p class="sub" data-rise>Keyboard navigable. AA contrast in both themes. Colour is never the
+        only signal.</p>
     </div>
     <div class="vignette"></div>
   </section>
 
-  <!-- 9. Close -->
-  <section class="shot" id="s9">
+  <!-- ============ ACT 5 — provenance, limits, close ============ -->
+
+  <section class="shot" id="s15">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>What it is built out of</p>
+      <div class="counts" style="margin-top:18px">
+        <div class="count"><div class="cv"><span data-count="1186">0</span></div>
+          <div class="ck">building shadows<br>projected for this hour</div></div>
+        <div class="count"><div class="cv"><span data-count="737">0</span></div>
+          <div class="ck">tree shadows<br>from OpenStreetMap</div></div>
+        <div class="count"><div class="cv"><span data-count="245">0</span></div>
+          <div class="ck">named places<br>searchable by name</div></div>
+        <div class="count zero"><div class="cv"><span data-count="0">0</span></div>
+          <div class="ck">API keys<br>clone it and it runs</div></div>
+      </div>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <!-- The beat almost no product film has — and the reason a panel of working
+       engineers can trust the rest of it. -->
+  <section class="shot" id="s16">
+    <div class="wrap">
+      <p class="eyebrow plain" data-rise>What it does not know</p>
+      <div class="limits">
+        <p class="limit" data-rise><i>&mdash;</i><span>Building heights are estimated from floor
+          counts wherever OpenStreetMap has no height.</span></p>
+        <p class="limit" data-rise><i>&mdash;</i><span>Tree coverage is only as complete as the map
+          &mdash; an untagged street looks sunnier than it really is.</span></p>
+        <p class="limit" data-rise><i>&mdash;</i><span>Shadows are convex hulls, and the ground is
+          assumed flat.</span></p>
+        <p class="limit" data-rise><i>&mdash;</i><span>Shade changes radiant temperature, not air
+          temperature &mdash; which is why nothing here is quoted in degrees.</span></p>
+      </div>
+    </div>
+    <div class="vignette"></div>
+  </section>
+
+  <section class="shot" id="s17">
     <div class="wrap center">
       <div class="mark" data-rise>
         <div class="mark-glyph">🌳</div>
         <div class="mark-type">Shade Route</div>
       </div>
-      <p class="line sm" data-rise style="text-align:center;margin-top:44px">
-        The shade was already there.
-      </p>
+      <p class="line sm" data-rise style="text-align:center;margin-top:40px">
+        The shade was already there.</p>
       <p class="outro-line" data-rise style="text-align:center">
-        Open data, open source, no keys to hand out. Clone it and it runs.
-      </p>
+        Open data, open source, no keys to hand out.</p>
       <div class="chips">
         <span class="chip" data-rise>OpenStreetMap</span>
         <span class="chip" data-rise>pvlib</span>
         <span class="chip" data-rise>OSMnx</span>
+        <span class="chip" data-rise>Shapely</span>
         <span class="chip" data-rise>FastAPI</span>
       </div>
     </div>
@@ -346,64 +453,85 @@ html, body {
 (function () {
   'use strict';
 
-  var FPS = 30;
-  // start/end are inclusive frame bounds. Shots overlap by CROSS frames so the
-  // cuts are dissolves rather than hard switches.
-  // Shots lengthen through the film: 4.5s openers, 7s on the two that carry the
-  // argument, 6s to rest on at the end.
+  // Contiguous shots, hard cuts. A dissolve says "these two ideas blend"; a cut
+  // says "next". Shots lengthen through the film, and the two carrying the
+  // argument — the geometry and the cost function — get the most room.
   var SHOTS = [
-    { el: 's1', start:    0, end:  134 },
-    { el: 's2', start:  135, end:  269 },
-    { el: 's3', start:  270, end:  374 },
-    { el: 's4', start:  375, end:  524 },
-    { el: 's5', start:  525, end:  734 },
-    { el: 's6', start:  735, end:  944 },
-    { el: 's7', start:  945, end: 1094 },
-    { el: 's8', start: 1095, end: 1244 },
-    { el: 's9', start: 1245, end: 1424 }
+    { el: 's1',  start:    0, end:  149 },   // 5.0s
+    { el: 's2',  start:  150, end:  329 },   // 6.0s
+    { el: 's3',  start:  330, end:  479 },   // 5.0s
+    { el: 's4',  start:  480, end:  599 },   // 4.0s
+    { el: 's5',  start:  600, end:  719 },   // 4.0s
+    { el: 's6',  start:  720, end:  899 },   // 6.0s
+    { el: 's7',  start:  900, end: 1109 },   // 7.0s
+    { el: 's8',  start: 1110, end: 1199 },   // 3.0s
+    { el: 's9',  start: 1200, end: 1469 },   // 9.0s  the geometry
+    { el: 's10', start: 1470, end: 1709 },   // 8.0s  the cost function
+    { el: 's11', start: 1710, end: 1919 },   // 7.0s
+    { el: 's12', start: 1920, end: 2159 },   // 8.0s
+    { el: 's13', start: 2160, end: 2339 },   // 6.0s
+    { el: 's14', start: 2340, end: 2519 },   // 6.0s
+    { el: 's15', start: 2520, end: 2729 },   // 7.0s
+    { el: 's16', start: 2730, end: 2969 },   // 8.0s
+    { el: 's17', start: 2970, end: 3209 }    // 8.0s
   ];
-  window.TOTAL_FRAMES = SHOTS[SHOTS.length - 1].end + 1;
+  window.TOTAL_FRAMES = SHOTS[SHOTS.length - 1].end + 1;   // 3210 frames = 107.0s at 30fps
 
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   function lerp(a, b, t) { return a + (b - a) * t; }
-  // Strong deceleration. Everything arrives quickly and settles slowly, which is
-  // what reads as "considered" rather than "sproingy".
   function outExpo(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t); }
   function outCubic(t) { return 1 - Math.pow(1 - t, 3); }
   function inOutSine(t) { return -(Math.cos(Math.PI * t) - 1) / 2; }
 
-  var stage = document.getElementById('stage');
+  // The real 14-hour sweep for this route on this date. check_claims.py fails
+  // the build if the winning hour or its percentage stops matching the API.
+  var HOURS = [
+    { h: 7,  pct: 99 }, { h: 8,  pct: 93 }, { h: 9,  pct: 88 }, { h: 10, pct: 71 },
+    { h: 11, pct: 82 }, { h: 12, pct: 82 }, { h: 13, pct: 71 }, { h: 14, pct: 51 },
+    { h: 15, pct: 85 }, { h: 16, pct: 91 }, { h: 17, pct: 93 }, { h: 18, pct: 90 },
+    { h: 19, pct: 96 }
+  ];
+  (function buildHours() {
+    var strip = document.getElementById('hourStrip');
+    HOURS.forEach(function (entry) {
+      var li = document.createElement('li');
+      li.className = 'hour' + (entry.h === 7 ? ' best' : entry.h === 14 ? ' worst' : '');
+      var bar = document.createElement('span');
+      bar.className = 'bar';
+      bar.setAttribute('data-pct', entry.pct);
+      var label = document.createElement('span');
+      label.className = 'hl';
+      label.textContent = entry.h;
+      li.appendChild(bar); li.appendChild(label);
+      strip.appendChild(li);
+    });
+  }());
 
-  // Cache the animated pieces per shot once, so seek() is only arithmetic.
-  var shots = SHOTS.map(function (s) {
-    var el = document.getElementById(s.el);
+  var shots = SHOTS.map(function (cfg) {
+    var el = document.getElementById(cfg.el);
     var words = [];
     el.querySelectorAll('[data-words]').forEach(function (node) {
-      // Wrap each word in a clipping box so it can slide up out of nothing.
-      var parts = node.textContent.trim().split(/\s+/);
-      var html = node.innerHTML;
-      // Preserve <em> by re-walking: simple approach — split on spaces in HTML.
-      var pieces = html.trim().split(/\s+/);
+      var pieces = node.innerHTML.trim().split(/\s+/);
       node.innerHTML = pieces.map(function (p) {
         return '<span class="w"><span>' + p + '</span></span>';
       }).join(' ');
       node.querySelectorAll('.w > span').forEach(function (w) { words.push(w); });
-      void parts;
     });
     return {
-      cfg: s,
-      el: el,
+      cfg: cfg, el: el,
       cams: el.querySelectorAll('[data-cam]'),
       stills: el.querySelectorAll('.still'),
       words: words,
       rises: el.querySelectorAll('[data-rise]'),
       pops: el.querySelectorAll('[data-pop]'),
-      counts: el.querySelectorAll('[data-count]')
+      counts: el.querySelectorAll('[data-count]'),
+      bars: el.querySelectorAll('.hour .bar'),
+      bleed: el.classList.contains('bleed')
     };
   });
 
-  // Static film grain, drawn once. Deterministic values only — Math.random would
-  // reshuffle between runs and make the grain crawl.
+  // Static grain, deterministic — Math.random would reshuffle between runs and
+  // make the grain crawl, which reads as video noise rather than film.
   (function grain() {
     var c = document.getElementById('grain');
     var ctx = c.getContext('2d');
@@ -411,42 +539,72 @@ html, body {
     var seed = 20260817;
     for (var i = 0; i < img.data.length; i += 4) {
       seed = (seed * 1664525 + 1013904223) % 4294967296;
-      var v = 90 + (seed / 4294967296) * 150;
+      var v = 92 + (seed / 4294967296) * 150;
       img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
       img.data[i + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
-    c.style.width = '1920px';
-    c.style.height = '1080px';
-    c.style.imageRendering = 'auto';
+    c.style.width = '1920px'; c.style.height = '1080px';
   }());
-
-  // Fit a still inside the frame with a margin, then let the camera scale it.
-  function fitStill(img, marginX, marginY, reserveBottom) {
-    var availW = 1920 - marginX * 2;
-    var availH = 1080 - marginY * 2 - (reserveBottom || 0);
-    var nw = img.naturalWidth || 1, nh = img.naturalHeight || 1;
-    var k = Math.min(availW / nw, availH / nh);
-    img.style.width = (nw * k) + 'px';
-    img.style.height = (nh * k) + 'px';
-  }
-
-  function layoutStills() {
-    // The bleed still is sized by CSS. The split stills are sized to the frame
-    // height so they stay as large as 16:9 allows.
-    var s = document.getElementById('still-shadows');
-    if (s && s.naturalWidth) fitHeight(s, 1010);
-    var d = document.getElementById('still-dir');
-    if (d && d.naturalWidth) fitHeight(d, 1010);
-  }
 
   function fitHeight(img, h) {
     var k = h / (img.naturalHeight || 1);
     img.style.height = h + 'px';
     img.style.width = ((img.naturalWidth || 1) * k) + 'px';
   }
+  function layoutStills() {
+    var s = document.getElementById('still-shadows');
+    if (s && s.naturalWidth) fitHeight(s, 1000);
+    var d = document.getElementById('still-dir');
+    if (d && d.naturalWidth) fitHeight(d, 1000);
+  }
   window.addEventListener('load', layoutStills);
   layoutStills();
+
+  // ---- the sun / shadow diagram --------------------------------------------
+  // Geometrically honest: the shadow really is height / tan(elevation), and the
+  // sun really does sit on the ray that grazes the roof and lands on the tip of
+  // that shadow. Faking it would make the one shot that explains the method the
+  // one shot that lies.
+  var GROUND_Y = 620, BLDG_X = 560, BLDG_W = 150, BLDG_TOP = 380;
+  var BLDG_PX = GROUND_Y - BLDG_TOP;          // 240px stands for 60 m
+  var METRES_PER_PX = 60 / BLDG_PX;
+
+  function drawSun(elevDeg) {
+    var rad = elevDeg * Math.PI / 180;
+    var shadowPx = BLDG_PX / Math.tan(rad);
+    var tipX = BLDG_X + BLDG_W + shadowPx;
+
+    document.getElementById('shadowPoly').setAttribute('points',
+      [BLDG_X + BLDG_W, GROUND_Y, tipX, GROUND_Y, tipX, GROUND_Y - 15,
+       BLDG_X + BLDG_W, GROUND_Y - 15].join(' '));
+
+    // Place the sun back along the ray that produces exactly that shadow.
+    var rayLen = 420;
+    var sunX = (BLDG_X + BLDG_W) - rayLen * Math.cos(rad);
+    var sunY = BLDG_TOP - rayLen * Math.sin(rad);
+    var sun = document.getElementById('sun');
+    sun.setAttribute('cx', sunX.toFixed(1));
+    sun.setAttribute('cy', sunY.toFixed(1));
+    var ray = document.getElementById('ray');
+    ray.setAttribute('x1', sunX.toFixed(1)); ray.setAttribute('y1', sunY.toFixed(1));
+    ray.setAttribute('x2', tipX.toFixed(1)); ray.setAttribute('y2', GROUND_Y);
+
+    var r = 118;
+    var ax = tipX - r, ay = GROUND_Y;
+    var bx = tipX - r * Math.cos(rad), by = GROUND_Y - r * Math.sin(rad);
+    document.getElementById('elevArc').setAttribute('d',
+      'M ' + ax.toFixed(1) + ' ' + ay + ' A ' + r + ' ' + r + ' 0 0 1 ' +
+      bx.toFixed(1) + ' ' + by.toFixed(1));
+    var lab = document.getElementById('elevLabel');
+    lab.setAttribute('x', (tipX - r + 8).toFixed(1));
+    lab.setAttribute('y', GROUND_Y - 24);
+    lab.textContent = elevDeg.toFixed(0) + '°';
+
+    document.getElementById('elevOut').textContent = elevDeg.toFixed(1);
+    document.getElementById('lenOut').textContent = Math.round(shadowPx * METRES_PER_PX);
+  }
+  drawSun(51.1);
 
   window.seek = function (frame) {
     layoutStills();
@@ -455,42 +613,32 @@ html, body {
       var cfg = s.cfg;
       var len = cfg.end - cfg.start;
       var local = frame - cfg.start;
-
       var vis = (local >= 0 && local <= len) ? 1 : 0;
       s.el.style.opacity = String(vis);
       if (!vis) { s.el.style.visibility = 'hidden'; return; }
       s.el.style.visibility = 'visible';
 
-      var t = clamp01(local / len);          // 0..1 across the whole shot
+      var t = clamp01(local / len);
 
-      // Camera: a continuous, very slow push on the photographic plates. Slow
-      // enough that no single frame looks like it is moving, which is the point.
       s.cams.forEach(function (cam) {
-        var k = lerp(1.14, 1.0, inOutSine(t));
-        cam.style.transform = 'scale(' + k.toFixed(5) + ')';
+        cam.style.transform = 'scale(' + lerp(1.13, 1.0, inOutSine(t)).toFixed(5) + ')';
       });
 
-      // Product stills get a gentler push plus a hair of drift, so they read as
-      // filmed rather than pasted.
-      var bleed = s.el.classList.contains('bleed');
       s.stills.forEach(function (img) {
-        var k = bleed ? lerp(1.11, 1.005, inOutSine(t)) : lerp(1.04, 0.99, inOutSine(t));
-        var dy = bleed ? 0 : lerp(12, -12, inOutSine(t));
+        var k = s.bleed ? lerp(1.10, 1.005, inOutSine(t)) : lerp(1.035, 0.99, inOutSine(t));
+        var dy = s.bleed ? 0 : lerp(10, -10, inOutSine(t));
         img.style.transform = 'translateY(' + dy.toFixed(2) + 'px) scale(' + k.toFixed(5) + ')';
       });
 
-      // Words: mask-reveal from below, staggered. 2.2 frames apart at 30fps is
-      // ~73 ms — fast enough to feel like one gesture, slow enough to read.
+      // 2.2 frames apart at 30fps is ~73 ms — one gesture, still readable.
       s.words.forEach(function (w, i) {
-        var delay = 8 + i * 2.2;
-        var p = outExpo(clamp01((local - delay) / 22));
-        w.style.transform = 'translateY(' + ((1 - p) * 108).toFixed(2) + '%)';
+        var p = outExpo(clamp01((local - (8 + i * 2.2)) / 22));
+        w.style.transform = 'translateY(' + ((1 - p) * 110).toFixed(2) + '%)';
         w.style.opacity = p.toFixed(3);
       });
 
       s.rises.forEach(function (el, i) {
-        var delay = 4 + i * 7;
-        var p = outExpo(clamp01((local - delay) / 26));
+        var p = outExpo(clamp01((local - (4 + i * 7)) / 26));
         el.style.transform = 'translateY(' + ((1 - p) * 26).toFixed(2) + 'px)';
         el.style.opacity = p.toFixed(3);
       });
@@ -501,14 +649,34 @@ html, body {
         el.style.opacity = p.toFixed(3);
       });
 
-      // The two headline figures count up. They are the argument, so they get
-      // the longest, slowest move in the film.
       s.counts.forEach(function (el, i) {
         var target = +el.getAttribute('data-count');
-        var delay = 22 + i * 14;
-        var p = outCubic(clamp01((local - delay) / 62));
-        el.textContent = Math.round(target * p);
+        var p = outCubic(clamp01((local - (18 + i * 9)) / 58));
+        el.textContent = Math.round(target * p).toLocaleString('en-US');
       });
+
+      // The hour bars grow left to right, in the order the sweep computed them.
+      s.bars.forEach(function (bar, i) {
+        var pct = +bar.getAttribute('data-pct');
+        var p = outCubic(clamp01((local - (26 + i * 3.4)) / 40));
+        bar.style.height = (pct * 2.8 * p).toFixed(1) + 'px';
+      });
+
+      // The sun descends through the afternoon and the shadow grows to meet it:
+      // the whole method in one continuous move.
+      if (cfg.el === 's9') {
+        drawSun(lerp(64, 26, inOutSine(clamp01((local - 26) / (len - 46)))));
+      }
+
+      // The slider sweeps 0 -> 3 while the line beneath it states the honesty
+      // invariant: at 0 the router returns the plain shortest path.
+      if (cfg.el === 's10') {
+        var av = lerp(0, 3, inOutSine(clamp01((local - 100) / 100)));
+        var pctW = (av / 3) * 100;
+        document.getElementById('avFill').style.width = pctW + '%';
+        document.getElementById('avKnob').style.left = pctW + '%';
+        document.getElementById('avVal').textContent = av.toFixed(1);
+      }
     });
   };
 

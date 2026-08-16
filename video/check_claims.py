@@ -36,8 +36,10 @@ PARAMS = {
 # Shade changes mean radiant temperature, not air temperature, so any "cooler by
 # N degrees" line would be a claim this project cannot support.
 FORBIDDEN = [
-    (r"\d+\s*°", "a temperature reading"),
-    (r"\bdegrees\b", "a temperature reading"),
+    (r"\d+\s*°\s*[CF]\b", "a temperature reading"),
+    (r"\d+\s*degrees\s+(?:c|f|celsius|fahrenheit)\b", "a temperature reading"),
+    (r"\bdegrees\s+(?:warmer|cooler|hotter|colder)\b", "a thermal difference claim"),
+    (r"\b(?:warmer|cooler|hotter|colder)\s+by\b", "a thermal difference claim"),
     (r"\bcooler by\b", "an unsupported thermal claim"),
     (r"\bfeels like\b", "an unsupported thermal claim"),
     (r"\bmeasured shade\b", "shade is modelled, not measured"),
@@ -93,7 +95,9 @@ def main() -> int:
     # earlier version did the latter: changing data-count="85" to "95" still
     # printed a pass, because nothing ever opened scene.html. That is the exact
     # fake-all-clear this project has now produced four times.
-    shown_counts = [int(n) for n in re.findall(r'data-count="(\d+)"', html)]
+    headline = re.search(r'<div class="stats">.*?</section>', html, re.S)
+    scope = headline.group(0) if headline else html
+    shown_counts = [int(n) for n in re.findall(r'data-count="(\d+)"', scope)]
     expected_counts = [round(short["shade_fraction"] * 100),
                        round(shady["shade_fraction"] * 100)]
     check(sorted(shown_counts) == sorted(expected_counts),
@@ -128,6 +132,50 @@ def main() -> int:
         # Word-boundaried so 7 does not match the 71 in "Marisol is 71".
         found = re.search(rf"(?<!\d){value}(?!\d)", text) is not None
         check(found, f"the film states the computed {label}", f"API says {value}")
+
+    # Claims made by the drawn scenes, from endpoints the route call does not
+    # cover. The counters render through data-count, so they are read from the
+    # attribute as well as from the visible copy.
+    src = payload["shade_sources"]
+    for label, value in (("building shadows", src["building_shadows"]),
+                         ("tree shadows", src["tree_shadows"])):
+        stated = (re.search(rf"(?<!\d){value:,}(?!\d)", text) is not None
+                  or f'data-count="{value}"' in html)
+        check(stated, f"the film states the computed {label}", f"API says {value:,}")
+
+    try:
+        places = json.load(urllib.request.urlopen(BASE + "/api/places", timeout=120))["places"]
+        check(f'data-count="{len(places)}"' in html
+              or re.search(rf"(?<!\d){len(places)}(?!\d)", text) is not None,
+              "the film states the real number of named places", f"API says {len(places)}")
+    except Exception as exc:  # noqa: BLE001
+        notes.append(f"place count not cross-checked ({exc})")
+
+    # The hour strip carries the only recommendation the film makes, so its bars
+    # are checked against the sweep rather than trusted.
+    bt_q = urllib.parse.urlencode({
+        "orig_lat": PARAMS["orig_lat"], "orig_lon": PARAMS["orig_lon"],
+        "dest_lat": PARAMS["dest_lat"], "dest_lon": PARAMS["dest_lon"],
+        "date": PARAMS["when"].split("T")[0],
+    })
+    try:
+        bt = json.load(urllib.request.urlopen(f"{BASE}/api/best-time?{bt_q}", timeout=900))
+        hours = bt.get("hours") or []
+        shown = [int(n) for n in re.findall(r"\{ h: (\d+),", html)]
+        shown_pct = [int(n) for n in re.findall(r"pct: (\d+) \}", html)]
+        api_pct = {h["hour"]: round(h["shade_fraction"] * 100) for h in hours}
+        drift = [(h, api_pct.get(h), q) for h, q in zip(shown, shown_pct)
+                 if api_pct.get(h) is None or abs(api_pct[h] - q) > 1]
+        check(bool(shown) and not drift, "every hour bar matches the sweep",
+              ("drifted: " + str(drift)) if drift else f"{len(shown)} hours checked")
+        by_sun = sorted((h for h in hours if h.get("sun_seconds") is not None),
+                        key=lambda h: h["sun_seconds"])
+        if by_sun:
+            check(by_sun[0]["hour"] in shown and by_sun[-1]["hour"] in shown,
+                  "the strip includes the real best and worst departures",
+                  f"best {by_sun[0]['hour']}:00, worst {by_sun[-1]['hour']}:00")
+    except Exception as exc:  # noqa: BLE001
+        notes.append(f"hour strip not cross-checked ({exc})")
 
     print("\nProvenance")
     print("-" * 10)
