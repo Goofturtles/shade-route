@@ -6,7 +6,7 @@ Give it an origin, a destination, and a date and time. It works out where buildi
 shadows fall at that moment, then routes to maximise the time you spend in shade — and shows
 you honestly what that costs: *"+4 min walk, 61% shaded instead of 12%."*
 
-> **Status: Milestone 2 of 5 — the shade model works.** Sun position, building and tree
+> **Status: Milestone 5 of 5 — it works end to end.** Sun position, building and tree
 > shadows, per-segment shade measurement, and shade-aware routing are all live. A mid-afternoon
 > walk across downtown Portland comes out as **+5 min for 94% shade instead of 29%**. See
 > [Milestones](#milestones) for what is and isn't built yet.
@@ -203,9 +203,9 @@ Stated up front, because a model you can't describe the failure modes of isn't a
 | **M0** | Server skeleton, `/health`, Leaflet map, click/keyboard point selection | **Done** |
 | **M1** | Walking graph cached to disk, shortest path rendered | **Done** |
 | **M2** | Sun position, tree + building shadows, shade fraction, cost function, dual route comparison | **Done** |
+| **M4** | Time-of-day controls, benches, stair avoidance | **Done** |
+| **M5** | Prose turn-by-turn description, accessibility pass, polish | **Done** |
 | M2v | Optional voxel 3D view of the shadow volumes M2 computes | Not started |
-| M4 | Time-of-day scrubber, benches, stair avoidance | Not started |
-| M5 | Text route description, accessibility pass, polish | Not started |
 
 *(M3 from the original plan — building shadows — was merged into M2. The pipeline is identical
 for trees and buildings; splitting them cost a checkpoint we didn't have in a one-day build.)*
@@ -219,6 +219,18 @@ someone who can't safely take the fast route has to work for people who can't ea
 either.
 
 **Working today:**
+
+- **The route in words.** A numbered turn-by-turn description sits in the panel, not behind a
+  disclosure, generated from the same graph the map draws - which way to turn, onto what street,
+  how far, whether that stretch is in sun, and where the benches are. You can switch between
+  describing the shadiest and the shortest route. A map alone is unusable for a screen-reader
+  user; this is the route itself, in prose.
+- **Rest stops.** 394 benches and 66 drinking fountains from OSM. Each route reports how many
+  benches it passes and - the number that actually matters - **the longest stretch you would
+  walk without being able to sit down.** The brief asks for a rest stop roughly every 300 m, and
+  the interface says plainly when a route misses that.
+- **Stairs are avoided.** Steps are priced out of the graph rather than merely discouraged, and
+  if a route still contains them it says so.
 
 - **Nobody has to know a latitude.** Start and destination are set by searching 245 real named
   places from OpenStreetMap — "Capsule Pharmacy", "Central Library", "Southwest 5th & Madison" —

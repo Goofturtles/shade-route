@@ -544,6 +544,51 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
   transition: width 0.8s var(--ease-out);
 }
 
+/* Directions -------------------------------------------------------------- */
+.route-switch { display: flex; gap: 8px; margin: 0 0 14px; }
+.route-switch button { flex: 1 1 0; font-size: 15px; }
+.route-switch button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--accent-ink);
+}
+
+.rest-summary {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--group);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.rest-summary strong { color: var(--ink); font-weight: 600; }
+.rest-summary .warn { color: var(--error); font-weight: 600; }
+
+.directions-list {
+  margin: 0;
+  padding: 0 0 0 26px;
+  display: grid;
+  gap: 0;
+}
+.directions-list li {
+  padding: 12px 0 12px 4px;
+  border-top: 1px solid var(--separator);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.directions-list li:first-child { border-top: 0; }
+.directions-list li::marker { color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.directions-list li:last-child { font-weight: 600; color: var(--ink); }
+.directions-list .step-flag {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--error);
+  font-weight: 600;
+}
+
 #sun-readout { margin: 12px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink-muted); }
 #sun-readout .sun-dot {
   display: inline-block;
@@ -821,6 +866,20 @@ summary::marker { color: var(--ink-muted); }
       <ul id="route-list" class="route-list"></ul>
       <p class="hint" id="assumption-note"></p>
       <p class="hint" id="sources-note"></p>
+    </section>
+
+    <!-- The route in words. A map alone is unusable for a screen-reader user,
+         so this is not a caption on the map — it is the route itself, built
+         from the same graph, and it is a first-class part of the interface
+         rather than something tucked behind a disclosure. -->
+    <section id="directions" aria-labelledby="directions-heading" hidden>
+      <h2 id="directions-heading" class="section-heading-spaced">Walking directions</h2>
+      <div class="route-switch" role="group" aria-label="Which route to describe">
+        <button type="button" id="dir-shadiest" aria-pressed="true">Shadiest route</button>
+        <button type="button" id="dir-shortest" aria-pressed="false">Shortest route</button>
+      </div>
+      <p id="directions-summary" class="rest-summary"></p>
+      <ol id="directions-list" class="directions-list"></ol>
     </section>
 
     <details>
@@ -1502,6 +1561,70 @@ summary::marker { color: var(--ink-muted); }
     return names[Math.round(((azimuth % 360) / 45)) % 8];
   }
 
+  var lastPayload = null;
+  var directionsRouteId = 'shadiest';
+
+  function renderDirections() {
+    var section = document.getElementById('directions');
+    if (!lastPayload) { section.hidden = true; return; }
+    var route = lastPayload.routes.filter(function (r) { return r.id === directionsRouteId; })[0];
+    if (!route || !route.directions) { section.hidden = true; return; }
+
+    document.getElementById('dir-shadiest')
+      .setAttribute('aria-pressed', String(directionsRouteId === 'shadiest'));
+    document.getElementById('dir-shortest')
+      .setAttribute('aria-pressed', String(directionsRouteId === 'shortest'));
+
+    var summary = document.getElementById('directions-summary');
+    summary.textContent = '';
+    var rest = route.directions.rest_summary;
+
+    summary.append(route.label + ': ' + formatDistance(route.length_m) + ', about ' +
+      formatDuration(route.duration_s) + '. ');
+
+    var seats = document.createElement('strong');
+    seats.textContent = rest.bench_count === 0
+      ? 'No benches along the way.'
+      : rest.bench_count + (rest.bench_count === 1 ? ' bench' : ' benches') + ' along the way.';
+    summary.appendChild(seats);
+
+    // The honest number: the stretch you would have to walk without being able
+    // to sit down. The brief asks for a rest stop roughly every 300 m.
+    var gap = document.createElement('span');
+    gap.className = rest.meets_300m_target ? '' : 'warn';
+    gap.textContent = ' Longest stretch without a seat: ' +
+      formatDistance(rest.longest_gap_m) + '.';
+    summary.appendChild(gap);
+
+    if (route.directions.has_steps) {
+      var flag = document.createElement('span');
+      flag.className = 'warn';
+      flag.textContent = ' This route includes steps.';
+      summary.appendChild(flag);
+    }
+
+    var list = document.getElementById('directions-list');
+    list.textContent = '';
+    route.directions.steps.forEach(function (step) {
+      var li = document.createElement('li');
+      li.textContent = step.text;
+      list.appendChild(li);
+    });
+    section.hidden = false;
+  }
+
+  ['shadiest', 'shortest'].forEach(function (id) {
+    document.getElementById('dir-' + id).addEventListener('click', function () {
+      directionsRouteId = id;
+      renderDirections();
+      var route = lastPayload && lastPayload.routes.filter(function (r) { return r.id === id; })[0];
+      if (route) {
+        announce('Showing directions for the ' + route.label.toLowerCase() + ', ' +
+                 route.directions.steps.length + ' instructions.');
+      }
+    });
+  });
+
   function describeRoutes(payload) {
     var shortest = payload.routes.filter(function (r) { return r.id === 'shortest'; })[0];
     var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
@@ -1544,6 +1667,7 @@ summary::marker { color: var(--ink-muted); }
       dest_lat: state.destination.lat, dest_lon: state.destination.lon,
       when: when, shade_aversion: aversionInput.value
     });
+    if (state.destination.name) { params.set('dest_name', state.destination.name); }
 
     // aria-busy, not `disabled`. Disabling a focused button moves focus to
     // <body>, so a keyboard or screen-reader user gets dumped to the top of the
@@ -1569,11 +1693,15 @@ summary::marker { color: var(--ink-muted); }
       })
       .then(function (payload) {
         state.graphCached = true;
+        lastPayload = payload;
         renderRoutes(payload);
+        renderDirections();
         announce(describeRoutes(payload));
       })
       .catch(function (error) {
+        lastPayload = null;
         clearRoutes();
+        document.getElementById('directions').hidden = true;
         announce('Could not find a route: ' + error.message, true);
       })
       .then(function () {

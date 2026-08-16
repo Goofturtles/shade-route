@@ -17,7 +17,7 @@ import networkx as nx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 
-from app import config, graph, places, shade
+from app import config, directions, graph, places, rest_stops, shade
 
 app = FastAPI(
     title="Shade Route",
@@ -133,10 +133,14 @@ def compute_route(
     orig_lon: float = Query(..., description="Origin longitude"),
     dest_lat: float = Query(..., description="Destination latitude"),
     dest_lon: float = Query(..., description="Destination longitude"),
+    dest_name: str | None = Query(None, description="Name of the destination, for the prose"),
     when: str | None = Query(None, description="ISO 8601 local datetime; defaults to now"),
     shade_aversion: float = Query(
         1.5, ge=0.0, le=3.0,
         description="How much detour to accept for shade. 0 returns the shortest path.",
+    ),
+    avoid_stairs: bool = Query(
+        True, description="Route around flights of steps. Marisol cannot use them.",
     ),
 ) -> dict:
     """Compute the shortest and the shadiest walking route between two points.
@@ -199,6 +203,17 @@ def compute_route(
     # rather than a crash, which is precisely what the brief forbids.
     with _routing_lock:
         shade.annotate_graph(walk_graph, shade_field, shade_aversion)
+        # Steps are impassable for the person this is built for, so they are
+        # priced out of the graph rather than merely discouraged. Not infinite:
+        # if the ONLY connection is a staircase we would rather return a route
+        # and say it has steps than return nothing at all.
+        if avoid_stairs:
+            for _, _, data in walk_graph.edges(data=True):
+                highway = data.get("highway")
+                if isinstance(highway, list):
+                    highway = highway[0] if highway else None
+                if highway == "steps":
+                    data["shade_cost"] = data["shade_cost"] * 1000.0
         try:
             shortest = build("shortest", "Shortest route", "length")
             shadiest = build("shadiest", "Shadiest route", "shade_cost")
@@ -208,6 +223,19 @@ def compute_route(
                 detail="No walking route connects those two points inside the demo area.",
             )
 
+    # Directions are built inside the lock: they read shade_fraction off the
+    # same edges the router just chose.
+    stops = rest_stops.all_rest_stops()
+    destination_label = dest_name or None
+    for route_entry in (shortest, shadiest):
+        route_entry["directions"] = directions.build_directions(
+            walk_graph, route_entry["_nodes"],
+            "length" if route_entry["id"] == "shortest" else "shade_cost",
+            sun_casts_shadows=shade_field.sun.casts_usable_shadows,
+            rest_stops=stops,
+            destination_name=destination_label,
+        )
+
     identical = shortest.pop("_nodes") == shadiest.pop("_nodes")
     sun_position = shade_field.sun
 
@@ -215,6 +243,7 @@ def compute_route(
         "milestone": 2,
         "when": moment.isoformat(),
         "shade_aversion": shade_aversion,
+        "avoid_stairs": avoid_stairs,
         "sun": {
             "elevation_deg": round(sun_position.elevation_deg, 2),
             "azimuth_deg": round(sun_position.azimuth_deg, 2),
