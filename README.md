@@ -250,9 +250,11 @@ either.
   wash, then the translucent fill, then the gloss — rather than read off the token value, which
   would report a translucent surface as if it were opaque. 65 text nodes per theme, zero
   failures in either.
-- **Full keyboard operation** with visible focus rings, and Enter commits any field.
-- **Okabe–Ito palette**, which stays distinguishable under protanopia, deuteranopia and
-  tritanopia. Text contrast was swept against live computed styles; the map pins were checked
+- **Full keyboard operation** with visible focus rings. Enter commits the place-search and
+  coordinate fields; the date and time fields use the browser's own pickers.
+- **A colourblind-safe palette derived from Okabe–Ito**, adjusted toward Apple's blues for
+  the accent. Still distinguishable under protanopia, deuteranopia and tritanopia, but the
+  exact Okabe–Ito hex values are no longer used throughout, so it is described as derived. Text contrast was swept against live computed styles; the map pins were checked
   separately by hand, since they don't exist in the DOM until a point is placed and an automated
   sweep therefore walks straight past them. That check is what caught the destination pin at
   3.87:1 — full-strength `#d55e00` under white bold text fails the 4.5:1 bar, so the pin uses a
@@ -271,7 +273,7 @@ either.
   exception is Leaflet's attribution line — third-party chrome, raised from its 11 px default to
   13 px but not to 15 px.
 - **Interactive targets are at least 44 px**, including the map's zoom controls, enlarged from
-  Leaflet's 26 px default. The exception is the two map markers at 30 px: they are sized to point
+  Leaflet's 26 px default. The exception is the two map markers at 32 px: they are sized to point
   at a street corner accurately, and 30 px still clears WCAG 2.2's 24 px minimum. Nothing
   requires clicking them — they are draggable-free labels, and both points are settable by search,
   by coordinates, and by clicking the map itself.
@@ -286,8 +288,10 @@ either.
 - A **prose turn-by-turn description** alongside the map, with shade and rest-stop notes (M5).
 - A keyboard-and-screen-reader pass over the complete flow (M5).
 
-**Known gap:** below 860 px the page scrolls normally but the map still captures touch drags,
-so a swipe starting on the map pans the map rather than the page. Scheduled for M5.
+**Layout:** below 900 px the control panel becomes a bottom sheet over the map. Nothing on the
+page scrolls as a whole — the panel scrolls inside itself with `overscroll-behavior: contain`,
+so a swipe inside the panel never reaches the map underneath, and a swipe on the map pans the
+map. The earlier version of this note described a page-scroll gap that no longer exists.
 
 ---
 

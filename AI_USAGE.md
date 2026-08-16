@@ -404,6 +404,57 @@ to pin the theme, reload the page, and measure once. On a fresh load the button 
 at 4.70:1, as intended. Three artefacts of this class have now been found; each one initially
 looked like a real defect.
 
+## Third visual pass — Notes/Notion interior
+
+The human's feedback was to look at Apple's UI, the Notes app and Notion, and make it better.
+The useful insight in that: **those apps are not glass showcases.** They are quiet,
+content-first surfaces — grouped sections with a small muted label, hairline separators instead
+of boxes, generous rhythm, one accent, and typography carrying the hierarchy.
+
+So the design was split in two. The *shell* stays Liquid Glass — the map is the backdrop, and a
+header bar and control panel float above it with a deep blur and a lifted shadow. The *interior*
+went calm and flat: no more cards inside cards, grouped fills with hairline rows, a colour chip
+beside each route name, and the result stated once as a confident sentence before the detail.
+Stacking glass inside glass was making a control panel harder to read, not more impressive.
+
+### Findings from the audit of the previous pass
+
+- **`--accent-hover: #0077ed` was 4.32:1 under white** and applied in both `:hover` and
+  `aria-busy`. The resting `#0071e3` passes at 4.70:1, which is the number the log had claimed
+  for the busy state — the sweep had only ever measured resting. Darkened to `#005bb8` (6.6:1).
+- **A z-index override on Leaflet's control corners.** The audit believed it hid the zoom
+  buttons and the OSM attribution beneath the tile pane. Hit-testing showed both were still
+  reachable, so the report was wrong on the symptom — but the rule bought nothing, since `#map`
+  already creates its own stacking context, and it risked exactly that failure. Removed.
+- **`#controls { top: 88px }` was a magic number** in a layout that measures everything else.
+  Below about 1340px wide the header wraps and would have covered "Plan a walk". Bound to the
+  same measured `--zoom-top` the zoom control uses.
+- **`summary { display: flex }` removes the disclosure triangle** in every engine — the marker
+  requires `list-item`. "Enter coordinates instead" had become indistinguishable from muted
+  text, and coordinate entry is a §8 requirement.
+- **`mapPadding()` could ask for more padding than the map has**, zooming to nothing in
+  landscape on a phone. Clamped to 45%/40% of the viewport.
+- **The specular gloss was a contrast hole no resting sweep could see:** it sat *behind* the
+  result text and lifted the backdrop on hover, taking secondary text to ~3.3:1 over a bright
+  tile. It is gone along with the card-in-card layout it belonged to.
+- **`color-scheme` never followed the manual theme**, so the browser's own date and time pickers
+  stayed in the OS appearance on a manually-themed page. The palette is now a single
+  `[data-theme="dark"]` block that JS always stamps, which fixes that and removes the duplicated
+  dark palette that was a drift risk.
+
+### The sweep, fourth revision
+
+Two gaps were identified in the previous methodology and both were real: sampling only the two
+tile extremes can miss an interior minimum, and no state other than resting was ever measured.
+It now samples **17 tile luminances** and takes the minimum, and separately checks hover and
+busy states. Result on fresh pinned loads: 65 nodes per theme, zero failures, worst 4.70:1 light
+and 5.25:1 dark; primary button 6.59/6.69:1 in hover and busy; secondary buttons 14.5/8.4:1 on
+hover.
+
+**One regression the sweep caught in this very pass:** the Notion-style 13px uppercase
+micro-labels dropped the interface floor from 15px to 13px, against a stated commitment and a
+71-year-old user. They are now 15px sentence case, which is closer to Notes anyway.
+
 ---
 
 *Log continues as milestones complete.*

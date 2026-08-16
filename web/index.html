@@ -10,31 +10,30 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 /* ==========================================================================
-   Shade Route — Liquid Glass, floating over the map
+   Shade Route — floating glass panel, Notes/Notion interior
    --------------------------------------------------------------------------
-   The map is now the backdrop and the controls float above it. This is the
-   point of the material: glass needs something worth refracting, and a live
-   map of a city is the richest backdrop this app has. The previous pass put
-   glass over a flat page wash, then had to weaken the wash for contrast, which
-   left the glass with nothing to do.
+   Two ideas, kept separate on purpose:
 
-   The hard constraint that shapes everything below: text over map tiles has no
-   fixed backdrop. A tile can be near-white (paper) or near-black (filtered
-   dark mode, water, parks). So every floating surface uses a HEAVY tint and a
-   deep blur, and contrast is verified against BOTH extremes — tile luminance 0
-   and tile luminance 255 — not against the page.
+   1. The SHELL is Liquid Glass. The map is the backdrop; a header bar and a
+      control panel float above it with a deep backdrop blur, an inset edge
+      highlight and a lifted shadow.
 
-   That is what keeps this legible while still reading as clear glass: you see
-   colour and movement bleed through the panel edges and behind the blur, but
-   the text itself always sits on enough material.
+   2. The INTERIOR is calm. Apple Notes and Notion are not glass showcases —
+      they are quiet, content-first surfaces: grouped sections with a small
+      muted label, hairline separators instead of boxes, generous rhythm, one
+      accent, and typography doing the hierarchy. Stacking glass inside glass
+      makes a control panel unreadable, so the inside of the panel is flat and
+      restful and the glass stays at the edge where it belongs.
+
+   The constraint underneath everything: text here floats over map tiles, which
+   have no fixed backdrop — a tile can be near-white paper or near-black water.
+   So the panel carries a heavy tint under a deep blur, and contrast is verified
+   against BOTH extremes, in resting AND hover AND busy states.
    ========================================================================== */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  /* system-ui and Segoe UI matter: without them this resolves to Arial on
-     Windows and Linux - very likely what the judges see - while carrying
-     letter-spacing tuned for SF. */
   --font-display: -apple-system, BlinkMacSystemFont, system-ui, "SF Pro Display",
                   "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-text:    -apple-system, BlinkMacSystemFont, system-ui, "SF Pro Text",
@@ -44,25 +43,28 @@
   --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring:   cubic-bezier(0.28, 0.11, 0.32, 1);
 
-  /* ---- Light palette ----------------------------------------------------
-     Text colours are darker than Apple's defaults because they sit on glass
-     over unpredictable tiles rather than on a known page. #4f4f54 secondary
-     holds 5.5:1 against the worst-case tile; Apple's #6e6e73 would be 4.2:1. */
+  /* ---- Light ------------------------------------------------------------ */
   --ink:          #1a1a1c;
-  --ink-muted:    #4f4f54;
-  --surface:      #eef0f4;
-  --surface-sunk: rgba(120, 130, 150, 0.13);
-  --surface-card: rgba(255, 255, 255, 0.55);
-  --line:         rgba(0, 0, 0, 0.10);
-  --field-border: rgba(60, 60, 67, 0.34);
+  --ink-2:        #3a3a3e;   /* secondary body */
+  --ink-muted:    #4f4f54;   /* labels, hints — darker than Apple's #6e6e73,
+                                which would be 4.2:1 against a white tile */
+  --surface:      #eceef2;
+  --group:        rgba(118, 128, 148, 0.10);   /* grouped-list fill */
+  --group-hover:  rgba(118, 128, 148, 0.15);
+  --field:        rgba(255, 255, 255, 0.92);
+  --separator:    rgba(60, 60, 67, 0.16);      /* hairline, iOS-style */
+  --line:         rgba(60, 60, 67, 0.14);
+  --field-border: rgba(60, 60, 67, 0.30);
 
   --accent:       #0071e3;
-  --accent-hover: #0077ed;
+  --accent-hover: #005bb8;   /* 6.4:1 under white — the lighter #0077ed used to
+                                fail at 4.32:1 in hover and busy states */
+  --accent-soft:  rgba(0, 113, 227, 0.12);
   --accent-ink:   #ffffff;
 
   --ok:    #00795c;
   --error: #a4262c;
-  --sun:   #a35f00;
+  --sun:   #9a5a00;
 
   /* Route identity. Read from JS via getComputedStyle — keep these names. */
   --shortest:  #d55e00;
@@ -70,102 +72,51 @@
 
   --pin-origin:      #007a5e;
   --pin-destination: #a34700;
-  --shade-bar-fill:  #005b8f;
+  --shade-bar-fill:  #0071e3;
+  --shade-bar-track: rgba(60, 60, 67, 0.14);
 
-  /* ---- The glass itself -------------------------------------------------
-     "Heavy" register, because these float over tiles. 0.86 alpha over a black
-     tile still lands at luminance 219, which is what keeps small text legible
-     no matter what the map is showing. The 40px blur is what makes it read as
-     thick crystal rather than a tinted rectangle. */
-  --glass-panel:  rgba(255, 255, 255, 0.86);
-  --glass-inner:  rgba(255, 255, 255, 0.50);
-  --glass-button: rgba(255, 255, 255, 0.62);
-  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-panel:  rgba(252, 252, 254, 0.88);
+  --glass-border: rgba(255, 255, 255, 0.70);
   --glass-edge:   rgba(255, 255, 255, 0.95);
-  --glass-specular: rgba(255, 255, 255, 0.60);
-  --glass-blur:   blur(40px) saturate(190%);
-  --glass-blur-inner: blur(12px) saturate(150%);
-
+  --glass-blur:   blur(40px) saturate(180%);
   --glass-lift:
-      0 24px 60px rgba(0, 0, 0, 0.16),
-      0 6px 18px rgba(0, 0, 0, 0.10),
-      0 0 0 0.5px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 var(--glass-edge);
-  --glass-lift-sm:
-      0 4px 14px rgba(0, 0, 0, 0.10),
+      0 20px 56px rgba(0, 0, 0, 0.15),
+      0 4px 14px rgba(0, 0, 0, 0.08),
+      0 0 0 0.5px rgba(0, 0, 0, 0.05),
       inset 0 1px 0 var(--glass-edge);
 
   --focus: #0071e3;
   --tile-filter: none;
 
-  --radius:      16px;
-  --radius-lg:   22px;
-  --radius-xl:   28px;
+  --radius:      12px;
+  --radius-lg:   16px;
+  --radius-xl:   26px;
   --radius-pill: 980px;
-  --pad: 18px;
 
   --font-body: 17px/1.5 var(--font-text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --ink:          #ffffff;
-    --ink-muted:    #b6bcc4;
-    --surface:      #0a0a0c;
-    --surface-sunk: rgba(255, 255, 255, 0.10);
-    --surface-card: rgba(255, 255, 255, 0.08);
-    --line:         rgba(255, 255, 255, 0.14);
-    --field-border: rgba(255, 255, 255, 0.28);
-
-    --accent:       #0a84ff;
-    --accent-hover: #3d9bff;
-    --accent-ink:   #05121f;   /* dark ink on bright blue: 5.9:1 */
-
-    --ok:    #4ee0aa;
-    --error: #ff9a9a;
-    --sun:   #ffc457;
-
-    --shortest: #ff9a4d;
-    --shadiest: #6cc0ff;
-
-    /* Pin fills are deliberately NOT overridden — their labels are white on a
-       white ring over tiles, so the fill must clear 4.5:1 against WHITE in
-       either theme. Darkening them for dark mode once dropped them to 4.07:1. */
-    --shade-bar-fill: #6cc0ff;
-
-    --glass-panel:  rgba(24, 24, 28, 0.88);
-    --glass-inner:  rgba(255, 255, 255, 0.07);
-    --glass-button: rgba(255, 255, 255, 0.12);
-    --glass-border: rgba(255, 255, 255, 0.16);
-    --glass-edge:   rgba(255, 255, 255, 0.22);
-    --glass-specular: rgba(255, 255, 255, 0.16);
-
-    --glass-lift:
-        0 24px 60px rgba(0, 0, 0, 0.62),
-        0 6px 18px rgba(0, 0, 0, 0.42),
-        0 0 0 0.5px rgba(255, 255, 255, 0.08),
-        inset 0 1px 0 var(--glass-edge);
-    --glass-lift-sm:
-        0 4px 14px rgba(0, 0, 0, 0.44),
-        inset 0 1px 0 var(--glass-edge);
-
-    --focus: #7cc4f5;
-    --tile-filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.90) saturate(0.7);
-  }
-}
-
+/* One dark block, applied by always stamping data-theme from JS. The previous
+   version duplicated the palette across a media query and an attribute
+   selector, which is where drift starts. */
 :root[data-theme="dark"] {
+  color-scheme: dark;
+
   --ink:          #ffffff;
+  --ink-2:        #d8dade;
   --ink-muted:    #b6bcc4;
-  --surface:      #0a0a0c;
-  --surface-sunk: rgba(255, 255, 255, 0.10);
-  --surface-card: rgba(255, 255, 255, 0.08);
-  --line:         rgba(255, 255, 255, 0.14);
-  --field-border: rgba(255, 255, 255, 0.28);
+  --surface:      #08080a;
+  --group:        rgba(255, 255, 255, 0.07);
+  --group-hover:  rgba(255, 255, 255, 0.11);
+  --field:        rgba(255, 255, 255, 0.09);
+  --separator:    rgba(255, 255, 255, 0.13);
+  --line:         rgba(255, 255, 255, 0.13);
+  --field-border: rgba(255, 255, 255, 0.24);
 
   --accent:       #0a84ff;
-  --accent-hover: #3d9bff;
-  --accent-ink:   #05121f;
+  --accent-hover: #3d9bff;   /* dark ink sits on this — 7.4:1 */
+  --accent-soft:  rgba(10, 132, 255, 0.20);
+  --accent-ink:   #04101c;
 
   --ok:    #4ee0aa;
   --error: #ff9a9a;
@@ -173,22 +124,20 @@
 
   --shortest: #ff9a4d;
   --shadiest: #6cc0ff;
-  --shade-bar-fill: #6cc0ff;
 
-  --glass-panel:  rgba(24, 24, 28, 0.88);
-  --glass-inner:  rgba(255, 255, 255, 0.07);
-  --glass-button: rgba(255, 255, 255, 0.12);
-  --glass-border: rgba(255, 255, 255, 0.16);
-  --glass-edge:   rgba(255, 255, 255, 0.22);
-  --glass-specular: rgba(255, 255, 255, 0.16);
+  /* Pin fills are deliberately NOT overridden — their labels are white on a
+     white ring over tiles, so the fill must clear 4.5:1 against WHITE in either
+     theme. Darkening them for dark mode once dropped them to 4.07:1. */
+  --shade-bar-fill:  #6cc0ff;
+  --shade-bar-track: rgba(255, 255, 255, 0.14);
 
+  --glass-panel:  rgba(20, 20, 24, 0.90);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-edge:   rgba(255, 255, 255, 0.20);
   --glass-lift:
-      0 24px 60px rgba(0, 0, 0, 0.62),
-      0 6px 18px rgba(0, 0, 0, 0.42),
-      0 0 0 0.5px rgba(255, 255, 255, 0.08),
-      inset 0 1px 0 var(--glass-edge);
-  --glass-lift-sm:
+      0 20px 56px rgba(0, 0, 0, 0.66),
       0 4px 14px rgba(0, 0, 0, 0.44),
+      0 0 0 0.5px rgba(255, 255, 255, 0.07),
       inset 0 1px 0 var(--glass-edge);
 
   --focus: #7cc4f5;
@@ -205,30 +154,25 @@ body {
   height: 100dvh;
   overflow: hidden;
   font: var(--font-body);
-  letter-spacing: -0.005em;
+  letter-spacing: -0.006em;
   color: var(--ink);
   background: var(--surface);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3 {
-  font-family: var(--font-display);
-  font-weight: 600;          /* semibold is the ceiling — never 700+ */
-  margin: 0;
-}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
 
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
-  /* Deliberately no border-radius: this selector outranks `button`, so setting
-     one here snapped every 980px pill into a rounded rect while focused. */
+  /* No border-radius: this selector outranks `button`, and setting one here
+     snapped every pill into a rounded rect while focused. */
 }
 
 .skip-link {
   position: fixed;
-  left: -9999px;
-  top: 0;
+  left: -9999px; top: 0;
   z-index: 3000;
   background: var(--ink);
   color: var(--surface);
@@ -239,28 +183,20 @@ h1, h2, h3 {
 }
 .skip-link:focus { left: 0; }
 
-/* ---- The map is the backdrop ------------------------------------------- */
-#map {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background: var(--surface);
-}
+/* ---- The map is the backdrop -------------------------------------------- */
+#map { position: fixed; inset: 0; z-index: 0; background: var(--surface); }
 .leaflet-tile-pane { filter: var(--tile-filter); }
-
 main { display: block; }
 
-/* ---- Floating glass header ---------------------------------------------- */
+/* ---- Floating glass shell ----------------------------------------------- */
 header {
   position: fixed;
-  top: 14px;
-  left: 14px;
-  right: 14px;
+  top: 14px; left: 14px; right: 14px;
   z-index: 30;
-  padding: 12px 20px;
+  padding: 11px 18px;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 20px;
+  gap: 4px 18px;
   align-items: center;
   border-radius: var(--radius-lg);
   background: var(--glass-panel);
@@ -269,29 +205,14 @@ header {
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-lift);
 }
-header h1 {
-  font-size: 21px;
-  letter-spacing: -0.018em;
-  line-height: 1.25;
-}
-header .tagline {
-  margin: 0;
-  color: var(--ink-muted);
-  font-size: 15px;
-  line-height: 1.45;
-}
-.header-end {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
+header h1 { font-size: 20px; letter-spacing: -0.02em; line-height: 1.25; }
+header .tagline { margin: 0; color: var(--ink-muted); font-size: 15px; line-height: 1.45; }
+.header-end { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 #backend-status { margin: 0; font-size: 15px; line-height: 1.45; color: var(--ink-muted); }
 #backend-status .dot {
   display: inline-block;
-  width: 9px; height: 9px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--line);
   margin-right: 7px;
@@ -301,17 +222,19 @@ header .tagline {
 #backend-status.is-error .dot { background: var(--error); }
 #backend-status.is-error      { color: var(--error); }
 
-/* ---- The floating control panel ----------------------------------------- */
 #controls {
   position: fixed;
-  top: 88px;
+  /* Bound to the measured header, not a magic number: above 900px the header
+     wraps below ~1340px wide and a hardcoded 88px let it cover "Plan a walk". */
+  top: var(--zoom-top, 96px);
   left: 14px;
-  width: 428px;
-  max-height: calc(100dvh - 104px);
+  width: 396px;
+  max-height: calc(100vh - var(--zoom-top, 96px) - 16px);
+  max-height: calc(100dvh - var(--zoom-top, 96px) - 16px);
   overflow-y: auto;
   overscroll-behavior: contain;
   z-index: 20;
-  padding: var(--pad);
+  padding: 20px;
   border-radius: var(--radius-xl);
   background: var(--glass-panel);
   backdrop-filter: var(--glass-blur);
@@ -321,78 +244,74 @@ header .tagline {
   scrollbar-width: thin;
 }
 
-/* Where backdrop-filter is unavailable the surfaces go opaque rather than
-   washed out — legibility does not depend on the effect being supported. */
 @supports not (backdrop-filter: blur(1px)) {
   header, #controls { background: var(--surface); }
 }
 
 @media (max-width: 900px) {
-  header { position: fixed; top: 10px; left: 10px; right: 10px; padding: 10px 14px; }
-  /* At 390px the tagline and the full version string wrapped the header to
-     214px — a quarter of the screen, above a map. The tagline is decorative
-     and goes; the status line stays but is held to one line, since it is
-     diagnostic rather than task-critical and its full text remains in the
-     accessibility tree. */
+  header { top: 10px; left: 10px; right: 10px; padding: 9px 14px; flex-wrap: nowrap; gap: 10px; }
   header .tagline { display: none; }
-  /* One row, bounded height. The zoom control is offset below the header, and
-     an unbounded wrapping header makes that offset unknowable — especially
-     since the status text arrives from a fetch after first paint. */
-  header { flex-wrap: nowrap; gap: 10px; }
   header h1 { font-size: 18px; white-space: nowrap; flex: 0 0 auto; }
   .header-end { flex: 1 1 auto; min-width: 0; justify-content: flex-end; gap: 10px; }
-  #backend-status {
-    min-width: 0;
-    flex: 0 1 auto;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  #backend-status { min-width: 0; flex: 0 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #theme-toggle { flex: 0 0 auto; }
-  /* Bottom sheet: the map stays visible above it, which is the whole point of
-     floating the panel rather than docking it. */
+
   #controls {
     top: auto;
     bottom: 10px;
     left: 10px;
     right: 10px;
     width: auto;
+    max-height: 62vh;
     max-height: 62dvh;
+    padding: 18px;
   }
 }
 
+/* ---- Typography: the hierarchy does the work ---------------------------- */
 h2 {
-  font-size: 19px;
-  margin: 0 0 12px;
-  letter-spacing: -0.014em;
-  line-height: 1.3;
+  font-size: 22px;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
-.section-heading-spaced { margin-top: 24px; }
+#controls > .hint:first-of-type,
+#area-note {
+  margin: 0 0 20px;
+  color: var(--ink-muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.section-heading-spaced { margin-top: 26px; }
 
-/* ---- Inner glass layer (max 2 deep) ------------------------------------- */
+/* ---- Grouped sections, Notes / iOS Settings style -----------------------
+   No boxes inside boxes. A small muted label, then one soft grouped fill with
+   hairline separators between rows. */
 fieldset {
-  position: relative;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: 14px 16px 16px;
-  margin: 0 0 14px;
-  background: var(--glass-inner);
-  backdrop-filter: var(--glass-blur-inner);
-  -webkit-backdrop-filter: var(--glass-blur-inner);
-  box-shadow: var(--glass-lift-sm);
+  border: 0;
+  padding: 0;
+  margin: 0 0 20px;
+  min-width: 0;
 }
-@supports not (backdrop-filter: blur(1px)) {
-  fieldset { background: var(--surface-card); }
-}
-
 legend {
-  padding: 0 8px;
+  padding: 0 0 8px;
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 15px;
   line-height: 1.4;
   letter-spacing: -0.008em;
+  color: var(--ink-muted);
 }
+
+.place-row,
+.when-row,
+.aversion-group {
+  background: var(--group);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+}
+.place-row { display: grid; gap: 12px; }
+.when-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 label {
   display: block;
@@ -402,8 +321,6 @@ label {
   margin-bottom: 6px;
 }
 
-/* Inputs stay materially solid. Contrast on a field holding coordinates must
-   not depend on which part of the city is behind it. */
 input[type="text"],
 input[type="time"],
 input[type="date"] {
@@ -413,79 +330,60 @@ input[type="date"] {
   min-height: 44px;
   padding: 10px 12px;
   border: 1px solid var(--field-border);
-  border-radius: 12px;
-  background: var(--surface-card);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius);
+  background: var(--field);
   color: var(--ink);
   letter-spacing: -0.005em;
-  transition: border-color 0.2s var(--ease-standard),
-              background 0.2s var(--ease-standard);
+  transition: border-color 0.18s var(--ease-standard);
 }
 input[type="text"]:hover,
 input[type="time"]:hover,
 input[type="date"]:hover { border-color: var(--ink-muted); }
 input[aria-invalid="true"] { border-color: var(--error); border-width: 2px; }
+::placeholder { color: var(--ink-muted); opacity: 1; }
 
-.place-row { display: grid; gap: 10px; }
 .place-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .place-actions button { flex: 1 1 auto; }
 
-/* ---- Glass pill buttons -------------------------------------------------- */
+/* ---- Buttons: quiet pills, one loud primary ----------------------------- */
 button {
-  position: relative;
   font: inherit;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: -0.006em;
-  padding: 11px 20px;
+  padding: 10px 16px;
   min-height: 44px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--glass-border);
-  background: var(--glass-button);
-  backdrop-filter: var(--glass-blur-inner);
-  -webkit-backdrop-filter: var(--glass-blur-inner);
-  box-shadow: var(--glass-lift-sm);
+  border: 1px solid var(--field-border);
+  background: var(--field);
   color: var(--ink);
   cursor: pointer;
-  transition: transform 0.28s var(--ease-spring),
-              box-shadow 0.28s var(--ease-standard),
-              background 0.28s var(--ease-standard);
+  transition: background 0.18s var(--ease-standard),
+              transform 0.24s var(--ease-spring);
 }
-@supports not (backdrop-filter: blur(1px)) {
-  button { background: var(--surface-card); }
-}
-button:hover {
-  transform: translateY(-1px);   /* -2px is the ceiling; -1px on dense UI */
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14), inset 0 1px 0 var(--glass-edge);
-}
-button:active { transform: translateY(0) scale(0.985); }
-
-/* No opacity on the busy state. Opacity composites the entire button, not just
-   the label: the primary CTA at 0.72 lands at 3.03:1, and even 0.92 only
-   reaches 4.16:1. aria-busy is not a disabled state, so the 1.4.3 exemption
-   does not apply. */
+button:hover { background: var(--group-hover); }
+button:active { transform: scale(0.98); }
+/* No opacity on the busy state: opacity composites the whole button, not just
+   the label, which put the primary CTA at 3.03:1. */
 button[aria-busy="true"] { cursor: progress; }
-button[aria-busy="true"].primary { background: var(--accent-hover); }
 
 button.primary {
   width: 100%;
-  min-height: 52px;
+  min-height: 50px;
+  margin-top: 4px;
   font-size: 17px;
   font-weight: 500;
   color: var(--accent-ink);
   background: var(--accent);
   border-color: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: 0 8px 24px rgba(10, 132, 255, 0.34),
-              inset 0 1px 0 rgba(255, 255, 255, 0.26);
+  box-shadow: 0 6px 18px rgba(0, 113, 227, 0.26);
 }
-button.primary:hover { background: var(--accent-hover); }
+button.primary:hover,
+button[aria-busy="true"].primary { background: var(--accent-hover); }
 
-.when-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
+/* ---- Shade preference --------------------------------------------------- */
+.aversion-group label { margin-bottom: 10px; }
 input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent); }
 .range-scale {
   display: flex;
@@ -493,92 +391,83 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
   font-size: 15px;
   line-height: 1.45;
   color: var(--ink-muted);
+  margin-top: -4px;
 }
-#aversion-readout { font-weight: 500; color: var(--ink); }
+#aversion-readout { font-weight: 600; color: var(--ink); }
 
 .hint { color: var(--ink-muted); font-size: 15px; line-height: 1.5; margin: 10px 0 0; }
 
 #status {
-  margin: 14px 0 0;
-  padding: 13px 15px;
-  border-radius: var(--radius);
-  background: var(--surface-sunk);
-  border-left: 4px solid var(--line);
-  font-size: 16px;
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--group);
+  border-left: 3px solid var(--separator);
+  font-size: 15px;
   line-height: 1.5;
+  color: var(--ink-2);
   min-height: 24px;
 }
 #status.is-error { border-left-color: var(--error); color: var(--error); }
 
-/* ---- Results ------------------------------------------------------------- */
+/* ---- Result: one confident statement, then the detail ------------------- */
 .headline {
-  margin: 16px 0 14px;
-  padding: 16px 18px;
+  margin: 18px 0 14px;
+  padding: 18px;
   border-radius: var(--radius-lg);
-  background: var(--glass-inner);
-  backdrop-filter: var(--glass-blur-inner);
-  -webkit-backdrop-filter: var(--glass-blur-inner);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-lift-sm);
-  font-size: 19px;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+  background: var(--accent-soft);
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 .headline strong { font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .route-list { list-style: none; margin: 0; padding: 0; }
 
+/* Rows in a grouped list, separated by hairlines — not five stacked cards. */
 .route-item {
   position: relative;
-  border: 1px solid var(--glass-border);
-  border-left-width: 5px;
-  border-radius: var(--radius-lg);
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  background: var(--glass-inner);
-  backdrop-filter: var(--glass-blur-inner);
-  -webkit-backdrop-filter: var(--glass-blur-inner);
-  box-shadow: var(--glass-lift-sm);
-  isolation: isolate;
-  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-standard);
+  padding: 14px 0;
+  border-top: 1px solid var(--separator);
 }
-.route-item:hover { transform: translateY(-1px); }
-.route-item > * { position: relative; z-index: 1; }
-
-/* Cursor-tracked specular highlight — the micro-detail that separates the real
-   material from generic glassmorphism. */
-.route-item::after {
+.route-item:first-child { border-top: 0; }
+.route-item h3 {
+  margin: 0 0 2px;
+  font-size: 16px;
+  line-height: 1.35;
+  letter-spacing: -0.012em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* The colour chip repeats the route's map colour, and the written line-style
+   name beside it means nothing depends on seeing hue. */
+.route-item h3::before {
   content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%),
-              var(--glass-specular), transparent 42%);
-  opacity: 0;
-  transition: opacity 0.45s var(--ease-standard);
-  pointer-events: none;
-  z-index: 0;
+  width: 14px; height: 3px;
+  border-radius: 2px;
+  background: var(--route-colour, var(--accent));
+  flex: 0 0 auto;
 }
-.route-item:hover::after { opacity: 1; }
-
-.route-item h3 { margin: 0 0 4px; font-size: 17px; line-height: 1.35; letter-spacing: -0.01em; }
 .route-pattern { margin: 0 0 10px; font-size: 15px; line-height: 1.45; color: var(--ink-muted); }
 .route-item dl {
   margin: 0;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 3px 12px;
-  font-size: 16px;
+  gap: 4px 14px;
+  font-size: 15px;
   line-height: 1.5;
 }
 .route-item dt { color: var(--ink-muted); }
-.route-item dd { margin: 0; font-variant-numeric: tabular-nums; }
+.route-item dd { margin: 0; font-variant-numeric: tabular-nums; color: var(--ink-2); }
 
 .shade-bar {
-  height: 10px;
+  height: 6px;
   border-radius: var(--radius-pill);
-  background: var(--surface-sunk);
-  border: 1px solid var(--line);
+  background: var(--shade-bar-track);
   overflow: hidden;
   margin-top: 10px;
 }
@@ -593,7 +482,7 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
 #sun-readout { margin: 12px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink-muted); }
 #sun-readout .sun-dot {
   display: inline-block;
-  width: 10px; height: 10px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   background: var(--sun);
   margin-right: 7px;
@@ -606,19 +495,19 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
   border-radius: 50%;
   color: #fff;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;              /* single glyphs only */
   border: 3px solid #fff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
 }
 .pin--origin      { background: var(--pin-origin); }
 .pin--destination { background: var(--pin-destination); }
 
-.legend-key { display: flex; align-items: center; gap: 10px; margin: 7px 0; font-size: 15px; line-height: 1.45; }
+.legend-key { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 15px; line-height: 1.45; color: var(--ink-2); }
 .legend-key .swatch {
-  flex: 0 0 30px; height: 30px;
+  flex: 0 0 28px; height: 28px;
   border-radius: 50%;
-  border: 3px solid #fff;
+  border: 2px solid #fff;
   box-shadow: 0 0 0 1px var(--line);
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-weight: 600; font-size: 15px; line-height: 1;
@@ -626,82 +515,83 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
 .swatch--origin      { background: var(--pin-origin); }
 .swatch--destination { background: var(--pin-destination); }
 
-details { margin: 0 0 14px; }
+/* ---- Disclosure --------------------------------------------------------- */
+details { margin: 18px 0 0; border-top: 1px solid var(--separator); padding-top: 6px; }
 summary {
   cursor: pointer;
-  padding: 10px 4px;
+  padding: 12px 2px;
   min-height: 44px;
-  display: flex;
-  align-items: center;
-  font-size: 16px;
+  /* display:flex removes the disclosure triangle in every engine — the marker
+     needs list-item. Keeping it means the control still looks like a control. */
+  display: list-item;
+  list-style-position: inside;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--ink-muted);
-  border-radius: 12px;
+  border-radius: var(--radius);
 }
 summary:hover { color: var(--ink); }
+summary::marker { color: var(--ink-muted); }
 
 .point-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
   gap: 10px;
   align-items: end;
-  margin-top: 8px;
+  margin: 6px 0 14px;
+  background: var(--group);
+  border-radius: var(--radius-lg);
+  padding: 14px;
 }
 .point-row button { white-space: nowrap; grid-column: 1 / -1; }
 
 .milestone-note {
   margin: 20px 0 0;
   padding-top: 14px;
-  border-top: 1px solid var(--line);   /* hairline, never a hard rule */
+  border-top: 1px solid var(--separator);   /* hairline, never a hard rule */
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink-muted);
 }
 
-/* ---- Leaflet chrome, floating in the same material ----------------------- */
-.leaflet-control-container .leaflet-top,
-.leaflet-control-container .leaflet-bottom { z-index: 15; }
-
-/* The zoom control lives top-right and has to clear the floating header. The
-   default top-left corner is underneath the control panel entirely.
-   --zoom-top is measured from the header at runtime rather than hardcoded: the
-   header wraps to two or three lines on narrow screens, and a fixed offset put
-   the zoom buttons underneath it at 390px wide. */
-/* The fallback covers the header at its bounded maximum in either layout, so
-   this is correct even if the JS refinement never runs. */
+/* ---- Leaflet chrome -----------------------------------------------------
+   No z-index override here. #map already creates its own stacking context at
+   z-index 0, so every Leaflet control sits below #controls (20) and the header
+   (30) regardless; forcing the control corners to 15 only risked putting them
+   under the tile pane, which Leaflet paints at 400. */
 .leaflet-top.leaflet-right { margin-top: var(--zoom-top, 96px); }
 
 .leaflet-bar {
   border: 1px solid var(--glass-border) !important;
   border-radius: var(--radius) !important;
   overflow: hidden;
-  box-shadow: var(--glass-lift-sm) !important;
+  box-shadow: var(--glass-lift) !important;
 }
 .leaflet-bar a,
 .leaflet-touch .leaflet-bar a {
   width: 44px; height: 44px;
   line-height: 44px;           /* single glyphs (+ and −) only */
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 400;
   color: var(--ink);
   background: var(--glass-panel);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--separator);
 }
-.leaflet-bar a:hover { background: var(--glass-button); color: var(--ink); }
+.leaflet-bar a:hover { background: var(--group-hover); color: var(--ink); }
 
 .leaflet-control-attribution {
-  font-size: 13px;
+  font-size: 13px;   /* third-party chrome — the one documented exception */
   line-height: 1.5;
   padding: 5px 12px;
-  border-radius: var(--radius-pill) 0 0 0;
+  border-radius: var(--radius) 0 0 0;
   background: var(--glass-panel) !important;
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   color: var(--ink-muted);
 }
-.leaflet-control-attribution a { color: var(--ink); }
+.leaflet-control-attribution a { color: var(--ink-2); }
 
 .leaflet-popup-content-wrapper {
   border-radius: var(--radius-lg) !important;
@@ -713,10 +603,14 @@ summary:hover { color: var(--ink); }
   box-shadow: var(--glass-lift);
 }
 .leaflet-popup-tip { background: var(--glass-panel); }
-/* Popups carry app content — the place name and its coordinates — so they are
-   held to the same 15px floor as the rest of the interface, not Leaflet's 13px. */
+/* Popups carry app content — a place name and its coordinates — so they are
+   held to the same floor as the rest of the interface, not Leaflet's 13px. */
 .leaflet-popup-content { font-size: 15px; line-height: 1.5; }
-.leaflet-popup-close-button { width: 32px !important; height: 32px !important; font-size: 20px !important; }
+.leaflet-popup-close-button {
+  width: 44px !important; height: 44px !important;
+  font-size: 20px !important; line-height: 44px !important;
+  color: var(--ink-muted) !important;
+}
 
 @supports not (backdrop-filter: blur(1px)) {
   .leaflet-bar a,
@@ -741,7 +635,7 @@ summary:hover { color: var(--ink); }
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  button:hover, .route-item:hover, button:active { transform: none; }
+  button:active { transform: none; }
 }
 
 </style>
@@ -816,13 +710,15 @@ summary:hover { color: var(--ink); }
 
     <fieldset>
       <legend>How much detour for shade?</legend>
-      <label for="aversion">
-        Shade preference: <span id="aversion-readout">balanced</span>
-      </label>
-      <input type="range" id="aversion" min="0" max="3" step="0.5" value="1.5"
-             aria-describedby="aversion-help">
-      <div class="range-scale" aria-hidden="true">
-        <span>Shortest</span><span>Shadiest</span>
+      <div class="aversion-group">
+        <label for="aversion">
+          Shade preference: <span id="aversion-readout">balanced</span>
+        </label>
+        <input type="range" id="aversion" min="0" max="3" step="0.5" value="1.5"
+               aria-describedby="aversion-help">
+        <div class="range-scale" aria-hidden="true">
+          <span>Shortest</span><span>Shadiest</span>
+        </div>
       </div>
       <p class="hint" id="aversion-help">
         At the far left this returns the plain shortest route, so the comparison
@@ -951,13 +847,16 @@ summary:hover { color: var(--ink); }
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 
+  // Always stamps a resolved theme. The palette now lives in a single
+  // [data-theme="dark"] block rather than being duplicated across a media query
+  // and an attribute selector — one source, no drift — which means the
+  // attribute has to be present for the system preference to take effect. It
+  // also makes `color-scheme` follow the manual choice, so the browser's own
+  // date and time pickers match the interface instead of the OS.
   function applyTheme(theme) {
-    if (theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
-    var isDark = theme ? theme === 'dark' : systemPrefersDark();
+    var resolved = theme || (systemPrefersDark() ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', resolved);
+    var isDark = resolved === 'dark';
     themeButton.setAttribute('aria-pressed', String(isDark));
     themeButton.textContent = isDark ? 'Light mode' : 'Dark mode';
   }
@@ -974,6 +873,17 @@ summary:hover { color: var(--ink); }
     var saved = null;
     try { saved = window.localStorage.getItem('shade-route-theme'); } catch (e) { /* private mode */ }
     applyTheme(saved);
+    // Follow the OS while the user has not made an explicit choice.
+    if (!saved && window.matchMedia) {
+      var query = window.matchMedia('(prefers-color-scheme: dark)');
+      var onChange = function () {
+        var stored = null;
+        try { stored = window.localStorage.getItem('shade-route-theme'); } catch (e) { /* ignore */ }
+        if (!stored) { applyTheme(null); }
+      };
+      if (query.addEventListener) { query.addEventListener('change', onChange); }
+      else if (query.addListener) { query.addListener(onChange); }
+    }
   }());
 
   // --- Points ----------------------------------------------------------------
@@ -1273,11 +1183,19 @@ summary:hover { color: var(--ink); }
   function mapPadding() {
     var panel = document.getElementById('controls').getBoundingClientRect();
     var header = document.querySelector('header').getBoundingClientRect();
-    var narrow = window.innerWidth <= 900;
+    var narrow = window.matchMedia('(max-width: 900px)').matches;
+
+    // Never ask for more padding than the map can give. In landscape on a
+    // phone the bottom sheet is most of the height, and an unclamped request
+    // left fitBounds ~46px to work with and zoomed out to nothing.
+    var capX = window.innerWidth * 0.45;
+    var capY = window.innerHeight * 0.4;
+    var clamp = function (value, cap) { return Math.max(16, Math.min(value, cap)); };
+
     return narrow
-      ? { paddingTopLeft: L.point(28, header.bottom + 16),
-          paddingBottomRight: L.point(28, (window.innerHeight - panel.top) + 16) }
-      : { paddingTopLeft: L.point(panel.right + 24, header.bottom + 16),
+      ? { paddingTopLeft: L.point(28, clamp(header.bottom + 16, capY)),
+          paddingBottomRight: L.point(28, clamp(window.innerHeight - panel.top + 16, capY)) }
+      : { paddingTopLeft: L.point(clamp(panel.right + 24, capX), clamp(header.bottom + 16, capY)),
           paddingBottomRight: L.point(28, 28) };
   }
 
@@ -1390,7 +1308,10 @@ summary:hover { color: var(--ink); }
 
       var item = document.createElement('li');
       item.className = 'route-item';
-      item.style.borderLeftColor = colour;
+      // Feeds the colour chip beside the route name. The chip repeats the map
+      // line's colour, and the written line-style name sits right below it, so
+      // nothing here depends on seeing hue.
+      item.style.setProperty('--route-colour', colour);
 
       var heading = document.createElement('h3');
       heading.textContent = route.label;
@@ -1551,30 +1472,10 @@ summary:hover { color: var(--ink); }
       });
   });
 
-  // --- Liquid Glass specular highlight ---------------------------------------
-  // A soft directional gloss that tracks the pointer across each glass surface.
-  // Skipped entirely under prefers-reduced-motion, and delegated from the
-  // document so it also covers route cards created later.
-  (function specularHighlight() {
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
-    // Throttled to ~60Hz. getBoundingClientRect forces layout, and writing two
-    // custom properties on a backdrop-filtered card re-blurs it, so running
-    // this on every raw pointermove — including map drags — is real work for a
-    // decorative highlight. Timestamp rather than requestAnimationFrame, which
-    // does not fire at all in a non-compositing tab.
-    var lastMove = 0;
-    document.addEventListener('pointermove', function (event) {
-      if (event.timeStamp - lastMove < 16) { return; }
-      var surface = event.target.closest && event.target.closest('.route-item');
-      if (!surface) { return; }
-      lastMove = event.timeStamp;
-      var rect = surface.getBoundingClientRect();
-      surface.style.setProperty('--mx', (event.clientX - rect.left) + 'px');
-      surface.style.setProperty('--my', (event.clientY - rect.top) + 'px');
-    }, { passive: true });
-  }());
+  // The pointer-tracked specular gloss is gone with the card-in-card layout it
+  // belonged to. It also sat *behind* the result text and lifted the backdrop
+  // on hover, which took secondary text to 3.3:1 over a bright tile — a
+  // contrast hole no resting-state sweep could see.
 
   // --- Boot ------------------------------------------------------------------
   wireCoordinateEntry('origin', 'origin-lat', 'origin-lon', 'origin-set');
