@@ -248,6 +248,45 @@ overrides were removed and both themes now sweep clean at 65 text nodes each.
 - When the sun is below the horizon the UI says so and both routes are reported as identical,
   rather than silently returning 0% shade as if it were a measurement.
 
+### M2 audit round
+
+A production-readiness review of the M2 changeset confirmed the shade maths independently
+(including that `dx = L·sin(azimuth+180)`, `dy = L·cos(azimuth+180)` is the correct projection
+for an azimuth measured clockwise from north) and found four real defects, all fixed:
+
+- **The headline number was read off the wrong edge.** `route_shade_fraction`,
+  `route_length_m` and `route_coordinates` all defaulted to `weight="length"`, but the shadiest
+  route is chosen by `shade_cost`. Where two nodes are joined by several parallel ways, the
+  cheapest-by-length edge is not necessarily the one Dijkstra took, so the reported shade,
+  length and drawn polyline could all come from a road the walker was never routed along —
+  systematically under-reporting the one figure the project is judged on. `weight` is now
+  threaded through all three.
+- **A concurrency hazard that produced wrong numbers rather than crashes.** `annotate_graph`
+  writes `shade_cost` onto the process-wide graph, and `/api/route` is a sync endpoint, so
+  FastAPI runs it in a threadpool. Two browser tabs at different slider settings could
+  interleave, returning a route computed against the other request's settings. Now guarded by a
+  lock. Verified with six concurrent requests alternating aversion 0 and 3: every response
+  matched its own setting.
+- **A torn read in `_node_arrays`**, which published its guard variable before the arrays it
+  guards. First-request-only and a tiny window, but a real `TypeError`. The guard is now
+  assigned last.
+- **Three Overpass responses were being downloaded twice.** `shade._fetch` never called
+  `configure_osmnx`, so the cache folder depended on which module ran first; `check_shade.py`
+  wrote to `cache/` while the server wrote to `cache/osmnx/`. Confirmed on disk, fixed, and the
+  duplicates deleted. This re-incurred the exact Overpass exposure documented above.
+
+Two accessibility issues in the same pass: the busy state used `disabled`, which moves focus to
+`<body>` and dumps a keyboard user to the top of the document mid-request (now `aria-busy` plus
+a re-entrancy flag); and the shade bar rendered "0%" with an `aria-label` reading "0% of this
+route is in shade" when the sun was down — which contradicted this file's own claim two
+sections above. It now reads "no sun to measure" and the bar is not drawn at all. The shade bar
+fill was also darkened from 3.05:1 to 6.58:1.
+
+Three README statements were corrected against the code: a line listing route line-patterns as
+unbuilt when they were built, a data-sources table presenting benches, steps and Open-Meteo as
+live when nothing references them, and a cache table that omitted the per-edge shade pass being
+memory-only.
+
 ---
 
 *Log continues as milestones complete.*

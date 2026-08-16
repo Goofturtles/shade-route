@@ -121,9 +121,12 @@ def _node_arrays(graph: nx.MultiDiGraph) -> tuple[np.ndarray, np.ndarray, np.nda
             ids.append(node_id)
             lats.append(data["y"])
             lons.append(data["x"])
-        _node_ids = np.asarray(ids, dtype=np.int64)
+        # Publish _node_ids LAST. It is the guard the check above reads, so
+        # assigning it first would let a second thread through while the lat/lon
+        # arrays are still None.
         _node_lat = np.asarray(lats, dtype=np.float64)
         _node_lon = np.asarray(lons, dtype=np.float64)
+        _node_ids = np.asarray(ids, dtype=np.int64)
     return _node_ids, _node_lat, _node_lon
 
 
@@ -157,16 +160,23 @@ def _shortest_parallel_edge(graph: nx.MultiDiGraph, u: int, v: int, weight: str)
     return min(graph[u][v].values(), key=lambda data: data.get(weight, data["length"]))
 
 
-def route_coordinates(graph: nx.MultiDiGraph, route: list[int]) -> list[list[float]]:
+def route_coordinates(
+    graph: nx.MultiDiGraph, route: list[int], weight: str = "length"
+) -> list[list[float]]:
     """Build a [lat, lon] polyline that follows the real street centrelines.
 
     Using node positions alone would cut the corners off every curved street,
     and M2 measures shade against these same centrelines, so it needs to be the
     true geometry rather than a chord.
+
+    `weight` must match the weight the router used. Where two nodes are joined
+    by several ways, the cheapest-by-length edge is not necessarily the one a
+    shade-weighted Dijkstra chose, and drawing the wrong one would show a line
+    the walker was never routed along.
     """
     coords: list[list[float]] = []
     for u, v in zip(route[:-1], route[1:]):
-        data = _shortest_parallel_edge(graph, u, v, "length")
+        data = _shortest_parallel_edge(graph, u, v, weight)
         geometry = data.get("geometry")
         if geometry is not None:
             segment = [[lat, lon] for lon, lat in geometry.coords]

@@ -90,7 +90,12 @@ discover it while recording a demo.
 |---|---|---|---|
 | Walking network, 3,363 nodes / 10,408 edges | `cache/walk_graph.graphml` | ~11 s | 0.3 s |
 | 245 named places | `cache/places.json` | ~8 s | 0.0 s |
-| Building + tree shadows | `cache/osmnx/` | ~44 s | 0.6 s |
+| Raw building + tree geometry | `cache/osmnx/` | ~44 s | 0.6 s |
+
+One thing is *not* on disk: the per-edge shade fractions. Those are recomputed in memory the
+first time each quarter-hour is requested — about 1.2 s for all 10,408 edges — and cached for
+the life of the process. So a restarted server pays roughly a second on its first route, and
+nothing thereafter. It never touches the network for it.
 
 This script also confirms *empirically* that the bounding-box tuple was interpreted in the order
 the code assumes, by checking where the downloaded nodes actually landed. OSMnx types that
@@ -151,9 +156,10 @@ crash anything — it would just quietly return bad routes.
 | Street network (walking) | OpenStreetMap via OSMnx | No |
 | Building footprints + heights | OpenStreetMap `building` tags | No |
 | Trees, parks, forest | OSM `natural=tree`, `leisure=park`, `landuse=forest` | No |
-| Benches, drinking fountains, steps | OSM `amenity=bench`, `amenity=drinking_water`, `highway=steps` | No |
+| Named destinations for the search box | OSM `amenity`, `shop`, `highway=bus_stop`, `leisure=park` | No |
 | Solar position | pvlib (computed locally, no network) | No |
-| Air temperature *(optional)* | Open-Meteo | No |
+| Benches, steps — *planned, M4, not yet used* | OSM `amenity=bench`, `highway=steps` | No |
+| Air temperature — *considered and not used*, see Limitations | Open-Meteo | No |
 
 Map data © OpenStreetMap contributors, [ODbL](https://www.openstreetmap.org/copyright).
 
@@ -251,8 +257,6 @@ either.
 **Scheduled, not yet built:**
 
 - A **prose turn-by-turn description** alongside the map, with shade and rest-stop notes (M5).
-- Route lines distinguished by **line pattern and text label** as well as hue (M2, when routes
-  first exist).
 - A keyboard-and-screen-reader pass over the complete flow (M5).
 
 **Known gap:** below 860 px the page scrolls normally but the map still captures touch drags,

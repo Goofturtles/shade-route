@@ -87,6 +87,11 @@ def _fetch(name: str, tags: dict) -> gpd.GeoDataFrame:
     """Fetch OSM features for the demo bbox, memoised for the process lifetime."""
     if name in _features_cache:
         return _features_cache[name]
+    # Must happen before the first Overpass call from *this* module. Without it
+    # the cache folder depends on which module ran first: check_shade.py reached
+    # here before anything configured OSMnx and wrote to ./cache instead of
+    # ./cache/osmnx, so three responses were downloaded and stored twice.
+    config.configure_osmnx()
     log.info("Fetching %s from OpenStreetMap ...", name)
     try:
         gdf = ox.features_from_bbox(config.DEMO_BBOX, tags)
@@ -295,6 +300,11 @@ def route_shade_fraction(graph, route: list[int], weight: str = "length") -> flo
 
     Weighted by length, not a plain mean over edges: a 5 m alley and a 200 m
     boulevard should not count equally toward "61% shaded".
+
+    `weight` must be the weight the router used. Reading shade off the
+    cheapest-by-length parallel edge while the router actually took the
+    cheapest-by-shade-cost one systematically under-reports the headline
+    number — the one figure the whole project is judged on.
     """
     total = 0.0
     shaded = 0.0

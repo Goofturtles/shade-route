@@ -1,13 +1,15 @@
 """Shade Route — FastAPI application.
 
-Milestone 0: health check, client configuration, and static hosting of the
-single-page frontend. Routing arrives in Milestone 1, shade in Milestone 2.
+Serves the single-page frontend plus the routing API: `/api/route` returns the
+shortest and the shadiest walk between two points, `/api/places` the named
+destinations that populate the search box.
 """
 
 from __future__ import annotations
 
 import importlib.metadata as importlib_metadata
 import platform
+import threading
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -20,8 +22,11 @@ from app import config, graph, places, shade
 app = FastAPI(
     title="Shade Route",
     description="Walking routes that maximise time spent in shade.",
-    version="0.1.0",
+    version="0.2.0",
 )
+
+# Guards the annotate-then-route section, which mutates the shared graph.
+_routing_lock = threading.Lock()
 
 # Packages whose versions we report, because the brief requires the project to
 # run on a clean machine and version drift in the geo stack is the most likely
@@ -62,7 +67,7 @@ def health() -> dict:
     return {
         "status": "degraded" if missing else "ok",
         "missing": missing,
-        "milestone": 1,
+        "milestone": 2,
         "python": platform.python_version(),
         "versions": versions,
         # Lets the client warn that the first request will pause on a one-off
@@ -166,29 +171,42 @@ def compute_route(
 
     moment = _parse_when(when)
     shade_field = shade.get_shade_field(moment)
-    shade.annotate_graph(walk_graph, shade_field, shade_aversion)
 
     def build(route_id: str, label: str, weight: str) -> dict:
         node_path = graph.shortest_path(walk_graph, orig_node, dest_node, weight=weight)
-        length_m = graph.route_length_m(walk_graph, node_path)
+        # `weight` is threaded through deliberately. Where two nodes are joined
+        # by several parallel ways, the cheapest-by-length edge is not
+        # necessarily the one the router took, and reading length, geometry or
+        # shade off the wrong one misreports the headline metric.
+        length_m = graph.route_length_m(walk_graph, node_path, weight)
         return {
             "id": route_id,
             "label": label,
-            "coordinates": graph.route_coordinates(walk_graph, node_path),
+            "coordinates": graph.route_coordinates(walk_graph, node_path, weight),
             "length_m": round(length_m, 1),
             "duration_s": round(length_m / config.WALKING_SPEED_M_S),
-            "shade_fraction": round(shade.route_shade_fraction(walk_graph, node_path), 4),
+            "shade_fraction": round(
+                shade.route_shade_fraction(walk_graph, node_path, weight), 4
+            ),
             "_nodes": node_path,
         }
 
-    try:
-        shortest = build("shortest", "Shortest route", "length")
-        shadiest = build("shadiest", "Shadiest route", "shade_cost")
-    except nx.NetworkXNoPath:
-        raise HTTPException(
-            status_code=422,
-            detail="No walking route connects those two points inside the demo area.",
-        )
+    # annotate_graph writes shade_cost onto the shared, process-wide graph, and
+    # this is a sync endpoint so FastAPI runs it in a threadpool. Without this
+    # lock, a second request at a different time or slider value could overwrite
+    # those weights between our annotate and our Dijkstra, and we would return a
+    # route computed against somebody else's settings. That is a wrong number
+    # rather than a crash, which is precisely what the brief forbids.
+    with _routing_lock:
+        shade.annotate_graph(walk_graph, shade_field, shade_aversion)
+        try:
+            shortest = build("shortest", "Shortest route", "length")
+            shadiest = build("shadiest", "Shadiest route", "shade_cost")
+        except nx.NetworkXNoPath:
+            raise HTTPException(
+                status_code=422,
+                detail="No walking route connects those two points inside the demo area.",
+            )
 
     identical = shortest.pop("_nodes") == shadiest.pop("_nodes")
     sun_position = shade_field.sun

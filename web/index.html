@@ -38,6 +38,10 @@
   --pin-origin:      #007a5e; /* 5.32:1 under white bold */
   --pin-destination: #a34700; /* 6.07:1 — full-strength #d55e00 is only 3.87:1 */
 
+  /* The shade bar is a graphic, so 3:1 is the bar. --shadiest against
+     --surface-sunk is 3.05:1, which clears it by nothing; this is 6.55:1. */
+  --shade-bar-fill: #005b8f;
+
   --focus:  #0072b2;
   --radius: 12px;
   --pad:    16px;
@@ -77,6 +81,8 @@
        *white* in either theme. Darkening them for dark mode dropped them to
        4.07:1 and 4.49:1 — the opposite of the intended effect. */
 
+    --shade-bar-fill: #66baff; /* light on dark — the inverse problem */
+
     --focus: #7cc4f5;
     --tile-filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92) saturate(0.75);
   }
@@ -101,6 +107,7 @@
 
   /* Pin fills intentionally inherit the light-theme values — see the note in
      the prefers-color-scheme block above. */
+  --shade-bar-fill: #66baff;
 
   --focus: #7cc4f5;
   --tile-filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92) saturate(0.75);
@@ -377,7 +384,7 @@ input[type="range"] {
   overflow: hidden;
   margin-top: 8px;
 }
-.shade-bar span { display: block; height: 100%; background: var(--shadiest); }
+.shade-bar span { display: block; height: 100%; background: var(--shade-bar-fill); }
 
 #sun-readout {
   margin: 10px 0 0;
@@ -1084,6 +1091,11 @@ summary {
       bounds = bounds ? bounds.extend(line.getBounds()) : line.getBounds();
     });
 
+    // With no sun there is no shade to measure. Printing "0%" would state a
+    // measurement we did not make — the same reason the API returns null rather
+    // than zero before the model exists.
+    var shadeMeasured = payload.sun.casts_shadows;
+
     payload.routes.forEach(function (route) {
       var style = ROUTE_STYLES[route.id] || ROUTE_STYLES.shortest;
       var colour = cssVar(style.varName);
@@ -1104,7 +1116,8 @@ summary {
       var dl = document.createElement('dl');
       [['Distance', formatDistance(route.length_m)],
        ['Walking time', formatDuration(route.duration_s)],
-       ['In shade', percent(route.shade_fraction)]].forEach(function (pair) {
+       ['In shade', shadeMeasured ? percent(route.shade_fraction) : 'no sun to measure']
+      ].forEach(function (pair) {
         var dt = document.createElement('dt');
         dt.textContent = pair[0];
         var dd = document.createElement('dd');
@@ -1113,14 +1126,16 @@ summary {
       });
       item.appendChild(dl);
 
-      var bar = document.createElement('div');
-      bar.className = 'shade-bar';
-      var fill = document.createElement('span');
-      fill.style.width = (route.shade_fraction * 100).toFixed(1) + '%';
-      bar.appendChild(fill);
-      bar.setAttribute('role', 'img');
-      bar.setAttribute('aria-label', percent(route.shade_fraction) + ' of this route is in shade');
-      item.appendChild(bar);
+      if (shadeMeasured) {
+        var bar = document.createElement('div');
+        bar.className = 'shade-bar';
+        var fill = document.createElement('span');
+        fill.style.width = (route.shade_fraction * 100).toFixed(1) + '%';
+        bar.appendChild(fill);
+        bar.setAttribute('role', 'img');
+        bar.setAttribute('aria-label', percent(route.shade_fraction) + ' of this route is in shade');
+        item.appendChild(bar);
+      }
 
       list.appendChild(item);
     });
@@ -1171,6 +1186,13 @@ summary {
   function describeRoutes(payload) {
     var shortest = payload.routes.filter(function (r) { return r.id === 'shortest'; })[0];
     var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
+    if (!payload.sun.casts_shadows) {
+      return (payload.sun.is_up
+        ? 'The sun is too low to cast usable shadows at this time, so there is no shade to measure. '
+        : 'The sun is below the horizon at this time, so there is no shade to measure. ') +
+        'The route is ' + formatDistance(shortest.length_m) + ', about ' +
+        formatDuration(shortest.duration_s) + ' walk.';
+    }
     if (payload.comparison.identical) {
       return 'Both routes are identical: ' + formatDistance(shortest.length_m) + ', ' +
              formatDuration(shortest.duration_s) + ', ' + percent(shortest.shade_fraction) + ' in shade.';
@@ -1184,8 +1206,10 @@ summary {
   }
 
   var findButton = document.getElementById('find-route');
+  var routeInFlight = false;
 
   findButton.addEventListener('click', function () {
+    if (routeInFlight) { return; }
     if (!state.origin || !state.destination) {
       announce('Set both a start and a destination first. Try "Surprise me" if you want an example.', true);
       return;
@@ -1202,8 +1226,12 @@ summary {
       when: when, shade_aversion: aversionInput.value
     });
 
+    // aria-busy, not `disabled`. Disabling a focused button moves focus to
+    // <body>, so a keyboard or screen-reader user gets dumped to the top of the
+    // document mid-task on a request that can run for tens of seconds. The
+    // routeInFlight flag prevents double submission instead.
+    routeInFlight = true;
     findButton.setAttribute('aria-busy', 'true');
-    findButton.disabled = true;
     announce(state.graphCached === false
       ? 'Working. The street network and shadow data are downloading for the first time — ' +
         'this happens once and is cached afterwards.'
@@ -1230,8 +1258,8 @@ summary {
         announce('Could not find a route: ' + error.message, true);
       })
       .then(function () {
+        routeInFlight = false;
         findButton.removeAttribute('aria-busy');
-        findButton.disabled = false;
       });
   });
 
