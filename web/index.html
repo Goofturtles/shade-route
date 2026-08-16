@@ -58,6 +58,10 @@
   --accent-hover: #26593a;
   --accent-ink:   #ffffff;
   --accent-soft:  rgba(47, 107, 69, 0.14);
+  /* The accent works as a button FILL (white on it is 6.3:1) but not as text:
+     as a link on glass over the canopy it measured 4.35:1. This is the same
+     hue, deep enough to be read. */
+  --accent-text:  #26593a;
 
   --ok:    #1d6b4a;
   --error: #7d1420;
@@ -130,6 +134,8 @@
     --accent-hover: #63c48b;
     --accent-ink:   #05170d;
     --accent-soft:  rgba(79, 174, 118, 0.20);
+  --accent-text:  #7fd7a4;
+    --accent-text:  #7fd7a4;
 
     --ok:    #5fd39a;
     --error: #ff9ea6;
@@ -783,13 +789,439 @@ summary:hover { color: var(--ink); }
   button:hover, button:active { transform: none; }
 }
 
+
+/* ==========================================================================
+   Components, built to match the reference mockups part for part.
+   ========================================================================== */
+
+/* ---- Top bar ------------------------------------------------------------ */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px 26px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-radius: var(--r-lg);
+  background: var(--glass-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 42px; height: 42px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--glass-border);
+  display: grid; place-items: center;
+  font-size: 22px; line-height: 1;
+  box-shadow: var(--lift-sm);
+  flex: 0 0 auto;
+}
+.brand h1 { font-size: 22px; line-height: 1.15; letter-spacing: -0.02em; }
+
+.navtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.navtab {
+  appearance: none;
+  border: 0; background: transparent;
+  padding: 9px 14px;
+  min-height: 44px;
+  border-radius: var(--r-pill);
+  font-size: 15px; font-weight: 500;
+  color: var(--ink-muted);
+  cursor: pointer;
+  box-shadow: none;
+  position: relative;
+}
+.navtab:hover { background: var(--glass-inner); color: var(--ink); transform: none; }
+.navtab[aria-current="page"] { color: var(--ink); font-weight: 600; }
+.navtab[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 14px; right: 14px; bottom: 4px;
+  height: 3px; border-radius: 3px;
+  background: var(--accent);
+}
+
+.bar-end { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.info-chip {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 8px 15px; min-height: 46px;
+  border-radius: var(--r);
+  background: var(--glass-inner);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift-sm);
+  font-size: 15px; line-height: 1.25;
+  color: var(--ink-2);
+}
+.info-chip .ic { font-size: 19px; line-height: 1; }
+.info-chip b { display: block; color: var(--ink); font-weight: 600; font-size: 16px; }
+.info-chip small { display: block; font-size: 15px; color: var(--ink-muted); }
+
+/* ---- Three columns, as in the reference ---------------------------------- */
+.cols {
+  display: grid;
+  grid-template-columns: 372px minmax(0, 1fr) 372px;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1420px) { .cols { grid-template-columns: 352px minmax(0, 1fr); } }
+@media (max-width: 1040px) { .cols { grid-template-columns: 1fr; } }
+
+.panel {
+  padding: 20px;
+  border-radius: var(--r-xl);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift);
+}
+.panel + .panel { margin-top: 16px; }
+.panel > h2 { font-size: 22px; line-height: 1.2; letter-spacing: -0.02em; }
+.panel-intro { margin: 6px 0 18px; color: var(--ink-muted); font-size: 15px; line-height: 1.45; }
+
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin: 0 0 4px;
+}
+.section-head h3 { font-size: 17px; letter-spacing: -0.012em; }
+.linkish {
+  appearance: none; border: 0; background: none; box-shadow: none;
+  padding: 6px 8px; min-height: 44px;
+  color: var(--accent-text); font-size: 15px; font-weight: 500; cursor: pointer;
+}
+.linkish:hover { text-decoration: underline; transform: none; background: none; }
+
+/* ---- Field cards: dot, inline label, value, clear ------------------------ */
+.fieldset-plain { border: 0; padding: 0; margin: 0; min-width: 0; }
+.field-stack { position: relative; display: grid; gap: 10px; }
+
+.field-card {
+  display: grid;
+  grid-template-columns: 30px 1fr 34px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r);
+  background: var(--field);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--field-border);
+  box-shadow: inset 0 1px 0 var(--glass-under);
+  min-height: 74px;
+}
+.field-card:focus-within { border-color: var(--accent); }
+.field-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--glass-inner);
+  border: 1px solid var(--glass-border);
+  font-size: 15px; line-height: 1;
+}
+/* Filled discs in the route colours, so start and destination read at a glance
+   the way the reference does — and themed, not hardcoded white. */
+.field-dot.is-start { color: var(--accent); }
+.field-dot.is-end   { color: var(--shortest); }
+.field-body { min-width: 0; }
+.field-body label {
+  display: block; margin: 0 0 1px;
+  font-size: 15px; line-height: 1.2; color: var(--ink-muted);
+}
+.field-card input[type="text"] {
+  width: 100%;
+  border: 0; background: none; box-shadow: none;
+  padding: 0; min-height: 44px;   /* the interactive target, not the card */
+  font-size: 16px; font-weight: 500; color: var(--ink);
+  border-radius: 0;
+}
+.field-card input[type="text"]:hover { border: 0; }
+.field-clear {
+  width: 44px; height: 44px; min-height: 44px;
+  padding: 0; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 16px; line-height: 1;
+  color: var(--ink-muted);
+  background: transparent; border: 0; box-shadow: none;
+}
+.field-clear:hover { background: var(--glass-inner); color: var(--ink); transform: none; }
+
+.swap-btn {
+  position: absolute;
+  right: -6px; top: 50%;
+  transform: translate(50%, -50%);
+  width: 46px; height: 46px; min-height: 46px;
+  padding: 0; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 17px;
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift-sm);
+  z-index: 2;
+}
+.swap-btn:hover { transform: translate(50%, -50%) translateY(-1px); }
+@media (max-width: 1040px) { .swap-btn { right: 8px; } }
+
+/* ---- Preference rows ----------------------------------------------------- */
+.pref-row {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 2px;
+  border-top: 1px solid var(--separator);
+}
+.pref-row:first-of-type { border-top: 0; }
+.pref-icon { font-size: 18px; line-height: 1; text-align: center; }
+.pref-label { font-size: 16px; color: var(--ink); line-height: 1.25; }
+.pref-sub { display: block; font-size: 15px; color: var(--ink-muted); margin-top: 2px; line-height: 1.3; }
+.pref-value {
+  font-size: 15px; color: var(--ink-muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.pref-row select {
+  appearance: none;
+  border: 0; background: none; box-shadow: none;
+  font: inherit; font-size: 15px; color: var(--ink-muted);
+  padding: 8px 22px 8px 8px; min-height: 44px;
+  border-radius: var(--r-sm);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 12px) calc(50% + 2px), calc(100% - 7px) calc(50% + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.pref-row select:hover { color: var(--ink); background-color: var(--glass-inner); }
+
+/* Segmented shade meter, as drawn in the reference */
+.meter { display: flex; gap: 3px; margin-top: 8px; }
+.meter i {
+  flex: 1 1 0; height: 9px; border-radius: 3px;
+  background: var(--shade-bar-track);
+}
+.meter i.on { background: var(--accent); }
+.meter i.on:nth-child(1) { opacity: 0.45; }
+.meter i.on:nth-child(2) { opacity: 0.6; }
+.meter i.on:nth-child(3) { opacity: 0.75; }
+.meter i.on:nth-child(4) { opacity: 0.88; }
+
+/* Toggle */
+/* An iOS-sized switch (52x31) inside a 44px-tall hit area: the control keeps the
+   look from the reference without becoming a small target. */
+.toggle {
+  position: relative;
+  width: 52px; height: 44px; min-height: 44px;
+  padding: 0; border: 0;
+  background: none; box-shadow: none;
+}
+.toggle::before {
+  content: "";
+  position: absolute; inset: 6.5px 0;
+  border-radius: var(--r-pill);
+  background: var(--shade-bar-track);
+  border: 1px solid var(--field-border);
+  transition: background 0.22s var(--ease-standard);
+}
+.toggle::after {
+  content: "";
+  position: absolute; top: 9px; left: 2px;
+  width: 25px; height: 25px; border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: transform 0.22s var(--ease-spring);
+}
+.toggle[aria-pressed="true"]::before { background: var(--accent); border-color: transparent; }
+.toggle[aria-pressed="true"]::after { transform: translateX(21px); }
+.toggle:hover { transform: none; }
+
+/* ---- Map ---------------------------------------------------------------- */
+.map-card {
+  position: relative;
+  padding: 10px;
+  border-radius: var(--r-xl);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift);
+}
+#map {
+  height: clamp(360px, 56vh, 620px);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--leaf-1);
+}
+.leaflet-tile-pane { filter: var(--tile-filter); }
+
+.map-legend {
+  position: absolute;
+  top: 22px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 18px;
+  padding: 9px 18px;
+  border-radius: var(--r-pill);
+  background: var(--chrome);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift-sm);
+  z-index: 500;
+  font-size: 15px;
+  white-space: nowrap;
+}
+@media (max-width: 560px) { .map-legend { position: static; transform: none; margin: 10px 0 0; justify-content: center; } }
+.legend-item { display: inline-flex; align-items: center; gap: 9px; color: var(--ink-2); }
+.legend-line { width: 26px; border-top: 3px solid currentColor; }
+.legend-item.is-shady { color: var(--shadiest); }
+.legend-item.is-short { color: var(--shortest); }
+.legend-item span { color: var(--ink-2); }
+
+.shade-scale {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 6px 2px;
+  font-size: 15px; color: var(--ink-muted);
+}
+.shade-scale .ramp {
+  flex: 1 1 auto; height: 10px; border-radius: 5px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 18%, transparent),
+    var(--accent));
+  border: 1px solid var(--glass-border);
+}
+
+/* ---- Stat trio ----------------------------------------------------------- */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--glass-inner);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift-sm);
+  margin: 0 0 16px;
+}
+@media (max-width: 420px) { .stat-row { grid-template-columns: 1fr; } }
+.stat { padding: 15px 16px; border-right: 1px solid var(--separator); }
+.stat:last-child { border-right: 0; }
+.stat b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 600; line-height: 1.02;
+  letter-spacing: -0.026em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.stat b .u { font-size: 16px; font-weight: 500; color: var(--ink-muted); margin-left: 2px; }
+.stat small { display: block; margin-top: 4px; font-size: 15px; color: var(--ink-muted); }
+.stat.is-shade b { color: var(--accent); }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px; border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  color: var(--ink); font-size: 15px; font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---- Comparison, floating over the map's lower edge ---------------------- */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--lift);
+  text-align: center;
+  margin: 0 0 16px;
+}
+@media (max-width: 620px) { .compare { grid-template-columns: 1fr; } }
+.compare > div { padding: 16px 14px; border-right: 1px solid var(--separator); }
+.compare > div:last-child { border-right: 0; }
+.compare .col-title { font-size: 15px; color: var(--ink-muted); margin: 0 0 10px; }
+.compare .big {
+  font-family: var(--font-display);
+  font-size: 34px; font-weight: 600; line-height: 1;
+  letter-spacing: -0.026em; font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.compare .big .u { font-size: 17px; font-weight: 500; color: var(--ink-muted); }
+.compare .sub { font-size: 15px; color: var(--ink-muted); margin-top: 8px; line-height: 1.6; }
+.compare .is-short .big { color: var(--shortest); }
+.compare .is-shady .big { color: var(--accent); }
+.compare .swap-col { background: var(--accent-soft); }
+.compare .swap-col .big { font-size: 26px; }
+.compare .swap-col .big + .big { margin-top: 2px; }
+
+/* ---- Route summary: numbered steps with detail lines --------------------- */
+.summary-steps { list-style: none; margin: 0; padding: 0; }
+.summary-steps li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid var(--separator);
+}
+.summary-steps li:first-child { border-top: 0; }
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink);
+  display: grid; place-items: center;
+  font-size: 14px; font-weight: 600; line-height: 1;
+  margin-top: 2px;
+}
+.step-body { min-width: 0; }
+.step-title { font-size: 16px; color: var(--ink); line-height: 1.35; font-weight: 500; }
+.step-detail { font-size: 15px; color: var(--ink-muted); line-height: 1.45; margin-top: 2px; }
+.step-meta {
+  font-size: 15px; color: var(--ink-muted); margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.step-bench { font-size: 15px; color: var(--ink-muted); margin-top: 3px; }
+.step-bench.warn { color: var(--error); font-weight: 500; }
+
+/* ---- Comfort at a glance -------------------------------------------------- */
+.comfort {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+@media (max-width: 480px) { .comfort { grid-template-columns: repeat(2, 1fr); } }
+.comfort div { padding: 10px 6px; }
+.comfort .ci { font-size: 21px; line-height: 1; }
+.comfort .cl { display: block; font-size: 15px; color: var(--ink-muted); margin: 7px 0 5px; line-height: 1.3; }
+.comfort .cv {
+  display: block; font-size: 18px; font-weight: 600; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Footer strip --------------------------------------------------------- */
+.foot-note {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 15px 20px;
+  border-radius: var(--r-lg);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--lift);
+  font-size: 15px; line-height: 1.5; color: var(--ink-muted);
+}
+.foot-note b { color: var(--ink); font-weight: 600; }
+.foot-note .spacer { margin-left: auto; }
+
 </style>
 </head>
 <body>
 
-<!-- Refraction for the glass panels. feTurbulence into feDisplacementMap, so
-     straight lines behind the glass bend slightly at the edges — the thing that
-     reads as thickness rather than as a blur. -->
 <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
   <filter id="glass-refract" x="-15%" y="-15%" width="130%" height="130%"
           color-interpolation-filters="sRGB">
@@ -807,125 +1239,148 @@ summary:hover { color: var(--ink); }
 
 <div class="shell">
 
-  <header>
+  <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">🌳</span>
-      <div>
-        <h1>Shade Route</h1>
-        <p class="tagline">Plan with shade. Walk with confidence.</p>
-      </div>
+      <h1>Shade Route</h1>
     </div>
-    <div class="header-end">
-      <p class="chip" id="sun-chip"><span class="chip-icon" aria-hidden="true">☀️</span><span id="sun-chip-text">Portland, Oregon</span></p>
-      <p id="backend-status" class="chip"><span class="dot" aria-hidden="true"></span><span id="backend-status-text">Checking backend…</span></p>
+    <nav class="navtabs" aria-label="Sections">
+      <button type="button" class="navtab" aria-current="page">Plan route</button>
+      <button type="button" class="navtab" id="nav-directions">Directions</button>
+      <button type="button" class="navtab" id="nav-key">Map key</button>
+    </nav>
+    <div class="bar-end">
+      <p class="info-chip"><span class="ic" aria-hidden="true">☀️</span>
+        <span><b id="sun-chip-text">Portland</b><small id="sun-chip-sub">Loading…</small></span></p>
+      <p class="info-chip" id="backend-status"><span class="dot" aria-hidden="true"></span>
+        <span id="backend-status-text">Checking backend…</span></p>
       <button type="button" id="theme-toggle" aria-pressed="false">Dark mode</button>
     </div>
   </header>
 
   <div class="cols">
 
-    <!-- ---------------- Plan ---------------- -->
+    <!-- ============ Column 1: plan ============ -->
     <section class="panel" id="controls" aria-labelledby="controls-heading" tabindex="-1">
       <h2 id="controls-heading">Plan your shade route</h2>
-      <p class="panel-intro">Choose a start and destination, then set your preferences.</p>
+      <p class="panel-intro">Choose your start and destination, then set your preferences.</p>
 
-      <fieldset>
-        <legend>Start</legend>
-        <div class="place-row">
-          <div>
-            <label for="origin-place">Search for a place, or click the map</label>
-            <input type="text" id="origin-place" list="places-list" autocomplete="off"
-                   placeholder="e.g. a pharmacy or a bus stop" aria-describedby="origin-place-value">
+      <fieldset class="fieldset-plain">
+        <legend class="visually-hidden">Start and destination</legend>
+        <div class="field-stack">
+          <div class="field-card">
+            <span class="field-dot is-start" aria-hidden="true">◉</span>
+            <div class="field-body">
+              <label for="origin-place">Start</label>
+              <input type="text" id="origin-place" list="places-list" autocomplete="off"
+                     placeholder="Search a place, or click the map"
+                     aria-describedby="origin-place-value">
+            </div>
+            <button type="button" class="field-clear" id="clear-origin"
+                    aria-label="Clear the start point">✕</button>
           </div>
-          <p class="place-value" id="origin-place-value">No start point set yet.</p>
-          <div class="place-actions">
-            <button type="button" id="use-my-location">Use my location</button>
-            <button type="button" id="clear-origin">Clear</button>
-          </div>
-        </div>
-      </fieldset>
 
-      <fieldset>
-        <legend>Destination</legend>
-        <div class="place-row">
-          <div>
-            <label for="dest-place">Search for a place, or click the map</label>
-            <input type="text" id="dest-place" list="places-list" autocomplete="off"
-                   placeholder="e.g. a pharmacy or a bus stop" aria-describedby="dest-place-value">
+          <div class="field-card">
+            <span class="field-dot is-end" aria-hidden="true">◉</span>
+            <div class="field-body">
+              <label for="dest-place">Destination</label>
+              <input type="text" id="dest-place" list="places-list" autocomplete="off"
+                     placeholder="Search a place, or click the map"
+                     aria-describedby="dest-place-value">
+            </div>
+            <button type="button" class="field-clear" id="clear-dest"
+                    aria-label="Clear the destination">✕</button>
           </div>
-          <p class="place-value" id="dest-place-value">No destination set yet.</p>
-          <div class="place-actions">
-            <button type="button" id="surprise-me">Surprise me</button>
-            <button type="button" id="swap-points">Swap</button>
-          </div>
+
+          <button type="button" class="swap-btn" id="swap-points"
+                  aria-label="Swap start and destination">⇅</button>
         </div>
+        <p class="visually-hidden" id="origin-place-value">No start point set yet.</p>
+        <p class="visually-hidden" id="dest-place-value">No destination set yet.</p>
       </fieldset>
 
       <datalist id="places-list"></datalist>
 
-      <fieldset>
-        <legend>When are you walking?</legend>
-        <div class="when-row">
-          <div>
-            <label for="when-date">Date</label>
-            <input type="date" id="when-date">
-          </div>
-          <div>
-            <label for="when-time">Time</label>
-            <input type="time" id="when-time" step="900">
-          </div>
-        </div>
-        <p id="sun-readout"><span class="sun-dot" aria-hidden="true"></span><span id="sun-text">Pick a time to see where the sun is.</span></p>
-      </fieldset>
+      <div class="place-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px">
+        <button type="button" id="use-my-location" style="flex:1 1 auto">Use my location</button>
+        <button type="button" id="surprise-me" style="flex:1 1 auto">Surprise me</button>
+      </div>
 
-      <fieldset>
-        <legend>Preferences</legend>
-        <div class="pref-list">
-          <div class="pref-row">
-            <span class="pref-icon" aria-hidden="true">🌳</span>
-            <label class="pref-label" for="aversion">
-              Shade level
-              <span class="pref-sub">How much detour for shade?</span>
-            </label>
-            <span class="pref-value" id="aversion-readout">balanced</span>
-          </div>
+      <fieldset class="fieldset-plain" style="margin-top:16px">
+        <div class="section-head">
+          <h3>Preferences</h3>
+          <button type="button" class="linkish" id="reset-prefs">Reset</button>
+        </div>
+
+        <div class="pref-row">
+          <span class="pref-icon" aria-hidden="true">🌳</span>
+          <span class="pref-label">
+            <label for="aversion" style="font-size:inherit;color:inherit;margin:0">Shade level</label>
+            <span class="meter" id="shade-meter" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i>
+            </span>
+          </span>
+          <span class="pref-value" id="aversion-readout">Balanced</span>
         </div>
         <input type="range" id="aversion" min="0" max="3" step="0.5" value="1.5"
                aria-describedby="aversion-help">
-        <div class="range-scale" aria-hidden="true"><span>Shortest</span><span>Shadiest</span></div>
-        <p class="hint" id="aversion-help">
-          At the far left this returns the plain shortest route, so the comparison
-          is measured against the same router rather than a different one.
+        <p class="visually-hidden" id="aversion-help">
+          At the far left this returns the plain shortest route, so the comparison is
+          measured against the same router rather than a different one.
         </p>
-        <div class="pref-list">
-          <div class="pref-row">
-            <span class="pref-icon" aria-hidden="true">🪜</span>
-            <span class="pref-label">Avoid stairs<span class="pref-sub">Stairs will be routed around</span></span>
-            <span class="pref-value">On</span>
-          </div>
-          <div class="pref-row">
-            <span class="pref-icon" aria-hidden="true">🪑</span>
-            <span class="pref-label">Rest stops<span class="pref-sub">We aim for a bench every</span></span>
-            <span class="pref-value">300 m</span>
-          </div>
-          <div class="pref-row">
-            <span class="pref-icon" aria-hidden="true">🚶</span>
-            <span class="pref-label">Walking speed<span class="pref-sub">A comfortable older-adult pace</span></span>
-            <span class="pref-value">1.1 m/s</span>
-          </div>
+
+        <div class="pref-row">
+          <span class="pref-icon" aria-hidden="true">☀️</span>
+          <span class="pref-label">
+            <label for="when-time" style="font-size:inherit;color:inherit;margin:0">Time of day</label>
+            <span class="pref-sub">Shade depends entirely on this</span>
+          </span>
+          <input type="time" id="when-time" step="900"
+                 style="width:auto;min-width:118px;padding:8px 10px;min-height:44px">
+        </div>
+
+        <div class="pref-row">
+          <span class="pref-icon" aria-hidden="true">📅</span>
+          <span class="pref-label">
+            <label for="when-date" style="font-size:inherit;color:inherit;margin:0">Date</label>
+            <span class="pref-sub">The sun moves through the year</span>
+          </span>
+          <input type="date" id="when-date"
+                 style="width:auto;min-width:148px;padding:8px 10px;min-height:44px">
+        </div>
+
+        <div class="pref-row">
+          <span class="pref-icon" aria-hidden="true">🪜</span>
+          <span class="pref-label">Avoid stairs
+            <span class="pref-sub">Stairs will be routed around</span></span>
+          <button type="button" class="toggle" id="avoid-stairs" aria-pressed="true"
+                  aria-label="Avoid stairs"></button>
+        </div>
+
+        <div class="pref-row">
+          <span class="pref-icon" aria-hidden="true">🪑</span>
+          <span class="pref-label">Rest every
+            <span class="pref-sub">We aim for a bench this often</span></span>
+          <span class="pref-value">300 m</span>
+        </div>
+
+        <div class="pref-row">
+          <span class="pref-icon" aria-hidden="true">🚶</span>
+          <span class="pref-label">Walking speed
+            <span class="pref-sub">A comfortable older-adult pace</span></span>
+          <span class="pref-value">1.1 m/s</span>
         </div>
       </fieldset>
 
-      <button type="button" class="primary" id="find-route">Find the shadiest route</button>
+      <button type="button" class="primary" id="find-route" style="margin-top:16px">
+        <span aria-hidden="true">🌿</span> Find the shadiest route
+      </button>
 
       <p id="status" role="status" aria-live="polite">Set a start and a destination to begin.</p>
 
       <details>
         <summary>Enter coordinates instead</summary>
         <div class="point-row">
-          <!-- type="text" rather than type="number" on purpose: on a number input,
-               focusing a field and pressing Down to scroll silently turns 45.522
-               into 44.522 — a point 110 km away. -->
           <div>
             <label for="origin-lat">Latitude<span class="visually-hidden"> of the start point</span></label>
             <input type="text" id="origin-lat" inputmode="decimal" autocomplete="off" spellcheck="false">
@@ -950,67 +1405,74 @@ summary:hover { color: var(--ink); }
       </details>
     </section>
 
-    <!-- ---------------- Map + result ---------------- -->
+    <!-- ============ Column 2: map + comparison ============ -->
     <div>
       <div class="map-card">
-        <!-- No role="application": that drops screen readers out of browse mode
-             for the whole subtree, and Leaflet already makes this focusable with
-             arrow-pan and +/- zoom. The instructions live in aria-describedby,
-             not in the accessible name. -->
+        <div class="map-legend" aria-hidden="true">
+          <span class="legend-item is-shady"><span class="legend-line"></span><span>Shadiest route</span></span>
+          <span class="legend-item is-short"><span class="legend-line" style="border-top-style:dashed"></span><span>Shortest route</span></span>
+        </div>
         <div id="map" role="region" aria-label="Map of inner Portland" aria-describedby="map-help"></div>
-        <div class="map-legend">
-          <span class="legend-pill is-shady"><span class="legend-line" aria-hidden="true"></span><span>Shadiest route</span></span>
-          <span class="legend-pill is-short"><span class="legend-line dashed" aria-hidden="true"></span><span>Shortest route</span></span>
+        <div class="shade-scale" aria-hidden="true">
+          <span>More shade</span><span class="ramp"></span><span>Less shade</span>
         </div>
       </div>
 
-      <section class="panel" id="results" aria-labelledby="results-heading" hidden>
-        <h2 id="results-heading">Route summary</h2>
+      <section class="panel" id="results" aria-labelledby="results-heading" hidden
+               style="margin-top:16px">
+        <h2 id="results-heading">The trade-off</h2>
         <p class="panel-intro" id="headline"></p>
-
         <div class="compare" id="compare-block"></div>
-
         <ul id="route-list" class="route-list"></ul>
-
         <p class="hint" id="assumption-note"></p>
         <p class="hint" id="sources-note"></p>
       </section>
+    </div>
 
-      <!-- The route in words. A map alone is unusable for a screen-reader user,
-           so this is not a caption on the map — it is the route itself, built
-           from the same graph, and a first-class part of the interface. -->
-      <section class="panel" id="directions" aria-labelledby="directions-heading" hidden
-               style="margin-top:18px">
-        <h2 id="directions-heading">Walking directions</h2>
-        <div class="route-switch" role="group" aria-label="Which route to describe">
-          <button type="button" id="dir-shadiest" aria-pressed="true">Shadiest route</button>
-          <button type="button" id="dir-shortest" aria-pressed="false">Shortest route</button>
+    <!-- ============ Column 3: summary + directions ============ -->
+    <div>
+      <section class="panel" id="summary-panel" aria-labelledby="summary-heading" hidden>
+        <div class="section-head" style="margin-bottom:14px">
+          <h2 id="summary-heading">Route summary</h2>
+          <span class="badge"><span aria-hidden="true">🌿</span> Best for hot days</span>
         </div>
+        <div class="stat-row" id="stat-row"></div>
         <p id="directions-summary" class="rest-summary"></p>
-        <ol id="directions-list" class="directions-list"></ol>
       </section>
 
-      <section class="panel" aria-labelledby="key-heading" style="margin-top:18px">
-        <h2 id="key-heading">Map key</h2>
+      <section class="panel" id="directions" aria-labelledby="directions-heading" hidden>
+        <h2 id="directions-heading">Turn-by-turn directions</h2>
+        <div class="route-switch" role="group" aria-label="Which route to describe">
+          <button type="button" id="dir-shadiest" aria-pressed="true">Shadiest</button>
+          <button type="button" id="dir-shortest" aria-pressed="false">Shortest</button>
+        </div>
+        <ol id="directions-list" class="summary-steps"></ol>
+      </section>
+
+      <section class="panel" id="comfort-panel" aria-labelledby="comfort-heading" hidden>
+        <h2 id="comfort-heading" style="font-size:19px;margin-bottom:6px">Comfort at a glance</h2>
+        <div class="comfort" id="comfort-block"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="key-heading" id="key-panel">
+        <h2 id="key-heading" style="font-size:19px">Map key</h2>
         <p class="legend-key"><span class="swatch swatch--origin" aria-hidden="true">A</span> Start point</p>
         <p class="legend-key"><span class="swatch swatch--destination" aria-hidden="true">B</span> Destination</p>
         <p class="hint" id="map-help">The dashed rectangle marks the area covered by the downloaded
           street data. Points must sit inside it. Click the map to place a point. With the map
           focused, the arrow keys pan and the plus and minus keys zoom.</p>
+        <p id="sun-readout"><span class="sun-dot" aria-hidden="true"></span><span id="sun-text">Pick a time to see where the sun is.</span></p>
       </section>
     </div>
   </div>
 
   <p class="foot-note">
     <span aria-hidden="true">🌿</span>
-    <span><b>Shade Route</b> models building and tree shadows from OpenStreetMap and the sun's
-    position to find a cooler walk. Percentages are measured, not estimated — and no temperature
-    claim is made, because shade reduces radiant heat rather than air temperature.</span>
-  </p>
-
-  <p class="foot-note" id="milestone-note">
-    <span><b>Milestones 0–5 complete.</b> Sun position, building and tree shadows, shade-aware
-    routing, benches, stair avoidance, and the prose turn-by-turn description.</span>
+    <span><b>Shade Route</b> models building and tree shadows from OpenStreetMap against the sun's
+    real position. Percentages are measured, not estimated — and no temperature claim is made,
+    because shade cuts radiant heat rather than air temperature.</span>
+    <span class="spacer"></span>
+    <span id="milestone-note"><b>Milestones 0–5 complete.</b></span>
   </p>
 </div>
 
@@ -1400,11 +1862,20 @@ summary:hover { color: var(--ink); }
     return 'shade above all';
   }
 
+  function updateShadeMeter(value) {
+    var lit = Math.round((value / 3) * 5);
+    var cells = document.querySelectorAll('#shade-meter i');
+    for (var i = 0; i < cells.length; i++) {
+      cells[i].classList.toggle('on', i < lit);
+    }
+  }
+
   function updateAversionReadout() {
     var value = parseFloat(aversionInput.value);
     document.getElementById('aversion-readout').textContent =
       aversionWord(value) + ' (' + value.toFixed(1) + ')';
     aversionInput.setAttribute('aria-valuetext', aversionWord(value));
+    updateShadeMeter(value);
   }
   aversionInput.addEventListener('input', updateAversionReadout);
   updateAversionReadout();
@@ -1622,6 +2093,7 @@ summary:hover { color: var(--ink); }
     }
 
     renderCompare(payload);
+    renderSummary(payload);
     document.getElementById('assumption-note').textContent = payload.assumptions.walking_speed_note;
     var sources = payload.shade_sources;
     document.getElementById('sources-note').textContent =
@@ -1631,6 +2103,9 @@ summary:hover { color: var(--ink); }
     document.getElementById('results').hidden = false;
 
     var sun = payload.sun;
+    document.getElementById('sun-chip-sub').textContent =
+      sun.is_up ? Math.round(sun.elevation_deg) + '° · ' + compass(sun.azimuth_deg)
+                : 'Sun is down';
     document.getElementById('sun-text').textContent = sun.is_up
       ? 'Sun ' + sun.elevation_deg.toFixed(0) + '° above the horizon, bearing ' +
         sun.azimuth_deg.toFixed(0) + '° (' + compass(sun.azimuth_deg) + ').'
@@ -1695,9 +2170,55 @@ summary:hover { color: var(--ink); }
 
     var list = document.getElementById('directions-list');
     list.textContent = '';
-    route.directions.steps.forEach(function (step) {
+    route.directions.steps.forEach(function (step, index) {
       var li = document.createElement('li');
-      li.textContent = step.text;
+
+      var num = document.createElement('span');
+      num.className = 'step-num';
+      num.setAttribute('aria-hidden', 'true');   // the <ol> already numbers this
+      num.textContent = String(index + 1);
+      li.appendChild(num);
+
+      var body = document.createElement('div');
+      body.className = 'step-body';
+
+      // The server writes one prose sentence per step. Split it into the
+      // instruction and everything after it, so the eye gets a heading and the
+      // detail sits underneath — while the full sentence still reads correctly
+      // start to finish for a screen reader.
+      var text = step.text;
+      var cut = text.indexOf('. ');
+      var title = cut === -1 ? text : text.slice(0, cut + 1);
+      var rest = cut === -1 ? '' : text.slice(cut + 2);
+
+      var t = document.createElement('p');
+      t.className = 'step-title';
+      t.textContent = title;
+      body.appendChild(t);
+
+      if (rest) {
+        var d = document.createElement('p');
+        d.className = 'step-detail';
+        d.textContent = rest;
+        body.appendChild(d);
+      }
+
+      if (step.length_m > 0) {
+        var meta = document.createElement('p');
+        meta.className = 'step-meta';
+        meta.textContent = formatDistance(step.length_m) +
+          (step.shade_fraction === null ? '' : ' · ' + percent(step.shade_fraction) + ' shaded');
+        body.appendChild(meta);
+      }
+
+      if (step.has_steps) {
+        var warn = document.createElement('p');
+        warn.className = 'step-bench warn';
+        warn.textContent = 'This section has steps.';
+        body.appendChild(warn);
+      }
+
+      li.appendChild(body);
       list.appendChild(li);
     });
     section.hidden = false;
@@ -1764,6 +2285,46 @@ summary:hover { color: var(--ink); }
       ['shaded', formatDuration(shadiest.duration_s), formatDistance(shadiest.length_m)]));
   }
 
+  function renderSummary(payload) {
+    var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
+    if (!shadiest) { return; }
+    var rest = shadiest.directions.rest_summary;
+
+    var stats = document.getElementById('stat-row');
+    stats.textContent = '';
+    [['is-shade', percent(shadiest.shade_fraction), 'Shaded'],
+     ['', formatDuration(shadiest.duration_s), formatDistance(shadiest.length_m)],
+     ['', String(rest.bench_count), rest.bench_count === 1 ? 'Bench' : 'Benches']
+    ].forEach(function (row) {
+      var cell = document.createElement('div');
+      cell.className = 'stat ' + row[0];
+      var b = document.createElement('b'); b.textContent = row[1];
+      var s = document.createElement('small'); s.textContent = row[2];
+      cell.appendChild(b); cell.appendChild(s);
+      stats.appendChild(cell);
+    });
+    document.getElementById('summary-panel').hidden = false;
+
+    var comfort = document.getElementById('comfort-block');
+    comfort.textContent = '';
+    [['🪑', 'Longest gap between benches', formatDistance(rest.longest_gap_m)],
+     ['🪜', 'Stairs avoided', shadiest.directions.has_steps ? 'No' : 'Yes'],
+     ['⏱️', 'Extra time', payload.comparison.identical ? 'None'
+        : '+' + formatDuration(payload.comparison.extra_duration_s)],
+     ['🌿', 'Shade gained', payload.comparison.identical ? 'None'
+        : '+' + Math.round(payload.comparison.shade_gain * 100) + ' pts']
+    ].forEach(function (row) {
+      var cell = document.createElement('div');
+      var i = document.createElement('span'); i.className = 'ci';
+      i.setAttribute('aria-hidden', 'true'); i.textContent = row[0];
+      var l = document.createElement('span'); l.className = 'cl'; l.textContent = row[1];
+      var v = document.createElement('span'); v.className = 'cv'; v.textContent = row[2];
+      cell.appendChild(i); cell.appendChild(l); cell.appendChild(v);
+      comfort.appendChild(cell);
+    });
+    document.getElementById('comfort-panel').hidden = false;
+  }
+
   function describeRoutes(payload) {
     var shortest = payload.routes.filter(function (r) { return r.id === 'shortest'; })[0];
     var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
@@ -1804,7 +2365,8 @@ summary:hover { color: var(--ink); }
     var params = new URLSearchParams({
       orig_lat: state.origin.lat, orig_lon: state.origin.lon,
       dest_lat: state.destination.lat, dest_lon: state.destination.lon,
-      when: when, shade_aversion: aversionInput.value
+      when: when, shade_aversion: aversionInput.value,
+      avoid_stairs: document.getElementById('avoid-stairs').getAttribute('aria-pressed') === 'true'
     });
     if (state.destination.name) { params.set('dest_name', state.destination.name); }
 
@@ -1842,6 +2404,8 @@ summary:hover { color: var(--ink); }
         clearRoutes();
         document.getElementById('compare-block').textContent = '';
         document.getElementById('directions').hidden = true;
+        document.getElementById('summary-panel').hidden = true;
+        document.getElementById('comfort-panel').hidden = true;
         announce('Could not find a route: ' + error.message, true);
       })
       .then(function () {
@@ -1965,6 +2529,43 @@ summary:hover { color: var(--ink); }
     window.__repaintCanopy = draw;
   }());
 
+  // --- Preference controls ----------------------------------------------------
+  var stairsToggle = document.getElementById('avoid-stairs');
+  stairsToggle.addEventListener('click', function () {
+    var on = stairsToggle.getAttribute('aria-pressed') === 'true';
+    stairsToggle.setAttribute('aria-pressed', String(!on));
+    announce(!on ? 'Stairs will be avoided.' : 'Stairs are allowed on the route.');
+  });
+
+  document.getElementById('reset-prefs').addEventListener('click', function () {
+    aversionInput.value = '1.5';
+    updateAversionReadout();
+    stairsToggle.setAttribute('aria-pressed', 'true');
+    document.getElementById('when-time').value = '15:00';
+    announce('Preferences reset to the defaults.');
+  });
+
+  document.getElementById('clear-dest').addEventListener('click', function () {
+    clearPoint('destination');
+    announce('Destination cleared.');
+  });
+
+  // The tabs are in-page navigation, not routes — they move focus to the
+  // section, which is what makes them useful with a keyboard rather than
+  // decorative.
+  [['nav-directions', 'directions'], ['nav-key', 'key-panel']].forEach(function (pair) {
+    document.getElementById(pair[0]).addEventListener('click', function () {
+      var target = document.getElementById(pair[1]);
+      if (!target || target.hidden) {
+        announce('Find a route first — there are no directions yet.');
+        return;
+      }
+      target.setAttribute('tabindex', '-1');
+      target.focus();
+      target.scrollIntoView({ block: 'start' });
+    });
+  });
+
   // --- Boot ------------------------------------------------------------------
   wireCoordinateEntry('origin', 'origin-lat', 'origin-lon', 'origin-set');
   wireCoordinateEntry('destination', 'dest-lat', 'dest-lon', 'dest-set');
@@ -1987,6 +2588,9 @@ summary:hover { color: var(--ink); }
     .then(function (cfg) {
       state.config = cfg;
       document.getElementById('sun-chip-text').textContent = cfg.area_label;
+      var when = currentWhenISO();
+      document.getElementById('sun-chip-sub').textContent =
+        when ? when.replace('T', ', ') : 'Pick a time';
       buildMap(cfg);
       return loadPlaces();
     })
