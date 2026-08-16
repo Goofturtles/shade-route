@@ -340,6 +340,34 @@ at 1.38:1, but they sit inside a closed `<details>`, and computed styles for ren
 subtrees are stale. Opening the section and letting style settle showed them correct. The sweep
 now opens it before measuring.
 
+### Restyle audit — two more blind spots in the same tool
+
+A review of the restyle found two states the composited sweep still could not see, both real:
+
+- **Element `opacity` composites the whole element, not just its text.** The busy state used
+  `opacity: 0.72` on the primary button, which put white text on an effective `rgb(70,152,234)`
+  at **3.03:1** — hit by every user on every route request, for as long as the request runs.
+  `aria-busy` is not a disabled state, so WCAG's disabled-control exemption does not apply.
+  Softening to 0.92 was checked and still only reaches 4.16:1, so the opacity was removed
+  entirely and the busy state now shifts background and cursor instead. Restored to 4.70:1.
+- **Leaflet's controls, attribution and popups were translucent over *tiles*, not over the
+  page.** The sweep composited them against the page surface, so it was validating them against
+  the wrong backdrop — the same class of false pass as the two above. They are now opaque, which
+  fixes the contrast and removes a per-frame re-blur over a live map at the same time.
+
+Also fixed: `:focus-visible` set `border-radius: 10px`, and because that selector outranks
+`button`, every pill snapped to a rounded rect while keyboard-focused — the one visual defect
+that could not be caught without screenshots. The font stack lacked `system-ui` and `"Segoe UI"`,
+so it resolved to Arial on Windows and Linux while carrying letter-spacing tuned for SF. The
+`.lg` glass primitive was dead code matching nothing, and the header consequently had
+translucency but neither of the other two optical layers; it now has all three. `overflow: hidden`
+on buttons was removed as a descender-clipping hazard.
+
+Two documentation overclaims were corrected: map popups carry app content and were inheriting
+Leaflet's 13px rather than the stated 15px floor (now set to 15px), and the "44px targets" claim
+did not hold for the 30px map markers (now stated with its reason — 30px still clears WCAG 2.2's
+24px minimum, and nothing requires clicking them).
+
 ---
 
 *Log continues as milestones complete.*

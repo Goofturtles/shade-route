@@ -227,17 +227,18 @@ either.
 - **Dark mode**, following your system preference with a manual override that persists. The map
   goes dark by filtering the tile layer only — no second tile provider, no API key — so route
   lines and pins keep their true colours.
-- **Liquid Glass surfaces** on the header, the buttons, and the result cards: translucent fills
-  with a backdrop blur, an inset edge highlight, an ambient shadow, and a specular gloss that
-  tracks the pointer. Pill buttons, the system font stack, Apple's easing curves, hairline
-  dividers, semibold as the heaviest weight.
+- **Liquid Glass surfaces** on the header, the buttons, the headline and the result cards:
+  translucent fills with a backdrop blur, an inset edge highlight and an ambient shadow. The
+  route cards additionally carry a specular gloss that tracks the pointer. Pill buttons, Apple's
+  easing curves, hairline dividers, semibold as the heaviest weight anywhere.
 
-  Three constraints were applied *over* the aesthetic, and each one changed the design:
-  glass never sits behind the coordinate inputs or the status region, because contrast there
-  must not depend on what happens to be underneath; the input cards are solid, which brought
-  glass from 32% of the viewport down to 13% and avoided a sidebar of stacked glass panels; and
-  the background wash was made much fainter after measurement showed it dragging 15px secondary
-  text to 4.36:1.
+  Constraints applied *over* the aesthetic, each of which changed the design: glass never sits
+  behind the coordinate inputs or the status region, because contrast there must not depend on
+  what happens to be underneath; glass never sits over the **map** either, so Leaflet's controls,
+  attribution and popups are opaque; the input cards are solid, which brought glass from 32% of
+  the viewport to roughly 10–20% depending on whether a result is showing, and avoided a sidebar
+  of stacked glass panels; and the background wash was made much fainter after measurement showed
+  it dragging 15px secondary text to 4.36:1.
 
   Contrast is verified with **alpha actually composited** — page surface, then the background
   wash, then the translucent fill, then the gloss — rather than read off the token value, which
@@ -259,10 +260,15 @@ either.
   override darkened them to 4.07:1 — the opposite of the intended effect — and was removed.
 - `prefers-reduced-motion` respected, including Leaflet's JS-driven inertia panning and zoom
   animations, which a CSS-only rule does not reach.
-- **Nothing in the app's own interface is below 15 px**; body text is 17 px; interactive targets
-  are at least 44 px, including the map's zoom controls, which are enlarged from Leaflet's
-  26 px default. The one exception is Leaflet's attribution line — third-party chrome, raised
-  from its 11 px default to 13 px but not to 15 px.
+- **Nothing in the app's own interface is below 15 px**; body text is 17 px. Map popups carry app
+  content, so they are held to the same floor rather than Leaflet's 13 px default. The one
+  exception is Leaflet's attribution line — third-party chrome, raised from its 11 px default to
+  13 px but not to 15 px.
+- **Interactive targets are at least 44 px**, including the map's zoom controls, enlarged from
+  Leaflet's 26 px default. The exception is the two map markers at 30 px: they are sized to point
+  at a street corner accurately, and 30 px still clears WCAG 2.2's 24 px minimum. Nothing
+  requires clicking them — they are draggable-free labels, and both points are settable by search,
+  by coordinates, and by clicking the map itself.
 - Validation failures set `aria-invalid` and point the field at the error text, so tabbing back
   re-reads the reason instead of stranding it in a live region.
 - Coordinate fields are `type="text"` with `inputmode="decimal"` rather than `type="number"`,
