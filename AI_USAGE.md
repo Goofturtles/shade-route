@@ -368,6 +368,42 @@ Leaflet's 13px rather than the stated 15px floor (now set to 15px), and the "44p
 did not hold for the 30px map markers (now stated with its reason — 30px still clears WCAG 2.2's
 24px minimum, and nothing requires clicking them).
 
+## Second visual pass — floating glass
+
+The human's feedback on the first Liquid Glass pass was that it wasn't glassy enough — they
+asked for "clear floating liquid glass". That was a fair call, and the reason is instructive:
+the first pass had put glass over a flat page wash, then weakened the wash three-fold to protect
+contrast, which left the glass with almost nothing to refract. Solid input cards compounded it.
+The result read as tinted panels.
+
+The fix was structural rather than cosmetic: **the map became the backdrop and the interface
+floats above it.** A live map is the richest backdrop the app has, so the material finally has
+something to do.
+
+That created the hard problem. Text over map tiles has no fixed backdrop — a tile can be
+near-white paper or near-black water, and in dark mode the tiles are inverted on top of that. The
+answer was not weaker glass but a heavier tint (0.86–0.88) under a much deeper blur (40px), which
+still reads as thick crystal because colour and movement bleed through the edges and behind the
+blur while the text itself always sits on enough material.
+
+**The contrast sweep was rewritten a third time.** Previous versions composited against the page
+surface. Now every surface floats over tiles, so it composites the full stack over *both* tile
+extremes — luminance 0 and luminance 255 — and the worse of the two must pass. Result: 65 text
+nodes per theme, zero failures, worst case 4.70:1 light and 5.17:1 dark.
+
+### A measurement trap worth recording
+
+The sweep initially reported the primary button failing at 3.65:1 in light mode. Investigation
+showed `--accent` correctly resolving to `#0071e3` at `:root` while the button's computed
+background stayed `#0a84ff` — the dark value — even after forcing a reflow and waiting. `color`
+updated on theme change; `background-color` did not.
+
+This is the same style-invalidation lag already recorded for render-skipped `<details>` content,
+and it means **any verification that toggles the theme in-place is unreliable**. The method is now
+to pin the theme, reload the page, and measure once. On a fresh load the button is `rgb(0,113,227)`
+at 4.70:1, as intended. Three artefacts of this class have now been found; each one initially
+looked like a real defect.
+
 ---
 
 *Log continues as milestones complete.*

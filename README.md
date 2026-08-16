@@ -227,18 +227,24 @@ either.
 - **Dark mode**, following your system preference with a manual override that persists. The map
   goes dark by filtering the tile layer only — no second tile provider, no API key — so route
   lines and pins keep their true colours.
-- **Liquid Glass surfaces** on the header, the buttons, the headline and the result cards:
-  translucent fills with a backdrop blur, an inset edge highlight and an ambient shadow. The
-  route cards additionally carry a specular gloss that tracks the pointer. Pill buttons, Apple's
-  easing curves, hairline dividers, semibold as the heaviest weight anywhere.
+- **Liquid Glass floating over the map.** The map is full-bleed and the interface floats above
+  it: a glass header bar, and a glass control panel with a 40 px backdrop blur, a 28 px radius,
+  an inset edge highlight and a lifted shadow. Inside it sits a second, lighter glass layer for
+  the cards and pill buttons — two levels, never three. The route cards carry a specular gloss
+  that tracks the pointer. On narrow screens the panel becomes a bottom sheet so the map stays
+  visible above it.
 
-  Constraints applied *over* the aesthetic, each of which changed the design: glass never sits
-  behind the coordinate inputs or the status region, because contrast there must not depend on
-  what happens to be underneath; glass never sits over the **map** either, so Leaflet's controls,
-  attribution and popups are opaque; the input cards are solid, which brought glass from 32% of
-  the viewport to roughly 10–20% depending on whether a result is showing, and avoided a sidebar
-  of stacked glass panels; and the background wash was made much fainter after measurement showed
-  it dragging 15px secondary text to 4.36:1.
+  Glass needs something worth refracting, and a live map of a city is the richest backdrop this
+  app has.
+
+  **The constraint that shapes the whole design:** text floating over map tiles has no fixed
+  backdrop. A tile can be near-white paper or near-black water. So every floating surface uses a
+  heavy tint (0.86–0.88) under a deep blur, and **contrast is verified against both extremes —
+  tile luminance 0 and tile luminance 255 — and the worse result is the one that has to pass.**
+  65 text nodes per theme, zero failures, worst case 4.70:1 in light and 5.17:1 in dark.
+
+  Text colours are darker than Apple's own for the same reason: secondary text is `#4f4f54`
+  rather than `#6e6e73`, which would sit at 4.2:1 against the worst-case tile.
 
   Contrast is verified with **alpha actually composited** — page surface, then the background
   wash, then the translucent fill, then the gloss — rather than read off the token value, which
