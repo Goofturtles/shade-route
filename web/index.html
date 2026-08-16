@@ -1186,7 +1186,7 @@ summary:hover { color: var(--ink); }
 .field-card {
   position: relative;
   display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) 36px;
+  grid-template-columns: 26px minmax(0, 1fr) 44px;
   align-items: center;
   gap: 10px;
   padding: 11px 10px;
@@ -1249,10 +1249,7 @@ summary:hover { color: var(--ink); }
 }
 .field-card input[type="text"]:hover { border: 0; }
 .field-clear {
-  /* 36px of column, widened back to a 44px target by negative margin so the
-     hit area stays compliant without spending layout width on it. */
   width: 44px; height: 44px; min-height: 44px;
-  margin: 0 -4px;
   padding: 0; border-radius: 50%;
   display: grid; place-items: center;
   font-size: 16px; line-height: 1;
@@ -1277,8 +1274,30 @@ summary:hover { color: var(--ink); }
   box-shadow: var(--lift-sm);
   z-index: 2;
 }
-.swap-btn:hover { transform: translate(50%, -50%) translateY(-1px); }
+/* A closed <details> hides its content by not rendering the slot, but setting
+   an explicit display on a descendant defeats that -- the coordinate grid
+   inside this one stayed laid out while collapsed, so its fields rendered over
+   the map. Hide the content explicitly rather than relying on the UA default
+   surviving our own rules. */
+details:not([open]) > *:not(summary) { display: none; }
+
+.swap-btn:hover { transform: translateY(-50%); }
 @media (max-width: 1040px) { .swap-btn { right: 8px; } }
+
+/* Declared after the base rule, not before it: an earlier copy of this
+   override lost the cascade to the unconditional rule below it and silently
+   did nothing. On a phone there is no width for a vertical lane, so the swap
+   becomes a row beneath the two fields. */
+@media (max-width: 560px) {
+  .field-stack { padding-right: 0; }
+  .swap-btn, .swap-btn:hover {
+    position: static;
+    transform: none;
+    width: auto; height: 44px;
+    margin: 0 10px 10px;
+    border-radius: var(--r-pill);
+  }
+}
 
 /* ---- Preference rows ----------------------------------------------------- */
 .pref-row {
