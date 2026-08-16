@@ -15,9 +15,9 @@ whether the underlying figure is real.
 
 from __future__ import annotations
 
+import html as htmllib
 import json
 import re
-import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -60,7 +60,7 @@ def visible_text(html: str) -> str:
     body = re.sub(r"<style.*?</style>", " ", body, flags=re.S | re.I)
     body = re.sub(r"<script.*?</script>", " ", body, flags=re.S | re.I)
     body = re.sub(r"<[^>]+>", " ", body)
-    body = body.replace("&mdash;", "—").replace("&middot;", "·").replace("&amp;", "&")
+    body = htmllib.unescape(body)
     return re.sub(r"\s+", " ", body)
 
 
@@ -88,26 +88,46 @@ def main() -> int:
     cmp_ = payload["comparison"]
     shady, short = routes["shadiest"], routes["shortest"]
 
-    # The film rounds; the check allows rounding but nothing looser.
-    claims = {
-        "85": round(shady["shade_fraction"] * 100),
-        "44": round(short["shade_fraction"] * 100),
-        "148": round(cmp_["extra_distance_m"]),
-        "2": round(cmp_["extra_duration_s"] / 60),
-        "15": round(short["sun_seconds"] / 60),
-        "4": round(shady["sun_seconds"] / 60),
-    }
-    for shown, actual in claims.items():
-        check(int(shown) == actual, f'film says "{shown}"', f"API says {actual}")
+    # Read the figures OUT OF THE FILM and compare them to the API, rather than
+    # comparing the API to a second copy of the same numbers typed here. The
+    # earlier version did the latter: changing data-count="85" to "95" still
+    # printed a pass, because nothing ever opened scene.html. That is the exact
+    # fake-all-clear this project has now produced four times.
+    shown_counts = [int(n) for n in re.findall(r'data-count="(\d+)"', html)]
+    expected_counts = [round(short["shade_fraction"] * 100),
+                       round(shady["shade_fraction"] * 100)]
+    check(sorted(shown_counts) == sorted(expected_counts),
+          "the film's two headline figures are the API's",
+          f"film {sorted(shown_counts)} vs API {sorted(expected_counts)}")
 
-    # These two come from the directions payload rather than the route summary.
+    # For the rest, require the computed value to actually appear in the film's
+    # visible copy. A number the film does not state cannot be verified, so a
+    # missing one is a failure rather than a silent pass.
     directions = shady.get("directions") or {}
-    benches = [s for s in directions.get("rest_stops", []) if s.get("kind") != "drinking_water"]
+    rest = directions.get("rest_summary") or {}
+    benches = [r for r in (directions.get("rest_stops") or [])
+               if r.get("kind") != "drinking_water"]
+
+    spoken = {
+        "extra distance": round(cmp_["extra_distance_m"]),
+        "extra minutes": round(cmp_["extra_duration_s"] / 60),
+        "sun on the fastest route": round(short["sun_seconds"] / 60),
+        "sun on the shadiest route": round(shady["sun_seconds"] / 60),
+    }
     if benches:
-        check(str(len(benches)) in text or "17" in text,
-              "bench count on screen matches the route", f"{len(benches)} on this route")
+        spoken["bench count"] = len(benches)
     else:
         notes.append("no rest-stop list in the payload; bench count not cross-checked")
+    gap = rest.get("longest_gap_m")
+    if gap:
+        spoken["longest gap without a seat"] = round(gap / 10) * 10
+    else:
+        notes.append("no longest-gap figure in the payload; 780 m not cross-checked")
+
+    for label, value in spoken.items():
+        # Word-boundaried so 7 does not match the 71 in "Marisol is 71".
+        found = re.search(rf"(?<!\d){value}(?!\d)", text) is not None
+        check(found, f"the film states the computed {label}", f"API says {value}")
 
     print("\nProvenance")
     print("-" * 10)

@@ -13,6 +13,8 @@
 //   npm i playwright   (anywhere; set PW to its node_modules if not alongside)
 
 import { mkdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 // A static import cannot take a computed specifier, and the module may live
 // outside this folder, so resolve it at runtime.
@@ -21,7 +23,7 @@ const { chromium } = await import(process.env.PW
   : 'playwright');
 
 const APP = process.env.APP || 'http://127.0.0.1:8000/';
-const OUT = new URL('./footage/', import.meta.url).pathname.replace(/^\//, '');
+const OUT = fileURLToPath(new URL('./footage/', import.meta.url));
 await mkdir(OUT, { recursive: true });
 
 const browser = await chromium.launch({
@@ -63,7 +65,7 @@ async function open(width, height, dpr, theme) {
 
 async function shot(page, name, selector) {
   const target = selector ? page.locator(selector).first() : page;
-  await target.screenshot({ path: `${OUT}${name}.png`, scale: 'device' });
+  await target.screenshot({ path: path.join(OUT, name + '.png'), scale: 'device' });
   console.log('  ' + name);
 }
 

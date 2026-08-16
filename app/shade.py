@@ -316,9 +316,20 @@ _MAX_CACHED_MOMENTS = 16
 
 
 def _evict(store: dict, limit: int = _MAX_CACHED_MOMENTS) -> None:
-    """Drop the oldest entries. Python dicts preserve insertion order."""
+    """Drop the oldest entries. Python dicts preserve insertion order.
+
+    These dicts are written from paths holding different locks — the routing
+    lock for the route endpoints, this module's own lock here, and neither for
+    /api/shadows — so a write can land between the len() and the next(), and
+    iterating a dict that changed size raises. Losing an eviction is harmless;
+    a 500 during a demo is not.
+    """
     while len(store) > limit:
-        store.pop(next(iter(store)))
+        try:
+            oldest = next(iter(store))
+        except (RuntimeError, StopIteration):
+            return
+        store.pop(oldest, None)
 
 
 def get_shade_field(when) -> ShadeField:

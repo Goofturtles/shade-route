@@ -716,4 +716,73 @@ figure on screen against the answer, and refuses a set of phrasings (`°`, "degr
 
 ---
 
+## M6 — two capabilities beyond the route (16 Aug, night)
+
+**Human:** asked for something bigger than a map that finds shade, and proposed
+photographing plants on the walk and grading them out of 10. When told this
+collided with `CLAUDE.md` §9 ("no machine learning model of any kind"), replied
+that the project only has to follow the OregonHacks rules.
+
+**Claude:** raised the conflict once rather than silently complying or silently
+refusing, then checked the official rules instead of arguing from the brief.
+They place no restriction on pre-trained models or third-party libraries. §9 was
+therefore self-imposed scoping, not an external constraint, and the owner is
+entitled to lift it — so it was lifted deliberately, and the README says so, so
+that a judge reading the brief and then the code does not find a contradiction.
+
+**Built:**
+
+- **`/api/best-time`** sweeps the same trip once per hour across the day. The
+  insight is that *when* is a bigger lever than *which way*: the demo trip runs
+  51% shaded at 14:00 and 99% at 07:00, and no detour available at 2pm closes
+  that gap. It adds no new modelling — the existing router and the existing
+  shade field, asked at fourteen moments. Ranked by **time in direct sun**, not
+  by percentage, because a longer shadier detour can post a better percentage
+  while leaving you exposed for longer.
+
+- **The canopy log** grades a photograph out of 10. The honesty problem was the
+  interesting part: an invented score is exactly what §7 forbids, so each of the
+  five components had to be computed from something real — variance of the
+  Laplacian for sharpness, clipped-highlight and clipped-black share for
+  exposure, green-dominant pixel share for framing, MobileNet v2's own reported
+  confidence for identification, and pvlib's solar elevation for the light. The
+  breakdown is always on screen. MobileNet runs **on the device**, needs no key,
+  and no photograph is uploaded; if it fails to load, that component is dropped
+  and the grade is rescaled over the remaining four with the interface saying
+  so, rather than quietly awarding or withholding the points.
+
+**Two ship-readiness audits were run, and both found real defects that the
+verification already in place could not see.** Recorded here because the pattern
+matters more than the individual bugs:
+
+- The hero figure was `aria-hidden` *and* its sentence began mid-clause, so the
+  single number this project exists to produce was absent from the accessible
+  tree entirely. A contrast sweep cannot find that — it measures the text that
+  *is* there.
+- `role="region"` on the `<ol>` overrode the list role, so seventeen steps were
+  announced as unnumbered paragraphs.
+- The scroll-edge fade painted *over* the text. The contrast sweep composites
+  translucent **ancestors**; an overlay painting on top is structurally
+  invisible to it. Text in the bottom rows sat near 1.9:1.
+- The hero scrim thinned to 0.30 over sunlit grass while `.hero-line` fell below
+  the 24px large-text threshold under ~1140px — a viewport-dependent hole in a
+  measurement taken at one width.
+- **A stale `/api/best-time` response could paint under a newly planned route.**
+  The in-flight guard stopped a second sweep starting but not a first one
+  landing late, so re-planning mid-sweep showed the previous trip's hours
+  against the new map. A wrong number on screen is the one thing §7 forbids.
+  Fixed with a request token.
+
+**Refuted by audit, and worth recording because the fear was wrong:** the 1 MB
+backdrop photograph is *not* fetched twice. The hero is `hidden` at load, so its
+CSS background never fetches, and the canvas `Image()` is the single request.
+
+**Still true and disclosed:** `best_hour` will tend to land on the hour adjacent
+to the 3° elevation floor below which no shadows are emitted, because shade
+rises monotonically as the sun drops. The shadows really are that long and the
+200 m clamp keeps the estimate conservative, but the ranking is partly
+discovering the model's own boundary, and that is stated rather than hidden.
+
+---
+
 *Log continues as milestones complete.*

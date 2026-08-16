@@ -18,6 +18,7 @@
 import { spawn } from 'node:child_process';
 import { mkdir, rm, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -50,7 +51,11 @@ const SKIP_CAPTURE = !!arg('skip-capture', false);
 const CSS_W = 1920, CSS_H = 1080;
 const DPR = 2 * SCALE;
 
-const FRAME_DIR = path.join('C:/Users/arjun/AppData/Local/Temp/claude/shade-video/frames');
+// Frames are large and transient — thousands of 4K PNGs — so they go to the
+// system temp dir. Hard-coding one machine's profile path wrote into a stranger's
+// home directory on another Windows box, and on POSIX path.join treated it as
+// relative and created a literal "C:/Users/..." folder beside the script.
+const FRAME_DIR = path.join(os.tmpdir(), 'shade-route-film', 'frames');
 const sceneUrl = pathToFileURL(path.resolve(HERE, SCENE)).href;
 
 async function capture() {

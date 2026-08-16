@@ -423,6 +423,19 @@ def best_time_to_walk(
             status_code=400, detail="end_hour must be later than start_hour.",
         )
 
+    # Bounded to the shade-field cache width. A 24-hour sweep would evict its
+    # own earliest entries before finishing — the exact thrash the cap was
+    # raised to stop — and would hold the routing lock across 24 sequential
+    # acquisitions while doing it.
+    if end_hour - start_hour + 1 > shade._MAX_CACHED_MOMENTS:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Sweep at most {shade._MAX_CACHED_MOMENTS} hours at a time; "
+                "a wider sweep evicts its own cached shadow fields."
+            ),
+        )
+
     walk_graph = graph.load_graph()
     orig_node = graph.nearest_node(walk_graph, orig_lat, orig_lon)
     dest_node = graph.nearest_node(walk_graph, dest_lat, dest_lon)

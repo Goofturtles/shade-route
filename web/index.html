@@ -255,6 +255,11 @@
 * { box-sizing: border-box; }
 html { height: 100%; }
 
+/* The UA's [hidden]{display:none} loses to any author `display` rule, so every
+   element that sets one and is also toggled with the hidden attribute stayed on
+   screen regardless. Cheaper to state once here than to remember per component. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -1079,87 +1084,6 @@ summary:hover { color: var(--ink); }
   .when-bar .hr { font-size: 11px; }
 }
 
-/* ---- Canopy log ---------------------------------------------------------- */
-.log-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 14px 0 0; }
-.log-shoot {
-  display: inline-flex; align-items: center; gap: 9px;
-  padding: 13px 22px; min-height: 48px;
-  border-radius: var(--r-pill);
-  background: var(--accent); color: var(--accent-ink);
-  font-size: 16.5px; font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--lift-sm);
-}
-.log-shoot:hover { background: var(--accent-hover); }
-/* The input is the control; hiding it visually but keeping it focusable means
-   the label is what shows and the keyboard still reaches the real thing. */
-.log-shoot input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.log-shoot:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }
-.log-status { margin: 0; font-size: 15px; color: var(--ink-muted); }
-
-.log-result {
-  display: grid; grid-template-columns: 148px 1fr; gap: 18px;
-  margin-top: 18px; padding-top: 18px;
-  border-top: 1px solid var(--separator);
-}
-@media (max-width: 560px) { .log-result { grid-template-columns: 1fr; } }
-.log-preview {
-  width: 100%; aspect-ratio: 1; object-fit: cover;
-  border-radius: var(--r);
-  border: 1px solid var(--glass-border);
-  background: var(--glass-inner);
-}
-.log-grade {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 46px; font-weight: 600; line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--accent-text);
-  font-variant-numeric: tabular-nums;
-}
-.log-grade-max { font-size: 20px; color: var(--ink-muted); margin-left: 3px; }
-.log-verdict { margin: 6px 0 0; font-size: 17px; font-weight: 600; color: var(--ink); }
-.log-ident { margin: 3px 0 0; font-size: 15px; color: var(--ink-muted); }
-.log-breakdown {
-  list-style: none; margin: 12px 0 0; padding: 0;
-  display: grid; gap: 7px;
-  /* Without a cap the label column is 1fr across the whole panel and strands
-     the bars against the far edge, where they read as unrelated to their row. */
-  max-width: 460px;
-}
-.log-breakdown li {
-  display: grid; grid-template-columns: 1fr 62px 46px; align-items: center; gap: 10px;
-  font-size: 14.5px; color: var(--ink-muted);
-}
-.log-breakdown .bar {
-  height: 7px; border-radius: 4px;
-  background: var(--separator);
-  overflow: hidden;
-}
-.log-breakdown .bar span {
-  display: block; height: 100%;
-  background: var(--accent);
-  border-radius: 4px;
-}
-.log-breakdown .pts { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
-
-.log-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; }
-.log-list li { position: relative; }
-.log-list img {
-  width: 62px; height: 62px; object-fit: cover;
-  border-radius: 12px; border: 1px solid var(--glass-border);
-  display: block;
-}
-.log-list .tag {
-  position: absolute; right: -5px; bottom: -5px;
-  min-width: 24px; height: 24px; padding: 0 5px;
-  border-radius: 12px;
-  background: var(--accent); color: var(--accent-ink);
-  font-size: 12.5px; font-weight: 700; line-height: 24px; text-align: center;
-  font-variant-numeric: tabular-nums;
-  border: 2px solid var(--glass-strong);
-}
-
 /* ---- Three columns, as in the reference ---------------------------------- */
 .cols {
   display: grid;
@@ -1669,38 +1593,6 @@ summary:hover { color: var(--ink); }
        real — pixels, the model's own confidence, or pvlib's solar elevation —
        and the breakdown is always shown, because a number nobody can inspect
        is exactly what the rest of this project refuses to display. -->
-  <section class="panel log" id="canopy-log" aria-labelledby="log-heading">
-    <div class="section-head">
-      <h2 id="log-heading">Canopy log</h2>
-      <span class="badge"><span aria-hidden="true">🌿</span> <span id="log-count">0 logged</span></span>
-    </div>
-    <p class="panel-intro">
-      Photograph a tree or plant on your walk and it is scored out of 10 — on the
-      sharpness and exposure of the shot, how much of the frame is foliage, how
-      confidently it can be identified on your device, and the quality of the light
-      at the hour you set. Nothing is uploaded.
-    </p>
-
-    <div class="log-actions">
-      <label class="log-shoot" for="log-file">
-        <span aria-hidden="true">📷</span> Add a photo
-        <input type="file" id="log-file" accept="image/*" capture="environment">
-      </label>
-      <p class="log-status" id="log-status" role="status">Ready.</p>
-    </div>
-
-    <div class="log-result" id="log-result" hidden>
-      <img id="log-preview" alt="" class="log-preview">
-      <div class="log-score">
-        <p class="log-grade"><span id="log-grade-num">0</span><span class="log-grade-max">/10</span></p>
-        <p class="log-verdict" id="log-verdict"></p>
-        <p class="log-ident" id="log-ident"></p>
-        <ul class="log-breakdown" id="log-breakdown"></ul>
-      </div>
-    </div>
-
-    <ol class="log-list" id="log-list"></ol>
-  </section>
 
   <div class="cols">
 
@@ -2786,276 +2678,26 @@ summary:hover { color: var(--ink); }
     hero.hidden = false;
   }
 
-  // --- Canopy log ------------------------------------------------------------
-  // Scores a photograph out of 10. Nothing here is a vibe: sharpness, exposure
-  // and foliage share are measured off the pixels, identification is the
-  // classifier's own reported confidence, and light quality comes from pvlib's
-  // solar elevation for the hour on the clock. If a component cannot be
-  // computed it is dropped and the total is rescaled over what remained — and
-  // the interface says which one went missing, rather than quietly awarding
-  // the points or quietly withholding them.
-  var logEntries = [];
-  var classifier = null;
-  var classifierState = 'idle';   // idle | loading | ready | unavailable
-
-  function loadClassifier() {
-    if (classifierState === 'ready' || classifierState === 'loading') {
-      return Promise.resolve();
-    }
-    classifierState = 'loading';
-
-    function script(src) {
-      return new Promise(function (resolve, reject) {
-        var el = document.createElement('script');
-        el.src = src;
-        el.onload = resolve;
-        el.onerror = function () { reject(new Error('could not load ' + src)); };
-        document.head.appendChild(el);
-      });
-    }
-
-    // Loaded on first use rather than at boot: it is ~1.5 MB of library plus
-    // the weights, and someone who never opens the camera should never pay for
-    // it. Runs entirely on the device — no key, and no photograph leaves it.
-    return script('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js')
-      .then(function () {
-        return script('https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js');
-      })
-      .then(function () { return window.mobilenet.load({ version: 2, alpha: 1.0 }); })
-      .then(function (model) { classifier = model; classifierState = 'ready'; })
-      .catch(function () { classifierState = 'unavailable'; });
-  }
-
-  // Variance of the Laplacian — the standard sharpness estimate. A blurred
-  // photograph carries little high-frequency energy, so the second derivative
-  // of its luminance stays near zero almost everywhere.
-  function measurePixels(image) {
-    var W = 220;
-    var H = Math.max(1, Math.round(image.height * (W / image.width)));
-    var cv = document.createElement('canvas');
-    cv.width = W; cv.height = H;
-    var ctx = cv.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(image, 0, 0, W, H);
-    var d = ctx.getImageData(0, 0, W, H).data;
-
-    var grey = new Float64Array(W * H);
-    var clippedHigh = 0, clippedLow = 0, foliage = 0, total = W * H, meanLum = 0;
-
-    for (var i = 0, px = 0; i < d.length; i += 4, px++) {
-      var r = d[i], g = d[i + 1], b = d[i + 2];
-      var y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      grey[px] = y;
-      meanLum += y;
-      if (y > 250) { clippedHigh++; }
-      if (y < 5) { clippedLow++; }
-      // Foliage share: green-dominant and not grey. Deliberately crude, and
-      // deliberately never described in the interface as plant detection.
-      var mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-      if (g >= mx && (mx - mn) > 26 && g > 40) { foliage++; }
-    }
-    meanLum /= total;
-
-    var lapSum = 0, lapSq = 0, n = 0;
-    for (var yy = 1; yy < H - 1; yy++) {
-      for (var xx = 1; xx < W - 1; xx++) {
-        var c = yy * W + xx;
-        var lap = -4 * grey[c] + grey[c - 1] + grey[c + 1] + grey[c - W] + grey[c + W];
-        lapSum += lap; lapSq += lap * lap; n++;
-      }
-    }
-    var variance = n ? (lapSq / n) - Math.pow(lapSum / n, 2) : 0;
-
-    return { sharpness: variance, clippedHigh: clippedHigh / total,
-             clippedLow: clippedLow / total, foliage: foliage / total, meanLum: meanLum };
-  }
-
-  function clamp01(v) { return Math.max(0, Math.min(1, v)); }
-
-  function scorePhoto(pixels, ident, sunInfo) {
-    var parts = [];
-
-    // Square-rooted so the top of the range is a slope rather than a cliff.
-    parts.push({ key: 'Sharpness', max: 3,
-      score: 3 * clamp01(Math.sqrt(pixels.sharpness / 300)),
-      note: pixels.sharpness < 60 ? 'soft — hold steadier' : 'crisp' });
-
-    // Blown highlights are punished hardest: clipped detail cannot be
-    // recovered, whereas a dark frame usually still holds its structure.
-    var exposure = 1 - clamp01(pixels.clippedHigh * 6) * 0.75
-                     - clamp01(pixels.clippedLow * 4) * 0.35
-                     - clamp01(Math.abs(pixels.meanLum - 128) / 128) * 0.35;
-    parts.push({ key: 'Exposure', max: 2, score: 2 * clamp01(exposure),
-      note: pixels.clippedHigh > 0.06 ? 'highlights blown'
-          : pixels.meanLum < 60 ? 'underexposed' : 'well exposed' });
-
-    parts.push({ key: 'Foliage in frame', max: 1.5,
-      score: 1.5 * clamp01(pixels.foliage / 0.45),
-      note: Math.round(pixels.foliage * 100) + '% of the frame' });
-
-    if (ident && ident.available) {
-      parts.push({ key: 'Identifiable', max: 2,
-        score: 2 * clamp01(ident.confidence / 0.6),
-        note: ident.label ? ident.label : 'no confident match' });
-    }
-
-    // Straight from the solar elevation pvlib computed for the hour on the
-    // clock — the same model the routing uses, asked a photographer's question.
-    var lightPoints = { golden: 1.5, low: 1.15, flat: 0.65, harsh: 0.3, dark: 0.25 };
-    if (sunInfo) {
-      var pts = lightPoints[sunInfo.light];
-      parts.push({ key: 'Light at this hour', max: 1.5,
-        score: pts === undefined ? 0.6 : pts,
-        note: sunInfo.light === 'golden'
-          ? 'golden hour, sun ' + sunInfo.elevation_deg + ' deg'
-          : sunInfo.light === 'harsh'
-            ? 'harsh overhead sun, ' + sunInfo.elevation_deg + ' deg'
-            : sunInfo.light + ' light, sun ' + sunInfo.elevation_deg + ' deg' });
-    }
-
-    var got = parts.reduce(function (a, p) { return a + p.score; }, 0);
-    var possible = parts.reduce(function (a, p) { return a + p.max; }, 0);
-    // Rescaled over the components that actually ran, so a classifier that
-    // failed to load cannot silently cap every grade at 8.
-    var out = possible > 0 ? (got / possible) * 10 : 0;
-    return { parts: parts, total: Math.round(out * 10) / 10, rescaled: possible < 10 };
-  }
-
-  function verdictFor(score) {
-    if (score >= 9) { return 'Outstanding'; }
-    if (score >= 7.5) { return 'Very good'; }
-    if (score >= 6) { return 'Good'; }
-    if (score >= 4) { return 'Worth keeping'; }
-    return 'Have another go';
-  }
-
-  function renderLogResult(url, result, ident) {
-    document.getElementById('log-result').hidden = false;
-    var preview = document.getElementById('log-preview');
-    preview.src = url;
-    preview.alt = 'The photograph you just added, scored ' +
-      result.total.toFixed(1) + ' out of 10.';
-    document.getElementById('log-grade-num').textContent = result.total.toFixed(1);
-    document.getElementById('log-verdict').textContent = verdictFor(result.total);
-
-    var identLine = document.getElementById('log-ident');
-    if (ident && ident.available && ident.label) {
-      identLine.textContent = 'Looks like ' + ident.label + ' — ' +
-        Math.round(ident.confidence * 100) + '% confident, identified on your device.';
-    } else if (ident && ident.available) {
-      identLine.textContent = 'The classifier ran but was not confident enough to name it.';
-    } else {
-      identLine.textContent = 'Identification unavailable, so the grade is scaled over the ' +
-        'four components that could be computed.';
-    }
-
-    var list = document.getElementById('log-breakdown');
-    list.textContent = '';
-    result.parts.forEach(function (part) {
-      var li = document.createElement('li');
-      var name = document.createElement('span');
-      name.textContent = part.key + ' — ' + part.note;
-      var bar = document.createElement('span');
-      bar.className = 'bar';
-      bar.setAttribute('role', 'img');
-      bar.setAttribute('aria-label',
-        part.score.toFixed(1) + ' of a possible ' + part.max + ' points');
-      var fill = document.createElement('span');
-      fill.style.width = Math.round((part.score / part.max) * 100) + '%';
-      bar.appendChild(fill);
-      var pts = document.createElement('span');
-      pts.className = 'pts';
-      pts.textContent = part.score.toFixed(1) + '/' + part.max;
-      li.appendChild(name); li.appendChild(bar); li.appendChild(pts);
-      list.appendChild(li);
-    });
-
-    logEntries.push({ url: url, score: result.total });
-    var strip = document.getElementById('log-list');
-    strip.textContent = '';
-    logEntries.slice(-12).forEach(function (entry) {
-      var li = document.createElement('li');
-      var img = document.createElement('img');
-      img.src = entry.url;
-      img.alt = 'Logged photograph, scored ' + entry.score.toFixed(1) + ' out of 10.';
-      var tag = document.createElement('span');
-      tag.className = 'tag';
-      tag.setAttribute('aria-hidden', 'true');   // the alt text already says it
-      tag.textContent = entry.score.toFixed(1);
-      li.appendChild(img); li.appendChild(tag);
-      strip.appendChild(li);
-    });
-
-    document.getElementById('log-count').textContent = logEntries.length + ' logged';
-    document.getElementById('log-status').textContent =
-      'Scored ' + result.total.toFixed(1) + ' out of 10. Nothing left your device.';
-  }
-
-  (function wireCanopyLog() {
-    var input = document.getElementById('log-file');
-    if (!input) { return; }
-    var status = document.getElementById('log-status');
-
-    input.addEventListener('change', function () {
-      var file = input.files && input.files[0];
-      if (!file) { return; }
-
-      status.textContent = 'Reading the photo...';
-      var url = URL.createObjectURL(file);
-      var image = new Image();
-
-      image.onload = function () {
-        var pixels = measurePixels(image);
-        status.textContent = classifierState === 'ready'
-          ? 'Identifying...'
-          : 'Loading the on-device classifier — this happens once...';
-
-        var when = currentWhenISO();
-        var sunRequest = fetch('/api/sun?when=' + encodeURIComponent(when || ''))
-          .then(function (r) { return r.ok ? r.json() : null; })
-          .catch(function () { return null; });
-
-        var identRequest = loadClassifier().then(function () {
-          if (classifierState !== 'ready' || !classifier) { return { available: false }; }
-          return classifier.classify(image, 3).then(function (predictions) {
-            var top = predictions && predictions[0];
-            return { available: true,
-                     label: top ? top.className.split(',')[0] : null,
-                     confidence: top ? top.probability : 0 };
-          }).catch(function () { return { available: false }; });
-        });
-
-        Promise.all([sunRequest, identRequest]).then(function (both) {
-          var result = scorePhoto(pixels, both[1], both[0]);
-          renderLogResult(url, result, both[1]);
-          announce('Photo scored ' + result.total.toFixed(1) + ' out of 10.');
-        });
-      };
-
-      image.onerror = function () {
-        status.textContent = 'That file could not be read as an image.';
-        URL.revokeObjectURL(url);
-      };
-      image.src = url;
-    });
-  }());
-
   // --- When to leave ---------------------------------------------------------
   // The router answers "which way". This answers "when", which on a hot day is
   // the bigger lever: the same walk swings by tens of points across a day, and
   // no detour available at 14:00 closes that gap.
-  var whenInFlight = false;
+  // A token rather than a boolean: the old in-flight flag stopped a second
+  // sweep from starting but not a first one from landing late, so re-planning
+  // mid-sweep painted the previous trip's hours under the new route.
+  var whenToken = 0;
 
   function loadBestTime() {
-    if (whenInFlight || !state.origin || !state.destination) { return; }
+    if (!state.origin || !state.destination) { return; }
     var when = currentWhenISO();
     if (!when) { return; }
+    var token = ++whenToken;
 
     var band = document.getElementById('when-band');
     var sub = document.getElementById('when-sub');
     band.hidden = false;
     sub.textContent = 'Checking every hour of the day…';
     document.getElementById('when-verdict').textContent = '';
-    whenInFlight = true;
 
     var params = new URLSearchParams({
       orig_lat: state.origin.lat, orig_lon: state.origin.lon,
@@ -3066,13 +2708,16 @@ summary:hover { color: var(--ink); }
 
     fetch('/api/best-time?' + params.toString())
       .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
-      .then(renderBestTime)
+      .then(function (data) {
+        // Superseded by a newer plan while this was in flight: drop it.
+        if (token !== whenToken) { return; }
+        renderBestTime(data);
+      })
       .catch(function () {
         // A failure here costs a secondary panel, not the route. Hide it and
         // say nothing rather than pushing an error at someone who did not ask.
-        band.hidden = true;
-      })
-      .then(function () { whenInFlight = false; });
+        if (token === whenToken) { band.hidden = true; }
+      });
   }
 
   function renderBestTime(data) {
@@ -3086,7 +2731,6 @@ summary:hover { color: var(--ink); }
 
     var chosenHour = parseInt((document.getElementById('when-time').value || '15:00')
       .split(':')[0], 10);
-    var maxSun = Math.max.apply(null, usable.map(function (h) { return h.sun_seconds; }));
 
     data.hours.forEach(function (h) {
       var li = document.createElement('li');
@@ -3124,7 +2768,7 @@ summary:hover { color: var(--ink); }
       var label = h.casts_shadows
         ? pad2(h.hour) + ':00 — ' + Math.round(h.shade_fraction * 100) + '% shaded, ' +
           formatDuration(h.sun_seconds) + ' in direct sun' +
-          (h.hour === data.best_hour ? '. Best hour of the day' : '') +
+          (h.hour === data.best_hour ? '. Best hour of the day — least time in the sun' : '') +
           '. Choose this departure time.'
         : pad2(h.hour) + ':00 — the sun is too low to cast usable shadows.';
       button.setAttribute('aria-label', label);

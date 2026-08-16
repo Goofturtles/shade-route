@@ -190,7 +190,7 @@ across the day and reports how shaded it is each time. This is a bigger lever
 than any detour: on the demo trip the walk swings from 51% shaded at 14:00 to
 99% at 07:00, and no route choice available at 2pm closes that gap. It adds no
 new modelling — it is the existing router and the existing shade field asked the
-same question at thirteen moments. Hours are ranked by **time in direct sun**
+same question at fourteen moments. Hours are ranked by **time in direct sun**
 rather than by percentage, because a longer, shadier detour can post a better
 percentage while leaving you exposed for longer, and minutes of exposure is what
 actually causes harm. A cold sweep takes ~27 s; every hour is then cached, so a
