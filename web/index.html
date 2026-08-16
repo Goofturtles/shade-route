@@ -1009,7 +1009,7 @@ summary:hover { color: var(--ink); }
 .when h2 { font-size: 22px; letter-spacing: -0.02em; line-height: 1.2; }
 .when-sub { margin: 4px 0 0; color: var(--ink-muted); font-size: 16px; line-height: 1.45; }
 .when-verdict {
-  margin: 0; flex: 0 0 auto;
+  margin: 0; flex: 0 1 auto; min-width: 0; max-width: 100%;
   font-size: 16px; line-height: 1.4; font-weight: 500;
   color: var(--ink);
   padding: 10px 16px;
@@ -1022,9 +1022,22 @@ summary:hover { color: var(--ink); }
   list-style: none; margin: 0; padding: 0;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 5px;
   align-items: end;
+}
+/* Fourteen hourly columns will not fit a phone. They scroll in their own
+   container rather than taking the page with them — a body that scrolls
+   sideways makes every other column on the page feel broken. */
+@media (max-width: 720px) {
+  .when-bars {
+    grid-auto-columns: 46px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding-bottom: 6px;
+  }
+  .when-bars li { scroll-snap-align: center; }
 }
 .when-bars li { display: flex; }
 .when-bar {
@@ -1093,7 +1106,12 @@ summary:hover { color: var(--ink); }
 
 @media (max-width: 720px) {
   .when-bars { gap: 3px; }
+  .when-bar { padding-left: 0; padding-right: 0; }
   .when-bar .hr { font-size: 11px; }
+  /* Fourteen percentages will not fit across a phone. The number stays in each
+     bar's accessible name and in the parallel table, so nothing is lost. */
+  .when-bar .val { display: none; }
+  .when-bar .track { height: 96px; }
 }
 
 /* ---- Three columns, as in the reference ---------------------------------- */
@@ -1220,7 +1238,7 @@ summary:hover { color: var(--ink); }
 .field-card input[type="text"] {
   width: 100%;
   border: 0; background: none; box-shadow: none;
-  padding: 0; min-height: 40px;   /* the interactive target, not the card */
+  padding: 0; min-height: 44px;   /* the interactive target, not the card */
   font-size: 16px; font-weight: 500; color: var(--ink);
   letter-spacing: -0.011em;
   border-radius: 0;
@@ -1398,7 +1416,7 @@ summary:hover { color: var(--ink); }
   z-index: 500;
 }
 .map-tools button {
-  min-height: 42px;
+  min-height: 44px;   /* the touch-target floor, not 42 */
   padding: 9px 16px;
   font-size: 15px;
   background: var(--chrome);
