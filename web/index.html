@@ -332,6 +332,11 @@ h1, h2, h3 {
 
 main { display: grid; gap: 18px; }
 
+/* Grid and flex children default to min-width:auto, which means they refuse to
+   shrink below their own content. One 482px-wide status chip was therefore
+   forcing the whole 390px page to 549px and scrolling the body sideways. */
+.shell > *, main > * { min-width: 0; }
+
 header {
   --glass-refract: url(#glass-refract);
   display: flex;
@@ -886,7 +891,12 @@ summary:hover { color: var(--ink); }
 #backend-status { min-width: 0; }
 #backend-status-text {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  /* The ellipsis only engages against a bound; without one the span reports its
+     full unwrapped width and takes the header with it. */
+  max-width: 100%;
 }
+#backend-status { max-width: 100%; flex-shrink: 1; }
+.bar-end > * { min-width: 0; }
 .brand, .navtabs { flex: 0 0 auto; }
 
 @media (max-width: 1180px) {
@@ -1236,7 +1246,10 @@ summary:hover { color: var(--ink); }
 .swap-btn {
   position: absolute;
   right: 4px; top: 50%;
-  transform: translate(50%, -50%);
+  /* Only the vertical centring. The 50%% X shift is left over from when this
+     button hung outside the card; now that the card clips, it pushed 18px of a
+     44px target under the edge. */
+  transform: translateY(-50%);
   width: 46px; height: 46px; min-height: 46px;
   padding: 0; border-radius: 50%;
   display: grid; place-items: center;
