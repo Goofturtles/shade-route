@@ -73,9 +73,11 @@
   --shade-bar-track: rgba(20, 36, 26, 0.13);
 
   /* ---- Glass ----------------------------------------------------------- */
+  /* The canopy behind this measures 192-233 in luminance - bright and narrow -
+     which is what lets the pane come this far off and still read. */
   --glass:        rgba(255, 255, 255, 0.34);
-  --glass-strong: rgba(255, 255, 255, 0.46);
-  --glass-inner:  rgba(255, 255, 255, 0.28);
+  --glass-strong: rgba(255, 255, 255, 0.48);
+  --glass-inner:  rgba(255, 255, 255, 0.30);
   --glass-border: rgba(255, 255, 255, 0.72);
   --glass-edge:   rgba(255, 255, 255, 0.95);
   --glass-under:  rgba(255, 255, 255, 0.42);
@@ -141,8 +143,8 @@
     --shade-bar-fill:  #6fdba0;
     --shade-bar-track: rgba(255, 255, 255, 0.14);
 
-    --glass:        rgba(18, 32, 24, 0.42);
-    --glass-strong: rgba(18, 32, 24, 0.54);
+    --glass:        rgba(14, 25, 19, 0.46);
+    --glass-strong: rgba(14, 25, 19, 0.60);
     --glass-inner:  rgba(255, 255, 255, 0.06);
     --glass-border: rgba(255, 255, 255, 0.20);
     --glass-edge:   rgba(255, 255, 255, 0.28);
@@ -197,8 +199,8 @@
   --shade-bar-fill:  #6fdba0;
   --shade-bar-track: rgba(255, 255, 255, 0.14);
 
-  --glass:        rgba(18, 32, 24, 0.42);
-  --glass-strong: rgba(18, 32, 24, 0.54);
+  --glass:        rgba(14, 25, 19, 0.46);
+  --glass-strong: rgba(14, 25, 19, 0.60);
   --glass-inner:  rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.20);
   --glass-edge:   rgba(255, 255, 255, 0.28);
@@ -237,41 +239,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Out-of-focus canopy, drawn in CSS. Layered soft radials give the organic,
-   dappled falloff a photograph would - and because we generate it, its
-   luminance range is known, which is what lets the glass above go clear. */
-body::before {
-  content: "";
+/* The canopy. Painted on a canvas rather than built from CSS gradients: layered
+   radial gradients read as flat colour blobs, and what the reference actually
+   shows is a photograph of leaves thrown out of focus — hundreds of overlapping
+   soft discs at many scales. That is what the canvas paints, and it is what
+   makes the glass above it read as glass. Still no image request: it is drawn
+   at runtime, so the project stays keyless and works offline. */
+#canopy {
   position: fixed;
-  inset: -10%;
-  z-index: -2;
-  background:
-    radial-gradient(38% 34% at 18% 12%, var(--leaf-4) 0%, transparent 62%),
-    radial-gradient(30% 28% at 72% 8%,  var(--leaf-1) 0%, transparent 60%),
-    radial-gradient(44% 40% at 88% 34%, var(--leaf-3) 0%, transparent 64%),
-    radial-gradient(40% 38% at 8%  56%, var(--leaf-2) 0%, transparent 62%),
-    radial-gradient(52% 46% at 58% 78%, var(--leaf-5) 0%, transparent 66%),
-    radial-gradient(34% 30% at 34% 40%, var(--leaf-4) 0%, transparent 58%),
-    linear-gradient(158deg, var(--leaf-1) 0%, var(--leaf-2) 44%, var(--leaf-5) 100%);
-  filter: blur(46px);
-}
-/* A second, finer layer of dapple - light through leaves. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: -10%;
+  inset: 0;
   z-index: -1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: blur(var(--canopy-blur, 18px)) saturate(1.05);
+  transform: scale(1.08);          /* hides the blur's soft edges */
   pointer-events: none;
-  opacity: 0.5;
-  background:
-    radial-gradient(9% 7% at 26% 22%, var(--leaf-4) 0%, transparent 70%),
-    radial-gradient(7% 6% at 46% 14%, var(--leaf-4) 0%, transparent 70%),
-    radial-gradient(8% 7% at 66% 30%, var(--leaf-4) 0%, transparent 70%),
-    radial-gradient(6% 5% at 82% 54%, var(--leaf-4) 0%, transparent 70%),
-    radial-gradient(10% 8% at 14% 68%, var(--leaf-4) 0%, transparent 70%),
-    radial-gradient(7% 6% at 54% 62%, var(--leaf-4) 0%, transparent 70%),
-    radial-gradient(8% 7% at 76% 84%, var(--leaf-4) 0%, transparent 70%);
-  filter: blur(30px);
 }
 
 h1, h2, h3 {
@@ -818,6 +801,8 @@ summary:hover { color: var(--ink); }
   </filter>
 </svg>
 
+<canvas id="canopy" aria-hidden="true"></canvas>
+
 <a class="skip-link" href="#controls">Skip to route controls</a>
 
 <div class="shell">
@@ -1103,6 +1088,8 @@ summary:hover { color: var(--ink); }
     // the exact inverse of the truth, to the user this project is built for.
     themeButton.setAttribute('aria-pressed', String(isDark));
     themeButton.textContent = 'Dark mode';
+    // The canopy is painted from the themed leaf tokens, so it must be redrawn.
+    if (window.__repaintCanopy) { window.__repaintCanopy(); }
   }
 
   themeButton.addEventListener('click', function () {
@@ -1867,6 +1854,116 @@ summary:hover { color: var(--ink); }
   // belonged to. It also sat *behind* the result text and lifted the backdrop
   // on hover, which took secondary text to 3.3:1 over a bright tile — a
   // contrast hole no resting-state sweep could see.
+
+  // --- The canopy ------------------------------------------------------------
+  // Defocused foliage is hundreds of overlapping soft discs at many scales, not
+  // a handful of big gradients. Painting it is what makes the glass above read
+  // as glass. Deterministic: a seeded generator, so it does not reshuffle on
+  // every resize and the page never appears to shimmer.
+  (function paintCanopy() {
+    var canvas = document.getElementById('canopy');
+    if (!canvas || !canvas.getContext) { return; }
+    var ctx = canvas.getContext('2d');
+
+    function seeded(seed) {
+      return function () {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      };
+    }
+
+    // Canvas resolves the keyword 'transparent' to rgba(0,0,0,0), so a gradient
+    // fading to it fades through BLACK. Every disc was darkening its own edges
+    // and dragging the whole canopy down to a muddy mid-green. Fade to the same
+    // hue at zero alpha instead.
+    function fade(colour) {
+      var hex = colour.replace('#', '');
+      if (hex.length === 3) { hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; }
+      if (hex.length < 6) { return 'rgba(255,255,255,0)'; }
+      return 'rgba(' + parseInt(hex.slice(0,2),16) + ',' +
+                       parseInt(hex.slice(2,4),16) + ',' +
+                       parseInt(hex.slice(4,6),16) + ',0)';
+    }
+
+    function palette() {
+      var css = getComputedStyle(document.documentElement);
+      return ['--leaf-1', '--leaf-2', '--leaf-3', '--leaf-4', '--leaf-5', '--sky']
+        .map(function (t) { return css.getPropertyValue(t).trim(); })
+        .filter(Boolean);
+    }
+
+    function draw() {
+      var w = Math.max(320, window.innerWidth);
+      var h = Math.max(320, window.innerHeight);
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      var colours = palette();
+      if (colours.length < 6) { return; }
+      var sky = colours[5], leaves = colours.slice(0, 5);
+
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+
+      var wash = ctx.createLinearGradient(0, 0, w * 0.7, h);
+      wash.addColorStop(0, leaves[3]);
+      wash.addColorStop(0.55, leaves[1]);
+      wash.addColorStop(1, leaves[4]);
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = wash;
+      ctx.fillRect(0, 0, w, h);
+
+      // Three passes, coarse to fine, the way depth of field stacks up.
+      var random = seeded(20260816);
+      var passes = [
+        { count: 26,  min: w * 0.16,  max: w * 0.34,  alpha: 0.50 },
+        { count: 70,  min: w * 0.06,  max: w * 0.15,  alpha: 0.40 },
+        { count: 150, min: w * 0.015, max: w * 0.055, alpha: 0.32 }
+      ];
+      passes.forEach(function (pass) {
+        for (var i = 0; i < pass.count; i++) {
+          var x = random() * w;
+          var y = random() * h;
+          var r = pass.min + random() * (pass.max - pass.min);
+          var colour = leaves[Math.floor(random() * leaves.length)];
+          var disc = ctx.createRadialGradient(x, y, 0, x, y, r);
+          disc.addColorStop(0, colour);
+          disc.addColorStop(1, fade(colour));
+          ctx.globalAlpha = pass.alpha * (0.55 + random() * 0.45);
+          ctx.fillStyle = disc;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // Sunlight breaking through, upper left.
+      var shaft = ctx.createRadialGradient(w * 0.18, h * 0.08, 0, w * 0.18, h * 0.08, w * 0.55);
+      shaft.addColorStop(0, leaves[3]);
+      shaft.addColorStop(1, fade(leaves[3]));
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = shaft;
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalAlpha = 1;
+    }
+
+    draw();
+
+    var pending = null;
+    window.addEventListener('resize', function () {
+      window.clearTimeout(pending);
+      pending = window.setTimeout(draw, 180);
+    }, { passive: true });
+
+    if (window.matchMedia) {
+      var scheme = window.matchMedia('(prefers-color-scheme: dark)');
+      if (scheme.addEventListener) { scheme.addEventListener('change', draw); }
+    }
+    window.__repaintCanopy = draw;
+  }());
 
   // --- Boot ------------------------------------------------------------------
   wireCoordinateEntry('origin', 'origin-lat', 'origin-lon', 'origin-set');
