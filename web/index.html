@@ -89,7 +89,7 @@
   /* 0.60, not 0.55. The corrected sweep — which composites over the MAP
      rather than over body's opaque fill — showed 0.55 dropping secondary text
      to 4.2:1 against the darkest post-filter tile (luminance 56). */
-  --glass-panel:  rgba(255, 255, 255, 0.45);
+  --glass-panel:  rgba(255, 255, 255, 0.50);
   --glass-chrome: rgba(255, 255, 255, 0.34);   /* buttons, inputs — inside the
                                                   panel, so they composite on
                                                   top of it and can be clearer */
@@ -108,11 +108,14 @@
       inset 0 -1px 0 var(--glass-under);
 
   --focus: #0071e3;
-  /* contrast(0.62) then brightness(1.16) compresses tile luminance from
-     [0,255] into roughly [89,207]: a pale, calm basemap like the field Apple's
-     glass sits on. It is not decoration - raising the DARKEST possible backdrop
-     is precisely what lets the glass above it go clear and stay legible. */
-  --tile-filter: saturate(0.16) contrast(0.12) brightness(1.75);
+  /* A pale, calm basemap - the field the glass above sits on - WITHOUT
+     erasing it. Raising the DARKEST possible backdrop is what lets the glass go
+     see-through, but there is a floor: at contrast(0.12) tiles crushed to
+     [196,250], the glass looked wonderful, and roads sat 2.7 levels above the
+     paper background. The map was blank. In a walking-route app that is a worse
+     bug than a tinted panel. At 0.55 roads clear the background by ~9 levels
+     and the palette spans ~57, while the darkest tile still lands near 70. */
+  --tile-filter: saturate(0.34) contrast(0.55) brightness(1.22);
 
   --radius:      12px;
   --radius-lg:   16px;
@@ -174,7 +177,7 @@
       inset 0 -1px 0 var(--glass-under);
 
   --focus: #7cc4f5;
-  --tile-filter: invert(1) hue-rotate(180deg) saturate(0.18) contrast(0.16) brightness(0.42);
+  --tile-filter: invert(1) hue-rotate(180deg) saturate(0.3) contrast(0.6) brightness(0.6);
 }
 
 * { box-sizing: border-box; }
