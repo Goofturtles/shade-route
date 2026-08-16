@@ -93,6 +93,7 @@
   /* The canopy behind this measures 192-233 in luminance - bright and narrow -
      which is what lets the pane come this far off and still read. */
   --glass:        rgba(255, 255, 255, 0.32);
+  --glass-fade:   rgba(255, 255, 255, 0.62);
   --glass-strong: rgba(255, 255, 255, 0.44);
   --glass-inner:  rgba(255, 255, 255, 0.24);
   --glass-border: rgba(255, 255, 255, 0.86);
@@ -165,6 +166,7 @@
     --shadow-fill: #7fa8cc;
 
     --glass:        rgba(12, 22, 16, 0.44);
+    --glass-fade:   rgba(9, 18, 13, 0.80);
     --glass-strong: rgba(12, 22, 16, 0.58);
     --glass-inner:  rgba(255, 255, 255, 0.06);
     --glass-border: rgba(255, 255, 255, 0.20);
@@ -225,6 +227,7 @@
   --shade-bar-track: rgba(255, 255, 255, 0.14);
 
   --glass:        rgba(12, 22, 16, 0.44);
+  --glass-fade:   rgba(9, 18, 13, 0.80);
   --glass-strong: rgba(12, 22, 16, 0.58);
   --glass-inner:  rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.20);
@@ -1303,7 +1306,35 @@ summary:hover { color: var(--ink); }
 .compare .swap-col .big + .big { margin-top: 2px; }
 
 /* ---- Route summary: numbered steps with detail lines --------------------- */
-.summary-steps { list-style: none; margin: 0; padding: 0; }
+/* A 17-step route ran the right column to roughly three times the height of
+   the other two, leaving a large hole down the middle of the page. Capping the
+   list and letting it scroll is what mapping applications do, and it keeps the
+   three columns finishing at about the same place. Focusable, because a region
+   that scrolls must be reachable without a mouse. */
+.summary-steps {
+  list-style: none; margin: 0; padding: 0 4px 0 0;
+  max-height: min(58vh, 620px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 26%, transparent) transparent;
+}
+.summary-steps:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--r-sm, 10px);
+}
+/* Fades the cut edge so a step sliced by the cap reads as "more below"
+   rather than as something broken. */
+.steps-wrap { position: relative; }
+.steps-wrap::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--glass-fade, rgba(255,255,255,0.55)));
+  opacity: 0.9;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
 .summary-steps li {
   display: grid;
   grid-template-columns: 28px 1fr;
@@ -1609,7 +1640,10 @@ summary:hover { color: var(--ink); }
           <button type="button" id="dir-shadiest" aria-pressed="true">Shadiest</button>
           <button type="button" id="dir-shortest" aria-pressed="false">Shortest</button>
         </div>
-        <ol id="directions-list" class="summary-steps"></ol>
+        <div class="steps-wrap">
+          <ol id="directions-list" class="summary-steps" tabindex="0"
+              role="region" aria-label="Turn-by-turn steps, scrollable"></ol>
+        </div>
       </section>
 
       <section class="panel" id="comfort-panel" aria-labelledby="comfort-heading" hidden>
@@ -2429,69 +2463,6 @@ summary:hover { color: var(--ink); }
       }
     });
   });
-
-  // The headline statement. Every figure in it is read straight off the payload
-  // the server computed — §7 forbids any number on screen that was not measured,
-  // so nothing here is written by hand, and the sun-minutes sentence is omitted
-  // entirely rather than guessed when the API did not report it.
-  function renderHero(payload) {
-    var hero = document.getElementById('hero');
-    var shortest = payload.routes.filter(function (r) { return r.id === 'shortest'; })[0];
-    var shadiest = payload.routes.filter(function (r) { return r.id === 'shadiest'; })[0];
-    var cmp = payload.comparison;
-    if (!shortest || !shadiest || !payload.sun.casts_shadows) { hero.hidden = true; return; }
-
-    var target = Math.round(shadiest.shade_fraction * 100);
-    var other = Math.round(shortest.shade_fraction * 100);
-
-    document.getElementById('hero-eyebrow').textContent =
-      (state.origin && state.origin.name ? state.origin.name : 'Your start') + '  →  ' +
-      (state.destination && state.destination.name ? state.destination.name : 'your destination');
-
-    var line = document.getElementById('hero-line');
-    line.textContent = '';
-    line.appendChild(document.createTextNode('of this walk stays in shade, against '));
-    var b = document.createElement('b');
-    b.textContent = other + '%';
-    line.appendChild(b);
-    line.appendChild(document.createTextNode(' on the fastest route.'));
-
-    var foot = [];
-    if (cmp.identical) {
-      foot.push('The shadiest route here is also the shortest one — no detour to trade.');
-    } else {
-      foot.push('The swap costs ' + formatDuration(cmp.extra_duration_s) + ' and ' +
-                formatDistance(cmp.extra_distance_m) + '.');
-    }
-    if (typeof shadiest.sun_seconds === 'number' && typeof shortest.sun_seconds === 'number') {
-      foot.push('Time in direct sun falls from ' + formatDuration(shortest.sun_seconds) +
-                ' to ' + formatDuration(shadiest.sun_seconds) + '.');
-    }
-    document.getElementById('hero-foot').textContent = foot.join(' ');
-
-    hero.hidden = false;
-    countTo(document.getElementById('hero-num'), target);
-  }
-
-  // A number that lands on its value reads as a result; one that is simply
-  // printed reads as a label. Reduced-motion users get the value immediately.
-  function countTo(el, target) {
-    var reduce = window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce || !window.requestAnimationFrame) { el.textContent = target; return; }
-
-    var start = null, from = 0, duration = 1100;
-    if (el.__anim) { window.cancelAnimationFrame(el.__anim); }
-    function step(now) {
-      if (start === null) { start = now; }
-      var t = Math.min((now - start) / duration, 1);
-      // Decelerating cubic: fast out of the gate, settling onto the figure.
-      var eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = Math.round(from + (target - from) * eased);
-      if (t < 1) { el.__anim = window.requestAnimationFrame(step); }
-    }
-    el.__anim = window.requestAnimationFrame(step);
-  }
 
   // The three-up comparison from the reference: the plain route, what the swap
   // costs, and the recommendation. Built from DOM nodes rather than innerHTML
