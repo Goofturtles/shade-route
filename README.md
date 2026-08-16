@@ -268,7 +268,11 @@ either.
   override darkened them to 4.07:1 — the opposite of the intended effect — and was removed.
 - `prefers-reduced-motion` respected, including Leaflet's JS-driven inertia panning and zoom
   animations, which a CSS-only rule does not reach.
-- **Nothing in the app's own interface is below 15 px**; body text is 17 px. Map popups carry app
+- **Nothing in the app's own interface is below 15 px.** The type scale runs 24 / 20 / 17 / 15:
+  the result headline at 24 px, the panel title at 20 px, route names and the route statistics
+  at 17 px, labels and hints at 15 px. An earlier pass raised the floor to 15 px and flattened
+  almost everything onto it, which left the answer — distance, walking time, percent in shade —
+  rendering identically to a footnote. Map popups carry app
   content, so they are held to the same floor rather than Leaflet's 13 px default. The one
   exception is Leaflet's attribution line — third-party chrome, raised from its 11 px default to
   13 px but not to 15 px.

@@ -455,6 +455,38 @@ hover.
 micro-labels dropped the interface floor from 15px to 13px, against a stated commitment and a
 71-year-old user. They are now 15px sentence case, which is closer to Notes anyway.
 
+### Design critique round — what a measurement sweep cannot tell you
+
+Ten rounds of contrast measurement could not answer "does this look good", so the audit was
+asked for blunt visual judgement. Its sharpest finding was one no automated check would ever
+produce:
+
+**Raising the font floor to 15px had flattened the type scale.** Roughly seventeen distinct
+roles all rendered at exactly 15px, so the route statistics — distance, walking time, percent in
+shade, the answer the entire project exists to deliver — were the same size and nearly the same
+colour as the footnote at the bottom of the panel. Section headers and field labels differed
+only by weight, which at 15px is barely perceptible. The floor was right for a 71-year-old; the
+mistake was paying for it by deleting the hierarchy instead of raising what matters.
+
+The scale is now 24 / 20 / 17 / 15 — result headline, panel title, route names and statistics,
+labels and hints — with colour and weight reinforcing rather than substituting.
+
+Two blockers came out of the same round:
+
+- **The theme toggle announced the inverse of the truth.** With dark mode on, the button read
+  `aria-pressed="true"` while its label said "Light mode", so a screen reader said "Light mode,
+  pressed" — i.e. light mode is on. Wrong, to precisely the user this project is built for. The
+  label is now static ("Dark mode") and `aria-pressed` carries the state.
+- **"body text is 17 px" in the README had become false** when everything collapsed to 15px.
+
+Also fixed: the route colour chip claimed to repeat the map line but drew both routes solid,
+dropping the dash — the one signal that survives colour blindness; the mobile bottom sheet was
+covering Leaflet's attribution corner entirely, which is an ODbL condition rather than
+decoration; a dead `#area-note` rule had left the panel title 4px above the first section;
+`.place-row`'s grid gap and the hint's own margin were double-counting; clearing a point left
+`aria-invalid` set on the now-empty fields; and the primary button's glow was hardcoded to the
+light-mode accent hue.
+
 ---
 
 *Log continues as milestones complete.*

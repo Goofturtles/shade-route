@@ -60,6 +60,7 @@
   --accent-hover: #005bb8;   /* 6.4:1 under white — the lighter #0077ed used to
                                 fail at 4.32:1 in hover and busy states */
   --accent-soft:  rgba(0, 113, 227, 0.12);
+  --accent-glow:  rgba(0, 113, 227, 0.26);
   --accent-ink:   #ffffff;
 
   --ok:    #00795c;
@@ -116,6 +117,7 @@
   --accent:       #0a84ff;
   --accent-hover: #3d9bff;   /* dark ink sits on this — 7.4:1 */
   --accent-soft:  rgba(10, 132, 255, 0.20);
+  --accent-glow:  rgba(10, 132, 255, 0.30);
   --accent-ink:   #04101c;
 
   --ok:    #4ee0aa;
@@ -269,18 +271,13 @@ header .tagline { margin: 0; color: var(--ink-muted); font-size: 15px; line-heig
 }
 
 /* ---- Typography: the hierarchy does the work ---------------------------- */
+/* Panel title sits BELOW the result headline on purpose: the answer outranks
+   the form that produced it. */
 h2 {
-  font-size: 22px;
-  margin: 0 0 4px;
+  font-size: 20px;
+  margin: 0 0 18px;
   letter-spacing: -0.02em;
   line-height: 1.25;
-}
-#controls > .hint:first-of-type,
-#area-note {
-  margin: 0 0 20px;
-  color: var(--ink-muted);
-  font-size: 15px;
-  line-height: 1.45;
 }
 .section-heading-spaced { margin-top: 26px; }
 
@@ -293,14 +290,17 @@ fieldset {
   margin: 0 0 20px;
   min-width: 0;
 }
+/* Section header: full-strength ink at 600. Previously this was muted at 600
+   and the field labels were muted at 400 — at the same size, a weight step
+   alone is close to invisible, so the two roles read as one. */
 legend {
-  padding: 0 0 8px;
+  padding: 0 0 9px;
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 15px;
   line-height: 1.4;
   letter-spacing: -0.008em;
-  color: var(--ink-muted);
+  color: var(--ink);
 }
 
 .place-row,
@@ -311,7 +311,9 @@ legend {
   padding: 14px;
 }
 .place-row { display: grid; gap: 12px; }
-.when-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* auto-fit, not a rigid 1fr 1fr: at 360px each field fell to ~106px inner
+   and the native date/time picker icon was at risk of clipping. */
+.when-row  { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 
 label {
   display: block;
@@ -320,6 +322,9 @@ label {
   color: var(--ink-muted);
   margin-bottom: 6px;
 }
+/* The grid already spaces these rows; the hint's own top margin was
+   double-counting and putting 22px above the readout and 12px below. */
+.place-row .hint { margin: 0; }
 
 input[type="text"],
 input[type="time"],
@@ -371,13 +376,13 @@ button[aria-busy="true"] { cursor: progress; }
 button.primary {
   width: 100%;
   min-height: 50px;
-  margin-top: 4px;
+  margin-top: 20px;   /* the one loud element needs air, not a sandwich */
   font-size: 17px;
   font-weight: 500;
   color: var(--accent-ink);
   background: var(--accent);
   border-color: transparent;
-  box-shadow: 0 6px 18px rgba(0, 113, 227, 0.26);
+  box-shadow: 0 6px 18px var(--accent-glow);
 }
 button.primary:hover,
 button[aria-busy="true"].primary { background: var(--accent-hover); }
@@ -402,7 +407,7 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
   padding: 12px 14px;
   border-radius: var(--radius-lg);
   background: var(--group);
-  border-left: 3px solid var(--separator);
+  border-left: 3px solid var(--line);
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink-2);
@@ -417,13 +422,21 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
   border-radius: var(--radius-lg);
   background: var(--accent-soft);
   font-family: var(--font-display);
-  font-size: 21px;
+  font-size: 24px;
   font-weight: 600;
-  line-height: 1.32;
-  letter-spacing: -0.02em;
+  line-height: 1.28;
+  letter-spacing: -0.022em;
   color: var(--ink);
 }
 .headline strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+.headline-aside {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: -0.006em;
+  color: var(--ink-muted);
+}
 
 .route-list { list-style: none; margin: 0; padding: 0; }
 
@@ -436,7 +449,7 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
 .route-item:first-child { border-top: 0; }
 .route-item h3 {
   margin: 0 0 2px;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.35;
   letter-spacing: -0.012em;
   display: flex;
@@ -447,22 +460,36 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent)
    name beside it means nothing depends on seeing hue. */
 .route-item h3::before {
   content: "";
-  width: 14px; height: 3px;
+  width: 20px; height: 4px;
   border-radius: 2px;
   background: var(--route-colour, var(--accent));
   flex: 0 0 auto;
+}
+/* The dash is the part that survives colour blindness, so the chip has to
+   carry it too — not just the line on the map. */
+.route-item[data-pattern="dashed"] h3::before {
+  background: repeating-linear-gradient(90deg,
+      var(--route-colour) 0 6px, transparent 6px 10px);
 }
 .route-pattern { margin: 0 0 10px; font-size: 15px; line-height: 1.45; color: var(--ink-muted); }
 .route-item dl {
   margin: 0;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 4px 14px;
-  font-size: 15px;
-  line-height: 1.5;
+  gap: 6px 14px;
+  align-items: center;
+  line-height: 1.45;
 }
-.route-item dt { color: var(--ink-muted); }
-.route-item dd { margin: 0; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.route-item dt { color: var(--ink-muted); font-size: 15px; }
+/* Distance, walking time and percent-in-shade are the answer. They were 15px
+   in --ink-2, i.e. identical to the footnote at the bottom of the panel. */
+.route-item dd {
+  margin: 0;
+  font-size: 17px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  align-self: center;
+}
 
 .shade-bar {
   height: 6px;
@@ -560,6 +587,9 @@ summary::marker { color: var(--ink-muted); }
    (30) regardless; forcing the control corners to 15 only risked putting them
    under the tile pane, which Leaflet paints at 400. */
 .leaflet-top.leaflet-right { margin-top: var(--zoom-top, 96px); }
+/* Lift Leaflet's bottom corner clear of the mobile bottom sheet. The OSM
+   attribution is an ODbL requirement; the sheet was covering it entirely. */
+.leaflet-bottom { margin-bottom: var(--sheet-clear, 0px); }
 
 .leaflet-bar {
   border: 1px solid var(--glass-border) !important;
@@ -650,6 +680,7 @@ summary::marker { color: var(--ink-muted); }
   <div class="header-end">
     <p id="backend-status"><span class="dot" aria-hidden="true"></span><span id="backend-status-text">Checking backend…</span></p>
     <button type="button" id="theme-toggle" aria-pressed="false">Dark mode</button>
+    <!-- Label stays "Dark mode"; aria-pressed carries whether it is on. -->
   </div>
 </header>
 
@@ -857,8 +888,12 @@ summary::marker { color: var(--ink-muted); }
     var resolved = theme || (systemPrefersDark() ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', resolved);
     var isDark = resolved === 'dark';
+    // The label names the THING being toggled and stays put; aria-pressed
+    // carries the state. Swapping the label to the action while also setting
+    // aria-pressed announced "Light mode, pressed" while dark mode was on —
+    // the exact inverse of the truth, to the user this project is built for.
     themeButton.setAttribute('aria-pressed', String(isDark));
-    themeButton.textContent = isDark ? 'Light mode' : 'Dark mode';
+    themeButton.textContent = 'Dark mode';
   }
 
   themeButton.addEventListener('click', function () {
@@ -866,7 +901,7 @@ summary::marker { color: var(--ink-muted); }
     var next = isDark ? 'light' : 'dark';
     applyTheme(next);
     try { window.localStorage.setItem('shade-route-theme', next); } catch (e) { /* private mode */ }
-    announce('Switched to ' + next + ' mode.');
+    announce(next === 'dark' ? 'Dark mode on.' : 'Dark mode off.');
   });
 
   (function initTheme() {
@@ -956,6 +991,9 @@ summary::marker { color: var(--ink-muted); }
 
   function clearPoint(kind) {
     state[kind] = null;
+    // An empty field is not an invalid one — leaving aria-invalid set announced
+    // a validation error for a value the user had just removed.
+    markFieldValidity(kind, true);
     if (markers[kind]) { map.removeLayer(markers[kind]); markers[kind] = null; }
     document.getElementById(FIELDS[kind][0]).value = '';
     document.getElementById(FIELDS[kind][1]).value = '';
@@ -1204,6 +1242,14 @@ summary::marker { color: var(--ink-muted); }
   function syncZoomOffset() {
     var header = document.querySelector('header').getBoundingClientRect();
     document.documentElement.style.setProperty('--zoom-top', Math.round(header.bottom + 12) + 'px');
+
+    // On narrow screens the panel is a bottom sheet sitting on top of Leaflet's
+    // attribution corner. Push that corner above it — the OSM credit is a
+    // licence condition, not decoration.
+    var panel = document.getElementById('controls').getBoundingClientRect();
+    var narrow = window.matchMedia('(max-width: 900px)').matches;
+    var clear = narrow ? Math.max(0, Math.round(window.innerHeight - panel.top + 8)) : 0;
+    document.documentElement.style.setProperty('--sheet-clear', clear + 'px');
   }
 
   function buildMap(cfg) {
@@ -1239,7 +1285,8 @@ summary::marker { color: var(--ink-muted); }
 
     var b = cfg.bbox;
     bboxRect = L.rectangle([[b.south, b.west], [b.north, b.east]],
-      { color: '#7a828c', weight: 2, dashArray: '8 6', fill: false, interactive: false }).addTo(map);
+      { color: cssVar('--ink-muted'), weight: 2, dashArray: '8 6',
+        opacity: 0.55, fill: false, interactive: false }).addTo(map);
     map.fitBounds(bboxRect.getBounds(), mapPadding());
 
     map.on('click', function (event) {
@@ -1312,6 +1359,9 @@ summary::marker { color: var(--ink-muted); }
       // line's colour, and the written line-style name sits right below it, so
       // nothing here depends on seeing hue.
       item.style.setProperty('--route-colour', colour);
+      // Drives the dashed chip. The pattern, not the hue, is what survives
+      // colour blindness, so the chip carries it as well as the map line.
+      item.setAttribute('data-pattern', style.dashArray ? 'dashed' : 'solid');
 
       var heading = document.createElement('h3');
       heading.textContent = route.label;
@@ -1363,10 +1413,16 @@ summary::marker { color: var(--ink-muted); }
       headline.textContent = 'At this shade setting the shadiest route is the shortest route — ' +
         'no detour was worth taking.';
     } else {
-      headline.innerHTML = '<strong>+' + formatDuration(cmp.extra_duration_s) + '</strong> walk, ' +
-        '<strong>' + percent(shadiest.shade_fraction) + '</strong> shaded instead of ' +
-        '<strong>' + percent(shortest.shade_fraction) + '</strong>' +
-        ' <span style="color:var(--ink-muted)">(' + formatDistance(cmp.extra_distance_m) + ' further)</span>';
+      // Built as nodes rather than an HTML string: the place names and figures
+      // flowing in here come from OSM data, and this keeps them text.
+      headline.append(
+        '+' + formatDuration(cmp.extra_duration_s) + ' walk, ' +
+        percent(shadiest.shade_fraction) + ' shaded instead of ' +
+        percent(shortest.shade_fraction) + ' ');
+      var aside = document.createElement('span');
+      aside.className = 'headline-aside';
+      aside.textContent = '(' + formatDistance(cmp.extra_distance_m) + ' further)';
+      headline.appendChild(aside);
     }
 
     document.getElementById('assumption-note').textContent = payload.assumptions.walking_speed_note;
