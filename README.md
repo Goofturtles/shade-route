@@ -263,16 +263,16 @@ example, not a typical one: the median pair in that sample gained closer to
 
 ## The launch film
 
-`video/` builds a 45-second 4K film about this project. It is a web page captured
+`video/` builds a two-minute 4K film about this project. It is a web page captured
 frame by frame and encoded with NVENC — there is no video editor in the pipeline
 and no generated footage anywhere in it.
 
 ```bash
 python -m uvicorn app.main:app          # 1. the app must be running
-node video/capture_footage.mjs          # 2. stills, straight out of the app
-node video/score.mjs 107                # 3. the score — synthesised, not licensed
+python video/export_scene.py            # 2. the 3D model, from the router's own geometry
+node video/score.mjs 120                # 3. the score — synthesised, not licensed
 python video/check_claims.py            # 4. the honesty gate — must pass
-node video/render.mjs --scene video/scene.html --out video/shade-route-4k.mp4
+node video/render.mjs --scene video/film.html --out video/shade-route-4k.mp4
 ```
 
 Playwright is a render-time tool and deliberately not a dependency of the app;

@@ -97,12 +97,14 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
 
 /* Ink follows the ground. */
 .on-sun   .statement, .on-sun .headline, .on-sun .seclabel,
-.on-sun   .spec, .on-sun .bignum, .on-sun .wordmark { color: var(--ink-sun); }
+.on-sun   .spec, .on-sun .bignum, .on-sun .wordmark, .on-sun .ledger .v { color: var(--ink-sun); }
 .on-sun   .support, .on-sun .eyebrow, .on-sun .bignum.secondary { color: var(--mut-sun); }
 .on-shade .statement, .on-shade .headline, .on-shade .seclabel, .on-shade .thesis,
-.on-shade .spec, .on-shade .bignum, .on-shade .wordmark { color: var(--ink-shade); }
+.on-shade .spec, .on-shade .bignum, .on-shade .wordmark,
+.on-shade .ledger .v { color: var(--ink-shade); }
 .on-shade .support, .on-shade .eyebrow, .on-shade .bignum.secondary { color: var(--mut-shade); }
-.on-gl .eyebrow, .on-gl .headline, .on-gl .bignum, .on-gl .spec { color: var(--ink-shade); }
+.on-gl .eyebrow, .on-gl .headline, .on-gl .bignum, .on-gl .spec,
+.on-gl .ledger .v { color: var(--ink-shade); }
 .on-gl .support { color: var(--mut-shade); }
 
 /* The descender rule. This project's named recurring failure: a mask box with
@@ -126,7 +128,7 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
 .ledger { display: grid; gap: 0; margin-top: 20px; }
 .ledger .row { display: flex; align-items: baseline; gap: 40px; padding: 26px 0; }
 .on-sun .ledger .row { border-top: 1px solid var(--hair-sun); }
-.on-shade .ledger .row { border-top: 1px solid var(--hair-shade); }
+.on-shade .ledger .row, .on-gl .ledger .row { border-top: 1px solid var(--hair-shade); }
 .ledger .k { flex: 0 0 460px; }
 .ledger .v { font-family: var(--sans); font-size: 52px; font-weight: 600;
              letter-spacing: -1.6px; font-variant-numeric: tabular-nums; }
@@ -251,7 +253,7 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
   <!-- ===== E. The day sweep - the drop ===== -->
   <section class="shot on-gl" id="s12">
     <p class="eyebrow eyebrow-fixed"><span class="mask"><span class="ink"
-      >One day of real sun, 07:00 to 19:00</span></span></p>
+      >One day of real sun, 06:30 to 20:00</span></span></p>
     <p class="eyebrow" id="clock">15:00</p>
   </section>
 
@@ -432,7 +434,7 @@ const shots = SHOTS.map((cfg) => {
 const data = window.SCENE3D;
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
-renderer.setPixelRatio(1);
+renderer.setPixelRatio(2);
 renderer.setSize(W, H, false);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;

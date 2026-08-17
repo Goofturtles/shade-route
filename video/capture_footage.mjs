@@ -1,4 +1,10 @@
-// Capture the stills the launch film is cut from, straight out of the running app.
+// Capture stills of the running app.
+//
+// NOTE: the launch film (video/film.html) no longer cuts from these - it
+// renders the city in three.js from video/scene3d.js instead. This is kept
+// because the stills are still the honest way to show the interface itself,
+// and because deleting a working capture script the day before a deadline
+// buys nothing.
 //
 // The film never draws a mock interface. Every product frame in it is a
 // screenshot of this app answering the same query, so the numbers on screen

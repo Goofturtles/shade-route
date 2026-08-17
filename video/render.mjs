@@ -9,7 +9,7 @@
 // renderer calls seek(n), screenshots, and moves on. Same input, same pixels,
 // every time — and the capture can take as long as it likes.
 //
-//   node render.mjs --scene scene.html --out shade-route-4k.mp4 --fps 30
+//   node render.mjs --scene film.html --out shade-route-4k.mp4 --fps 30
 //
 // Flags: --frames N   stop early (for quick previews)
 //        --scale S    output scale, 1 = 4K (3840x2160), 0.5 = 1080p preview
@@ -38,7 +38,7 @@ function arg(name, fallback) {
   return next && !next.startsWith('--') ? next : true;
 }
 
-const SCENE = arg('scene', 'scene.html');
+const SCENE = arg('scene', 'film.html');
 const OUT = arg('out', 'shade-route-4k.mp4');
 const FPS = +arg('fps', 30);
 const SCALE = +arg('scale', 1);

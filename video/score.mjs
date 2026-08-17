@@ -43,7 +43,7 @@ const SEC = {
   B: [8.00,   24.00],   // premise   - felt piano enters
   C: [24.00,  34.00],   // the name  - sub enters, filter opens
   D: [34.00,  72.00],   // the body  - one element in and one out per block
-  E: [72.00,  86.00],   // THE DROP  - near nothing
+  E: [74.00,  86.00],   // THE DROP  - near nothing, and it starts on the cut
   F: [86.00, 102.00],   // the lift  - full arrangement, peak
   G: [102.00, 112.00],  // proof run - stripped, harmonic rhythm doubles
   H: [112.00, 116.00],  // limits    - pad and piano only

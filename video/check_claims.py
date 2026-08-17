@@ -65,12 +65,16 @@ def check(ok: bool, label: str, detail: str = "") -> None:
         failures.append(label)
 
 
-def visible_text(html: str) -> str:
+def visible_text(html: str) -> str:  # noqa: A002
     body = re.sub(r"<!--.*?-->", " ", html, flags=re.S)
     body = re.sub(r"<style.*?</style>", " ", body, flags=re.S | re.I)
     body = re.sub(r"<script.*?</script>", " ", body, flags=re.S | re.I)
     body = re.sub(r"<[^>]+>", " ", body)
     body = htmllib.unescape(body)
+    # Text the viewer reads that is NOT between tags: counter suffixes live in
+    # data-suffix, and the clock is written by script. Both are on screen, so
+    # both have to face the forbidden-phrasing scan.
+    body += " " + " ".join(re.findall(r'data-suffix="([^"]*)"', html))
     return re.sub(r"\s+", " ", body)
 
 
@@ -193,6 +197,9 @@ def main() -> int:
         shown_pct = [int(n) for n in re.findall(r"pct: (\d+) \}", html)]
         api_pct = {h["hour"]: round(h["shade_fraction"] * 100)
                    for h in hours if h.get("shade_fraction") is not None}
+        check(len(shown) == len(shown_pct) and len(shown) > 0,
+              "every hour drawn has a percentage to check against",
+              f"{len(shown)} hours, {len(shown_pct)} percentages")
         drift = [(h, api_pct.get(h), q) for h, q in zip(shown, shown_pct)
                  if api_pct.get(h) is None or abs(api_pct[h] - q) > 1]
         check(bool(shown) and not drift, "every hour bar matches the sweep",
