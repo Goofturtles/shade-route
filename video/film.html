@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Shade Route — launch film</title>
+
+<!--
+  THE SPINE: light ground is sun, dark ground is shade. The film physically
+  moves between the two states it is arguing about, so every cut from paper to
+  near-black is a step into shadow. That is the whole organising idea; the shot
+  list hangs off it.
+
+  Authored at 1920x1080 CSS px and captured at devicePixelRatio 2, so the output
+  is a true 3840x2160. Every measurement from the treatment is therefore halved.
+
+  Nothing animates itself. CSS animations, transitions and requestAnimationFrame
+  all run off the wall clock, and a capture loop that spends a second writing a
+  4K PNG would let that clock run a second further - the film would stutter and
+  would never render the same way twice. Every animated value, in the DOM and in
+  the three.js scene alike, is a pure function of the frame number, applied by
+  seek(). Proven: frame 140 hashes byte-identical reached forwards, backwards,
+  or cold in a fresh browser.
+
+  HONESTY (CLAUDE.md section 7). Two rules that matter more than anything visual:
+
+  1. Every shade figure on screen comes from the API, never from the 3D render.
+     The renderer extrudes true prisms; the router unions convex hulls, and the
+     two disagree. The shadow map here is LIGHTING - it is never measured.
+  2. One walking speed, 1.1 m/s, is what makes 15 min, 4 min and +2 min all true
+     of the same journey. It is stated on screen.
+
+  video/check_claims.py fails the build if any figure stops matching the API.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif&family=Geist+Mono:wght@500&display=swap">
+<script src="scene3d.js"></script>
+
+<style>
+:root {
+  --sun:        #F7F5F0;   /* warm paper - the film's daylight state */
+  --shade:      #0E1113;   /* near-black, cool-leaning: shadow is blue */
+  --ink-sun:    #14120B;
+  --ink-shade:  #EDEDEA;   /* never #fff - it bloom-clips in H.264 */
+  --mut-sun:    #6B6862;
+  --mut-shade:  #8A8F98;
+  --hair-sun:   #DCD8D1;
+  --hair-shade: #23252A;
+  --accent:     #E8552A;   /* exactly one, under 3% of any frame */
+  --drab:       #B9B3A8;   /* the shortest route. Drab by design. */
+  --sans:  "Inter", system-ui, sans-serif;
+  --mono:  "Geist Mono", ui-monospace, monospace;
+  --serif: "Instrument Serif", Georgia, serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--shade); }
+
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+
+/* The ground is one element that changes colour, not two stacked pages: the
+   cut between sun and shade has to be a single hard step. */
+#ground { position: absolute; inset: 0; background: var(--sun); }
+
+#gl { position: absolute; inset: 0; display: block; }
+
+.shot { position: absolute; inset: 0; opacity: 0; visibility: hidden; }
+
+/* Layout rails, halved from the treatment's 4K values. */
+.rail { position: absolute; left: 150px; right: 150px; }
+.rail.head  { top: 270px; }
+.rail.base  { bottom: 330px; }
+.rail.mid   { top: 50%; transform: translateY(-52%); }   /* optical centre, raised 2% */
+.center { text-align: center; left: 200px; right: 200px; }
+
+/* Type roles. Sizes are the treatment's, halved. */
+.statement { font-family: var(--sans); font-size: 124px; font-weight: 600;
+             letter-spacing: -4.7px; line-height: 1.02; max-width: 1500px; }
+.headline  { font-family: var(--sans); font-size: 66px; font-weight: 600;
+             letter-spacing: -2.0px; line-height: 1.10; max-width: 1420px; }
+.thesis    { font-family: var(--serif); font-size: 76px; font-weight: 400;
+             letter-spacing: -0.9px; line-height: 1.18; max-width: 1450px; }
+.seclabel  { font-family: var(--sans); font-size: 42px; font-weight: 600;
+             letter-spacing: -0.85px; line-height: 1.15; }
+.spec      { font-family: var(--sans); font-size: 30px; font-weight: 500;
+             letter-spacing: -0.2px; line-height: 1.45; }
+.support   { font-family: var(--sans); font-size: 26px; font-weight: 400;
+             letter-spacing: -0.1px; line-height: 1.40; }
+.eyebrow   { font-family: var(--mono); font-size: 15px; font-weight: 500;
+             letter-spacing: 0.75px; text-transform: uppercase; line-height: 1.30; }
+.bignum    { font-family: var(--sans); font-size: 134px; font-weight: 600;
+             letter-spacing: -4.8px; line-height: 1.05;
+             font-variant-numeric: tabular-nums lining-nums; }
+.bignum.secondary { font-weight: 500; }
+.wordmark  { font-family: var(--sans); font-size: 100px; font-weight: 600;
+             letter-spacing: -3.8px; line-height: 1.05; }
+
+/* Ink follows the ground. */
+.on-sun   .statement, .on-sun .headline, .on-sun .seclabel,
+.on-sun   .spec, .on-sun .bignum, .on-sun .wordmark { color: var(--ink-sun); }
+.on-sun   .support, .on-sun .eyebrow, .on-sun .bignum.secondary { color: var(--mut-sun); }
+.on-shade .statement, .on-shade .headline, .on-shade .seclabel, .on-shade .thesis,
+.on-shade .spec, .on-shade .bignum, .on-shade .wordmark { color: var(--ink-shade); }
+.on-shade .support, .on-shade .eyebrow, .on-shade .bignum.secondary { color: var(--mut-shade); }
+.on-gl .eyebrow, .on-gl .headline, .on-gl .bignum, .on-gl .spec { color: var(--ink-shade); }
+.on-gl .support { color: var(--mut-shade); }
+
+/* The descender rule. This project's named recurring failure: a mask box with
+   line-height 1 clips the tails off y, g, p, q, j. Travel is 100% + 0.22em, and
+   the copy is deliberately full of descenders so the probe has something to
+   catch - pharmacy, regulates, buildings, longest, judges. */
+.mask { display: block; overflow: hidden; padding-bottom: 0.22em; margin-bottom: -0.22em; }
+.ink  { display: block; line-height: 1.18; }
+/* Word-level masks sit in the line, not on their own line. */
+.wmask { display: inline-block; overflow: hidden; vertical-align: bottom;
+         padding-bottom: 0.22em; margin-bottom: -0.22em; }
+.wmask > .ink { display: inline-block; line-height: 1.18; }
+
+.eyebrow-fixed { position: absolute; left: 150px; bottom: 89px; }
+
+.accent-rule { height: 3px; background: var(--accent); width: 132px; margin-top: 22px; }
+
+.cols { display: flex; gap: 140px; }
+.col { flex: 1 1 0; }
+
+.ledger { display: grid; gap: 0; margin-top: 20px; }
+.ledger .row { display: flex; align-items: baseline; gap: 40px; padding: 26px 0; }
+.on-sun .ledger .row { border-top: 1px solid var(--hair-sun); }
+.on-shade .ledger .row { border-top: 1px solid var(--hair-shade); }
+.ledger .k { flex: 0 0 460px; }
+.ledger .v { font-family: var(--sans); font-size: 52px; font-weight: 600;
+             letter-spacing: -1.6px; font-variant-numeric: tabular-nums; }
+
+#clock { position: absolute; right: 150px; bottom: 89px; text-align: right; }
+
+#grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.038;
+         mix-blend-mode: overlay; }
+#vig { position: absolute; inset: 0; pointer-events: none; }
+</style>
+
+<div id="stage">
+  <div id="ground"></div>
+  <canvas id="gl" width="1920" height="1080"></canvas>
+
+  <!-- ===== A. Cold open (3D) ===== -->
+  <section class="shot on-gl" id="s01">
+    <p class="eyebrow eyebrow-fixed"><span class="mask"><span class="ink"
+      >Portland, Oregon &middot; 16 Aug 2026 &middot; 15:00</span></span></p>
+  </section>
+
+  <!-- ===== B. Premise (SUN) ===== -->
+  <section class="shot on-sun" id="s02">
+    <div class="rail mid">
+      <p class="statement" data-words>Marisol is 71.</p>
+    </div>
+  </section>
+
+  <section class="shot on-sun" id="s03">
+    <div class="rail mid">
+      <p class="statement" data-words>She takes a diuretic, so her body no longer
+        regulates heat well.</p>
+    </div>
+    <p class="eyebrow eyebrow-fixed"><span class="mask"><span class="ink"
+      >SW 6th &amp; Clay &rarr; Capsule Pharmacy</span></span></p>
+  </section>
+
+  <!-- ===== The cost of the fast way (3D, street level) ===== -->
+  <section class="shot on-gl" id="s04">
+    <div class="rail head">
+      <p class="bignum" data-count="15" data-suffix=" minutes">0</p>
+      <p class="support" style="margin-top:14px">in direct sun, on the fastest route.</p>
+    </div>
+    <p class="eyebrow eyebrow-fixed"><span class="mask"><span class="ink"
+      >Shortest route &middot; 1,753 m &middot; 44% shaded</span></span></p>
+  </section>
+
+  <!-- ===== C. The name (SHADE) ===== -->
+  <section class="shot on-shade" id="s05">
+    <div class="rail mid center">
+      <p class="wordmark" data-words>Shade Route</p>
+      <p class="support" style="margin-top:26px">The shadiest way there, not the shortest.</p>
+    </div>
+  </section>
+
+  <!-- ===== D. The body ===== -->
+  <section class="shot on-sun" id="s06">
+    <div class="rail mid">
+      <p class="headline" data-words>Two ways to the pharmacy.</p>
+    </div>
+  </section>
+
+  <section class="shot on-sun" id="s07">
+    <div class="rail mid">
+      <div class="cols">
+        <div class="col">
+          <p class="eyebrow">Shortest</p>
+          <p class="bignum secondary" data-count="44" data-suffix="%" style="margin-top:18px">0</p>
+          <p class="eyebrow" style="margin-top:16px">1,753 m &middot; 27 min</p>
+        </div>
+        <div class="col">
+          <p class="eyebrow">Shade-weighted</p>
+          <p class="bignum" data-count="85" data-suffix="%" style="margin-top:18px">0</p>
+          <div class="accent-rule"></div>
+          <p class="eyebrow" style="margin-top:16px">1,901 m &middot; 29 min</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The 3D hero: the real route through the real block at 15:00 -->
+  <section class="shot on-gl" id="s08">
+    <p class="eyebrow eyebrow-fixed"><span class="mask"><span class="ink"
+      >85% of 1,901 m in shadow &middot; 16 Aug 2026, 15:00</span></span></p>
+  </section>
+
+  <section class="shot on-sun" id="s09">
+    <div class="rail mid">
+      <p class="headline" data-words>Every shadow is computed, not drawn.</p>
+      <p class="support" style="margin-top:24px">Building footprints from OpenStreetMap,
+        projected away from the sun's real position.</p>
+    </div>
+  </section>
+
+  <!-- The counters, on the model -->
+  <section class="shot on-gl" id="s10">
+    <div class="rail head">
+      <div class="ledger" style="max-width:900px">
+        <div class="row"><p class="eyebrow k">Building shadows</p>
+          <p class="v" data-count="1186">0</p></div>
+        <div class="row"><p class="eyebrow k">Tree shadows</p>
+          <p class="v" data-count="737">0</p></div>
+        <div class="row"><p class="eyebrow k">Named places</p>
+          <p class="v" data-count="245">0</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== The trade, stated plainly (SHADE) ===== -->
+  <section class="shot on-shade" id="s11">
+    <div class="rail mid">
+      <p class="headline" data-words>The shady way is longer.</p>
+      <div class="ledger" style="max-width:1180px;margin-top:44px">
+        <div class="row"><p class="spec k">Further</p><p class="v">+148 m</p></div>
+        <div class="row"><p class="spec k">Slower</p><p class="v">+2 min</p></div>
+        <div class="row"><p class="spec k">Time in direct sun</p><p class="v">15 min &rarr; 4 min</p></div>
+      </div>
+      <p class="eyebrow" style="margin-top:34px">At a walking speed of 1.1 m/s</p>
+    </div>
+  </section>
+
+  <!-- ===== E. The day sweep - the drop ===== -->
+  <section class="shot on-gl" id="s12">
+    <p class="eyebrow eyebrow-fixed"><span class="mask"><span class="ink"
+      >One day of real sun, 07:00 to 19:00</span></span></p>
+    <p class="eyebrow" id="clock">15:00</p>
+  </section>
+
+  <!-- ===== F. The lift - the thesis ===== -->
+  <section class="shot on-shade" id="s13">
+    <div class="rail mid">
+      <p class="thesis" data-words>Shade is not decoration. For the people most
+        at risk from heat, it is the difference between a walk and a hazard.</p>
+    </div>
+  </section>
+
+  <section class="shot on-shade" id="s14">
+    <div class="rail mid">
+      <p class="headline" data-words>So it asks the question she actually asks.</p>
+      <p class="seclabel" style="margin-top:44px;color:var(--accent)">When should I go?</p>
+      <ul class="hours" id="hourStrip" style="margin-top:46px;display:flex;
+          align-items:flex-end;gap:11px;height:230px;list-style:none"></ul>
+      <p class="support" style="margin-top:26px;max-width:1400px">Thirteen departure
+        times, each one fully routed, ranked by time in direct sun rather than by
+        percentage &mdash; minutes of exposure are what cause harm.</p>
+    </div>
+  </section>
+
+  <!-- ===== G. Proof run ===== -->
+  <section class="shot on-sun" id="s15">
+    <div class="rail mid">
+      <p class="headline" data-words>17 benches along the way.</p>
+      <p class="support" style="margin-top:24px">And it says the longest stretch
+        without one is 780 m &mdash; more than the 300 m she needs.</p>
+    </div>
+  </section>
+
+  <section class="shot on-sun" id="s16">
+    <div class="rail mid">
+      <p class="headline" data-words>Every route is also a paragraph.</p>
+      <p class="support" style="margin-top:24px">Turn by turn, in words, with the
+        shade and the benches named. Keyboard navigable, AA contrast in both themes.</p>
+    </div>
+  </section>
+
+  <!-- ===== H. Limits ===== -->
+  <section class="shot on-shade" id="s17">
+    <div class="rail mid">
+      <p class="seclabel" data-words>What it does not know.</p>
+      <div class="ledger" style="max-width:1500px;margin-top:36px">
+        <div class="row"><p class="spec">Building heights are estimated from floor
+          counts wherever OpenStreetMap has no height.</p></div>
+        <div class="row"><p class="spec">Tree coverage is only as complete as the
+          map &mdash; an untagged street looks sunnier than it is.</p></div>
+        <div class="row"><p class="spec">Shadows are convex hulls, and the ground
+          is assumed flat.</p></div>
+        <div class="row"><p class="spec">Shade changes radiant temperature, not air
+          temperature, so nothing here is quoted in degrees.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== I. Endcard ===== -->
+  <section class="shot on-shade" id="s18">
+    <div class="rail mid center">
+      <p class="wordmark" data-words>Shade Route</p>
+      <p class="support" style="margin-top:26px">Open data, open source, no keys to hand out.</p>
+      <p class="eyebrow" style="margin-top:40px">OpenStreetMap &middot; pvlib &middot;
+        OSMnx &middot; Shapely &middot; FastAPI</p>
+    </div>
+  </section>
+
+  <canvas id="grain" width="480" height="270"></canvas>
+  <div id="vig"></div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.180.0/build/three.module.js';
+
+const FPS = 30;
+const W = 1920, H = 1080;
+
+// Nine sections; ground state per shot is the spine. 3600 frames = 120.000 s.
+const SHOTS = [
+  { el: 's01', start:    0, end:  239, ground: 'gl'    },  //  8.0  cold open, macro shadow
+  { el: 's02', start:  240, end:  359, ground: 'sun'   },  //  4.0  Marisol is 71
+  { el: 's03', start:  360, end:  539, ground: 'sun'   },  //  6.0  the diuretic
+  { el: 's04', start:  540, end:  719, ground: 'gl'    },  //  6.0  15 minutes in sun
+  { el: 's05', start:  720, end:  899, ground: 'shade' },  //  6.0  the name
+  { el: 's06', start:  900, end: 1019, ground: 'sun'   },  //  4.0  two ways
+  { el: 's07', start: 1020, end: 1259, ground: 'sun'   },  //  8.0  44 against 85
+  { el: 's08', start: 1260, end: 1559, ground: 'gl'    },  // 10.0  the 3D hero
+  { el: 's09', start: 1560, end: 1739, ground: 'sun'   },  //  6.0  computed not drawn
+  { el: 's10', start: 1740, end: 1979, ground: 'gl'    },  //  8.0  the counters
+  { el: 's11', start: 1980, end: 2219, ground: 'shade' },  //  8.0  the trade
+  { el: 's12', start: 2220, end: 2579, ground: 'gl'    },  // 12.0  THE DAY SWEEP
+  { el: 's13', start: 2580, end: 2819, ground: 'shade' },  //  8.0  the thesis (serif, once)
+  { el: 's14', start: 2820, end: 3059, ground: 'shade' },  //  8.0  when should I go
+  { el: 's15', start: 3060, end: 3209, ground: 'sun'   },  //  5.0  benches
+  { el: 's16', start: 3210, end: 3359, ground: 'sun'   },  //  5.0  a paragraph
+  { el: 's17', start: 3360, end: 3479, ground: 'shade' },  //  4.0  limits
+  { el: 's18', start: 3480, end: 3599, ground: 'shade' },  //  4.0  endcard
+];
+window.TOTAL_FRAMES = 3600;
+
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const lerp = (a, b, t) => a + (b - a) * t;
+const outExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
+const outQuint = (t) => 1 - Math.pow(1 - t, 5);
+const inOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
+const inOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+const GROUND = { sun: '#F7F5F0', shade: '#0E1113', gl: '#0E1113' };
+
+// ---- the hour strip, from the real sweep -----------------------------------
+const HOURS = [
+  { h: 7, pct: 99 }, { h: 8, pct: 93 }, { h: 9, pct: 88 }, { h: 10, pct: 71 },
+  { h: 11, pct: 82 }, { h: 12, pct: 82 }, { h: 13, pct: 71 }, { h: 14, pct: 51 },
+  { h: 15, pct: 85 }, { h: 16, pct: 91 }, { h: 17, pct: 93 }, { h: 18, pct: 90 },
+  { h: 19, pct: 96 },
+];
+(function buildHours() {
+  const strip = document.getElementById('hourStrip');
+  for (const e of HOURS) {
+    const li = document.createElement('li');
+    li.style.cssText = 'flex:1 1 0;display:flex;flex-direction:column;justify-content:flex-end;' +
+                       'align-items:center;gap:12px';
+    const bar = document.createElement('span');
+    bar.className = 'hbar';
+    bar.dataset.pct = e.pct;
+    bar.style.cssText = 'width:100%;border-radius:5px 5px 2px 2px;background:' +
+      (e.h === 7 ? 'var(--accent)' : e.h === 14 ? '#3A3F45' : '#4A5058');
+    const lab = document.createElement('span');
+    lab.className = 'eyebrow';
+    lab.textContent = e.h;
+    if (e.h === 7 || e.h === 14) lab.style.color = 'var(--ink-shade)';
+    li.append(bar, lab);
+    strip.append(li);
+  }
+}());
+
+// ---- split words into masked spans ----------------------------------------
+const shots = SHOTS.map((cfg) => {
+  const el = document.getElementById(cfg.el);
+  const words = [];
+  el.querySelectorAll('[data-words]').forEach((node) => {
+    const parts = node.innerHTML.trim().split(/\s+/);
+    node.innerHTML = parts
+      .map((p) => `<span class="wmask"><span class="ink">${p}</span></span>`)
+      .join(' ');
+    node.querySelectorAll('.wmask > .ink').forEach((w) => words.push(w));
+  });
+  return {
+    cfg, el,
+    words,
+    masks: el.querySelectorAll('.eyebrow-fixed .ink'),
+    counts: el.querySelectorAll('[data-count]'),
+    bars: el.querySelectorAll('.hbar'),
+    rows: el.querySelectorAll('.ledger .row'),
+    rise: el.querySelectorAll('.support, .eyebrow:not(.eyebrow-fixed), .accent-rule, .seclabel'),
+  };
+});
+
+// ---- grain + vignette ------------------------------------------------------
+(function grain() {
+  const c = document.getElementById('grain');
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(c.width, c.height);
+  let seed = 20260817;
+  for (let i = 0; i < img.data.length; i += 4) {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    const v = 96 + (seed / 4294967296) * 140;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+    img.data[i + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  c.style.width = '1920px'; c.style.height = '1080px';
+}());
+
+// ============================================================================
+// three.js — the same model the router runs on
+// ============================================================================
+const data = window.SCENE3D;
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.92;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#8fa3b0');
+scene.fog = new THREE.Fog('#93a6b2', 1500, 4000);
+const camera = new THREE.PerspectiveCamera(26, W / H, 1, 5000);
+
+scene.add(new THREE.HemisphereLight('#bcd6f5', '#8a8272', 1.30));
+const sunLight = new THREE.DirectionalLight('#fff1cf', 3.0);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(4096, 4096);
+const SH = 900;
+Object.assign(sunLight.shadow.camera,
+  { left: -SH, right: SH, top: SH, bottom: -SH, near: 1, far: 4200 });
+sunLight.shadow.bias = -0.0006;
+sunLight.shadow.normalBias = 0.6;
+const sunTarget = new THREE.Object3D();
+scene.add(sunTarget, sunLight);
+sunLight.target = sunTarget;
+
+const ground3d = new THREE.Mesh(
+  new THREE.PlaneGeometry(6000, 6000),
+  new THREE.MeshStandardMaterial({ color: '#b9b6ac', roughness: 1.0, metalness: 0 })
+);
+ground3d.rotation.x = -Math.PI / 2;
+ground3d.receiveShadow = true;
+scene.add(ground3d);
+
+function mergeGeometries(geos) {
+  let vc = 0, ic = 0;
+  for (const g of geos) {
+    vc += g.attributes.position.count;
+    ic += g.index ? g.index.count : g.attributes.position.count;
+  }
+  const pos = new Float32Array(vc * 3), nor = new Float32Array(vc * 3), col = new Float32Array(vc * 3);
+  const idx = new Uint32Array(ic);
+  let vo = 0, io = 0;
+  for (const g of geos) {
+    pos.set(g.attributes.position.array, vo * 3);
+    if (g.attributes.normal) nor.set(g.attributes.normal.array, vo * 3);
+    if (g.attributes.color) col.set(g.attributes.color.array, vo * 3);
+    const n = g.attributes.position.count;
+    if (g.index) { const gi = g.index.array; for (let i = 0; i < gi.length; i++) idx[io + i] = gi[i] + vo; io += gi.length; }
+    else { for (let i = 0; i < n; i++) idx[io + i] = vo + i; io += n; }
+    vo += n;
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  out.setIndex(new THREE.BufferAttribute(idx, 1));
+  out.computeVertexNormals();
+  return out;
+}
+
+{
+  const geos = [];
+  let seed = 20260817;
+  for (const b of data.buildings) {
+    const shape = new THREE.Shape();
+    shape.moveTo(b.p[0][0], b.p[0][1]);
+    for (let i = 1; i < b.p.length; i++) shape.lineTo(b.p[i][0], b.p[i][1]);
+    shape.closePath();
+    const g = new THREE.ExtrudeGeometry(shape, { depth: b.h, bevelEnabled: false });
+    g.rotateX(-Math.PI / 2);
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    const j = seed / 4294967296;
+    // Deterministic per-prism tone. 877 identical cream boxes read as a CAD
+    // export; a little variation reads as observed.
+    const tone = new THREE.Color().setHSL(0.09 + j * 0.03, 0.04 + j * 0.06, 0.63 + j * 0.18);
+    const n = g.attributes.position.count;
+    const cols = new Float32Array(n * 3);
+    for (let v = 0; v < n; v++) { cols[v*3] = tone.r; cols[v*3+1] = tone.g; cols[v*3+2] = tone.b; }
+    g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    geos.push(g);
+  }
+  const mesh = new THREE.Mesh(mergeGeometries(geos),
+    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0 }));
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  scene.add(mesh);
+}
+
+function ribbon(points, colour, lift, width) {
+  const pts = points.map(([e, n]) => new THREE.Vector3(e, lift, -n));
+  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0);
+  const geo = new THREE.TubeGeometry(curve, Math.min(1400, pts.length * 6), width, 8, false);
+  return new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+    color: colour, roughness: 0.5, metalness: 0,
+    emissive: new THREE.Color(colour), emissiveIntensity: 0.35,
+  }));
+}
+// The shortest route is deliberately drab: it is not a second accent.
+const routeShort = ribbon(data.route.shortest, '#B9B3A8', 3.0, 5.0);
+const routeShade = ribbon(data.route.shadiest, '#E8552A', 5.0, 7.0);
+scene.add(routeShort, routeShade);
+
+function placeSun(azDeg, elDeg) {
+  const az = azDeg * Math.PI / 180, el = elDeg * Math.PI / 180, d = 1900;
+  sunLight.position.set(
+    Math.sin(az) * Math.cos(el) * d,
+    Math.sin(el) * d,
+    -Math.cos(az) * Math.cos(el) * d
+  );
+  sunLight.target.updateMatrixWorld();
+}
+
+const track = (data.sun_track || []).filter((e) => e.el > 1.0);
+function sunAt(p) {
+  const x = clamp01(p) * (track.length - 1);
+  const i = Math.floor(x), f = x - i;
+  const a = track[i], b = track[Math.min(i + 1, track.length - 1)];
+  return { az: a.az + (b.az - a.az) * f, el: a.el + (b.el - a.el) * f, label: a.t };
+}
+const KEY = data.sun['15:00'];      // one key direction for the whole film
+
+const route = data.route.shadiest;
+const rx = route.reduce((a, p) => a + p[0], 0) / route.length;
+const rn = route.reduce((a, p) => a + p[1], 0) / route.length;
+const LOOK = new THREE.Vector3(rx, 40, -rn);
+
+// Camera per 3D shot. Every move is a pure function of that shot's progress.
+function camera3d(id, t) {
+  if (id === 's01') {
+    // Cold open: low and close on one tower's shadow across the pavement.
+    placeSun(KEY.az, KEY.el);
+    const a = 3.30 + t * 0.10;
+    camera.position.set(LOOK.x + Math.sin(a) * 300, 60 - t * 14, LOOK.z + Math.cos(a) * 300);
+    camera.lookAt(LOOK.x - 40, 24, LOOK.z + 60);
+  } else if (id === 's04') {
+    // Street level on the exposed route.
+    placeSun(KEY.az, KEY.el);
+    const a = 3.9 + t * 0.06;
+    camera.position.set(LOOK.x + Math.sin(a) * 420, 90 - t * 10, LOOK.z + Math.cos(a) * 420);
+    camera.lookAt(LOOK.x, 46, LOOK.z);
+  } else if (id === 's08') {
+    // The hero: a slow arc from the sun's own side, high enough to read the
+    // grid and the shadows lying across it.
+    placeSun(KEY.az, KEY.el);
+    const a = 3.50 + inOutSine(t) * 0.34;
+    const r = 1220 - inOutSine(t) * 150;
+    camera.position.set(LOOK.x + Math.sin(a) * r, 470 - inOutSine(t) * 70, LOOK.z + Math.cos(a) * r);
+    camera.lookAt(LOOK);
+  } else if (id === 's10') {
+    placeSun(KEY.az, KEY.el);
+    const a = 3.86 + t * 0.10;
+    camera.position.set(LOOK.x + Math.sin(a) * 980, 360 - t * 30, LOOK.z + Math.cos(a) * 980);
+    camera.lookAt(LOOK);
+  } else {
+    // s12 - the day sweep. The camera barely moves so the shadows are the only
+    // thing changing: 07:00 through 19:00 on the real solar track.
+    const s = sunAt(t);
+    placeSun(s.az, s.el);
+    const a = 3.62 + inOutSine(t) * 0.12;
+    camera.position.set(LOOK.x + Math.sin(a) * 1150, 430, LOOK.z + Math.cos(a) * 1150);
+    camera.lookAt(LOOK);
+    const clock = document.getElementById('clock');
+    if (clock) clock.textContent = s.label;
+  }
+}
+
+// ============================================================================
+window.seek = function (frame) {
+  let active = null;
+  for (const s of shots) {
+    const { start, end } = s.cfg;
+    const on = frame >= start && frame <= end;
+    s.el.style.opacity = on ? '1' : '0';
+    s.el.style.visibility = on ? 'visible' : 'hidden';
+    if (on) active = s;
+  }
+  if (!active) return;
+
+  const { cfg } = active;
+  const len = cfg.end - cfg.start;
+  const local = frame - cfg.start;
+  const t = clamp01(local / len);
+
+  document.getElementById('ground').style.background = GROUND[cfg.ground];
+  const isGl = cfg.ground === 'gl';
+  canvas.style.display = isGl ? 'block' : 'none';
+
+  // Vignette is heavier on shade than on paper.
+  document.getElementById('vig').style.background = cfg.ground === 'sun'
+    ? 'radial-gradient(ellipse 80% 70% at 50% 48%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.055) 100%)'
+    : 'radial-gradient(ellipse 78% 68% at 50% 48%, rgba(0,0,0,0) 42%, rgba(0,0,0,0.42) 100%)';
+
+  if (isGl) camera3d(cfg.el, t);
+
+  // Words: mask-reveal from below. 2 frames apart at 30fps is 67ms - one
+  // gesture, still readable. Travel is 100% + the descender pad.
+  active.words.forEach((w, i) => {
+    const p = outExpo(clamp01((local - (6 + i * 2)) / 22));
+    w.style.transform = `translateY(${((1 - p) * 112).toFixed(2)}%)`;
+    w.style.opacity = p.toFixed(3);
+  });
+
+  active.rise.forEach((el, i) => {
+    const p = outExpo(clamp01((local - (14 + i * 6)) / 26));
+    el.style.transform = `translateY(${((1 - p) * 18).toFixed(2)}px)`;
+    el.style.opacity = p.toFixed(3);
+  });
+
+  active.rows.forEach((el, i) => {
+    const p = outExpo(clamp01((local - (18 + i * 8)) / 28));
+    el.style.transform = `translateY(${((1 - p) * 16).toFixed(2)}px)`;
+    el.style.opacity = p.toFixed(3);
+  });
+
+  // Counters use outQuint and land well before the cut, so the frame holds on
+  // the finished figure rather than arriving with it.
+  active.counts.forEach((el, i) => {
+    const target = +el.getAttribute('data-count');
+    const suffix = el.getAttribute('data-suffix') || '';
+    const p = outQuint(clamp01((local - (20 + i * 10)) / 46));
+    el.textContent = Math.round(target * p).toLocaleString('en-US') + suffix;
+  });
+
+  active.bars.forEach((bar, i) => {
+    const pct = +bar.dataset.pct;
+    const p = outQuint(clamp01((local - (24 + i * 3)) / 38));
+    bar.style.height = (pct * 1.95 * p).toFixed(1) + 'px';
+  });
+
+  if (isGl) renderer.render(scene, camera);
+};
+
+window.seek(0);
+</script>
+</html>

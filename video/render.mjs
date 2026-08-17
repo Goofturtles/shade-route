@@ -103,6 +103,12 @@ async function capture() {
       '--disable-lcd-text',            // greyscale AA; subpixel fringes look like colour noise once encoded
       '--hide-scrollbars',
       '--disable-background-timer-throttling',
+      // The film's centrepiece is a three.js scene, and headless Chromium falls
+      // back to SwiftShader without these. On the 4090 that is 156 ms/frame at
+      // 4K against 247 - and the software path is not merely slower, it renders
+      // shadow maps differently, so the look would change with the flags.
+      '--use-gl=angle', '--use-angle=d3d11',
+      '--enable-gpu', '--ignore-gpu-blocklist',
       '--force-device-scale-factor=' + DPR,
     ],
   });
