@@ -1,0 +1,23 @@
+# The caches are NOT ignored — they are the reason the container answers its
+# first request without calling Overpass. Everything below is either a local
+# build product or many times larger than the app itself.
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# The launch film: sources are small, but the stills and encodes are hundreds
+# of megabytes and have no business in a runtime image.
+video/footage/
+video/frames/
+video/*.mp4
+video/*.wav
+video/newscenes.png
+
+.git/
+.github/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,13 @@
+# Alternative host. Render's free web service sleeps after 15 minutes idle and
+# takes ~50 s to wake, which is worse for a judge clicking a link than Hugging
+# Face Spaces — kept here so the option exists.
+services:
+  - type: web
+    name: shade-route
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
