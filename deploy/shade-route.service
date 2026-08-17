@@ -1,0 +1,31 @@
+[Unit]
+Description=Shade Route (walking routes that stay in the shade)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=shaderoute
+Group=shaderoute
+WorkingDirectory=/opt/shade-route
+# Bound to loopback, so Caddy is the only thing that can reach it — the same
+# shape ghostbus.service uses. Port 8010 is unused on this box: 8799 is
+# ghostbus and 3488 is secondlook, and neither is touched by this unit.
+ExecStart=/opt/shade-route/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8010
+Restart=always
+RestartSec=5
+
+# The shade field is rebuilt on demand and cached for the last four moments, so
+# memory is bounded by design. This ceiling is a backstop that protects the two
+# services already on this box, not a working limit.
+MemoryMax=2G
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+# The only directory the app writes to: OSMnx caches new queries here. The
+# committed caches mean it should rarely need to.
+ReadWritePaths=/opt/shade-route/cache
+
+[Install]
+WantedBy=multi-user.target
