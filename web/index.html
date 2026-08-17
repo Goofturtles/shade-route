@@ -1158,24 +1158,67 @@ input[type="range"]:focus-visible { outline: 3px solid var(--shade); outline-off
   // ---- controls ----------------------------------------------------------
   goBtn.addEventListener("click", findRoute);
 
-  document.getElementById("surprise").addEventListener("click", function () {
-    if (state.places.length < 2) { say("Still loading places near you."); return; }
-    function far(a, b) {
-      var dy = (a.lat - b.lat) * 111320;
-      var dx = (a.lon - b.lon) * 111320 * Math.cos(a.lat * Math.PI / 180);
-      return Math.sqrt(dx * dx + dy * dy);
-    }
-    var a, b, tries = 0;
-    do {
-      a = state.places[Math.floor(Math.random() * state.places.length)];
-      b = state.places[Math.floor(Math.random() * state.places.length)];
-      tries++;
-    } while (tries < 80 && far(a, b) < 600);
+  function farApart(a, b) {
+    var dy = (a.lat - b.lat) * 111320;
+    var dx = (a.lon - b.lon) * 111320 * Math.cos(a.lat * Math.PI / 180);
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  // Pick somewhere worth walking to FROM a given start: far enough that the
+  // shade choice can differ, near enough to still be a walk.
+  function pickDestination(from) {
+    var reachable = state.places.filter(function (p) {
+      var d = farApart(from, p);
+      return d > 500 && d < 2200;
+    });
+    var pool = reachable.length ? reachable : state.places;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function surpriseFrom(from) {
+    var to = pickDestination(from);
+    if (!to) { say("No places near enough to walk to yet."); return; }
     clearRoute();
-    setPoint("origin", a.lat, a.lon, a.name);
-    setPoint("destination", b.lat, b.lon, b.name);
+    setPoint("origin", from.lat, from.lon, from.name || "You are here");
+    setPoint("destination", to.lat, to.lon, to.name);
     findRoute();
+  }
+
+  document.getElementById("surprise").addEventListener("click", function () {
+    if (!state.places.length) { say("Still loading places near you."); return; }
+
+    // Start from where you actually are. A random walk between two strangers'
+    // addresses is a demo; a walk from your own doorstep is the product.
+    if (state.origin) { surpriseFrom(state.origin); return; }
+
+    if (!navigator.geolocation) { surpriseFrom(state.places[Math.floor(Math.random() * state.places.length)]); return; }
+
+    say("Finding you first…", true);
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var lat = pos.coords.latitude, lon = pos.coords.longitude;
+      moveArea(lat, lon, "Around you").then(function () {
+        showMe(lat, lon);
+        // The area just moved, so the place list is the new one.
+        surpriseFrom({ lat: lat, lon: lon, name: "You are here" });
+      }).catch(function () {
+        surpriseFrom(state.places[Math.floor(Math.random() * state.places.length)]);
+      });
+    }, function () {
+      // Location refused or unavailable: still give them a walk rather than
+      // an error, just not one that starts at their door.
+      say("Could not get your location — picking a walk nearby instead.");
+      surpriseFrom(state.places[Math.floor(Math.random() * state.places.length)]);
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 });
   });
+
+  function showMe(lat, lon) {
+    if (meMarker) { map.removeLayer(meMarker); }
+    meMarker = L.marker([lat, lon], {
+      icon: divIcon('<div style="position:relative"><span class="sonar"></span>' +
+                    '<span class="me-dot"></span></div>', 22),
+      title: "You are here", zIndexOffset: 500
+    }).addTo(map);
+  }
 
   document.getElementById("locate").addEventListener("click", function () {
     if (!navigator.geolocation) {
@@ -1188,12 +1231,7 @@ input[type="range"]:focus-visible { outline: 3px solid var(--shade); outline-off
       // Move the working area to the visitor, rather than refusing them for
       // standing outside a box in Portland — which is what used to happen.
       moveArea(lat, lon, "Around you").then(function (cfg) {
-        if (meMarker) { map.removeLayer(meMarker); }
-        meMarker = L.marker([lat, lon], {
-          icon: divIcon('<div style="position:relative"><span class="sonar"></span>' +
-                        '<span class="me-dot"></span></div>', 22),
-          title: "You are here", zIndexOffset: 500
-        }).addTo(map);
+        showMe(lat, lon);
         clearRoute();
         state.destination = null;
         if (pinB) { map.removeLayer(pinB); pinB = null; }
