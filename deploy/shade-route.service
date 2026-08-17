@@ -20,12 +20,36 @@ RestartSec=5
 # services already on this box, not a working limit.
 MemoryMax=2G
 
+# Building a shade field is synchronous, CPU-bound geometry work. Memory was
+# already capped, but nothing bounded CPU -- so a burst of judges hitting this
+# at once could contend with ghostbus.tech, which is somebody's live site.
+# Weight, not quota: shade-route gets the full box when it is idle and yields
+# to the two neighbours the moment they want CPU.
+CPUWeight=20
+
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
-# The only directory the app writes to: OSMnx caches new queries here. The
-# committed caches mean it should rarely need to.
+# Note ProtectSystem=full only makes /usr, /boot and /etc read-only -- it does
+# NOT cover /opt, so this line is a statement of intent plus the Unix
+# permissions on the tree, not an enforced allowlist. Tightening it to
+# ProtectSystem=strict is the correct fix and is deliberately not being done
+# hours before a deadline, untested.
 ReadWritePaths=/opt/shade-route/cache
+
+# Some scientific-Python dependencies probe $HOME for a cache directory before
+# falling back to tmp. A system user has no real home, so point both at a
+# directory that certainly exists and is writable.
+Environment=HOME=/opt/shade-route
+Environment=MPLCONFIGDIR=/opt/shade-route/cache/mpl
+
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+# Binding to loopback needs no capabilities at all.
+CapabilityBoundingSet=
 
 [Install]
 WantedBy=multi-user.target
