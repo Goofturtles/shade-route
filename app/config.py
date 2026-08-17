@@ -181,4 +181,44 @@ def configure_osmnx() -> None:
     ox.settings.use_cache = True
     ox.settings.cache_folder = str(CACHE_DIR / "osmnx")
     ox.settings.log_console = False
+
+    # OSMnx defaults to a 180-second request timeout. When Overpass refuses
+    # connections -- which it does, and which it did twice during this build --
+    # that turns a dead upstream into a three-minute hang with no explanation.
+    # Twelve seconds across three mirrors bounds the whole attempt at about a
+    # minute, and a healthy Overpass answers a 2 km query well inside it.
+    ox.settings.requests_timeout = 12
     _osmnx_configured = True
+
+
+# Overpass mirrors, tried in order. All three are public instances of the same
+# API serving the same OSM data, so which one answers changes nothing about the
+# result -- only whether there is one. No key is needed for any of them, which
+# keeps §4's "no API keys anywhere" intact.
+OVERPASS_MIRRORS = (
+    "https://overpass-api.de/api",
+    "https://overpass.kumi.systems/api",
+    "https://overpass.private.coffee/api",
+)
+
+
+def with_overpass_fallback(fetch):
+    """Run `fetch`, moving to the next mirror if one is unreachable.
+
+    Returns the first successful result. If every mirror fails, the LAST error
+    is raised, because by then the interesting fact is that they are all down
+    rather than what the first one said.
+    """
+    import osmnx as ox
+
+    configure_osmnx()
+    last = None
+    for url in OVERPASS_MIRRORS:
+        ox.settings.overpass_url = url
+        try:
+            return fetch()
+        except Exception as exc:  # noqa: BLE001 - any transport failure is a miss
+            last = exc
+            continue
+    ox.settings.overpass_url = OVERPASS_MIRRORS[0]
+    raise last if last else RuntimeError("No Overpass mirror was reachable.")

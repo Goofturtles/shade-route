@@ -95,7 +95,9 @@ def verify_bbox_orientation(graph: nx.MultiDiGraph) -> dict:
 
 def _download_graph() -> nx.MultiDiGraph:
     log.info("Downloading walking network for %s ...", config.DEMO_BBOX)
-    graph = ox.graph_from_bbox(config.DEMO_BBOX, network_type="walk")
+    graph = config.with_overpass_fallback(
+        lambda: ox.graph_from_bbox(config.DEMO_BBOX, network_type="walk")
+    )
     verify_bbox_orientation(graph)
     GRAPH_FILE.parent.mkdir(parents=True, exist_ok=True)
     ox.save_graphml(graph, graph_file())
