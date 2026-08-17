@@ -141,8 +141,8 @@ try {
     mesh.castShadow = false;
     return mesh;
   }
-  scene.add(ribbon(data.route.shortest, '#8fb4f5', 2.0, 2.2));
-  scene.add(ribbon(data.route.shadiest, '#5fd39a', 3.2, 3.0));
+  scene.add(ribbon(data.route.shortest, '#7ea6f0', 3.0, 5.0));
+  scene.add(ribbon(data.route.shadiest, '#4ade8a', 5.0, 7.0));
 
   // --- sun placement -------------------------------------------------------
   // Azimuth is degrees clockwise from north; the scene's north is -Z and east
@@ -167,9 +167,24 @@ try {
   const rn = route.reduce((a, p) => a + p[1], 0) / route.length;
   const look = new THREE.Vector3(rx, 40, -rn);
 
+  const track = (data.sun_track || []).filter((e) => e.el > 1.0);
+
+  function sunAt(p) {
+    const x = Math.max(0, Math.min(1, p)) * (track.length - 1);
+    const i = Math.floor(x), f = x - i;
+    const a = track[i], b = track[Math.min(i + 1, track.length - 1)];
+    return {
+      az: a.az + (b.az - a.az) * f,
+      el: a.el + (b.el - a.el) * f,
+      label: a.t,
+    };
+  }
+
   window.seek = function (frame) {
     const t = frame / 240;
-    placeSun(data.sun['15:00'].az, data.sun['15:00'].el);
+    // 07:20 through to 18:40 across the shot.
+    const s = sunAt(t);
+    placeSun(s.az, s.el);
     // A slow arc from the south-west, high enough to read the grid and the
     // shadows across it, low enough that the towers still have height. 26mm
     // keeps the verticals close to parallel.
@@ -178,6 +193,7 @@ try {
     camera.position.set(look.x + Math.sin(a) * r, 470 - t * 60, look.z + Math.cos(a) * r);
     camera.lookAt(look);
     renderer.render(scene, camera);
+    window.__clock = s.label;
   };
   window.TOTAL_FRAMES = 240;
   window.seek(0);

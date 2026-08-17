@@ -29,3 +29,4 @@ video/score.wav
 # contact sheet is a screenshot of scene.html. Both regenerate.
 video/*.wav
 video/newscenes.png
+video/scene3d.json

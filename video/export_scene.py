@@ -139,6 +139,24 @@ def main() -> int:
     print("sun...")
     day = datetime.fromisoformat(ROUTE_PARAMS["when"])
     sun_table = {}
+    # Every ten minutes, so the film can sweep the sun across the day and the
+    # shadows move continuously. Interpolating between hourly samples would be
+    # close enough to look right and would stop being the real solar track,
+    # which is the only thing that makes the shot worth filming.
+    track = []
+    for minute in range(5 * 60, 21 * 60 + 1, 10):
+        pos = sun.solar_position(datetime(day.year, day.month, day.day,
+                                          minute // 60, minute % 60))
+        track.append({
+            "t": f"{minute // 60:02d}:{minute % 60:02d}",
+            "m": minute,
+            "az": round(pos.azimuth_deg, 2),
+            "el": round(pos.elevation_deg, 2),
+        })
+    peak = max(track, key=lambda e: e["el"])
+    print(f"  {len(track)} samples, 05:00-21:00 every 10 min")
+    print(f"  peak {peak['el']:.2f} deg at {peak['t']}")
+
     for hour in (7, 9, 12, 15, 17, 19):
         pos = sun.solar_position(datetime(day.year, day.month, day.day, hour, 0))
         sun_table[f"{hour:02d}:00"] = {
@@ -161,6 +179,8 @@ def main() -> int:
         "buildings": out_buildings,
         "route": local_routes,
         "sun": sun_table,
+        "sun_track": track,
+        "sun_peak": peak,
         "tallest_m": max(b["h"] for b in out_buildings),
     }
     blob = json.dumps(data, separators=(",", ":"))
