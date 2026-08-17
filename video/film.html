@@ -57,6 +57,9 @@
 html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--shade); }
 
 #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+/* Belt and braces: even if the renderer's own sizing is changed again, the
+   canvas cannot lay itself out bigger than the frame. */
+#gl { position: absolute; inset: 0; display: block; width: 1920px; height: 1080px; }
 
 /* The ground is one element that changes colour, not two stacked pages: the
    cut between sun and shade has to be a single hard step. */
@@ -494,7 +497,7 @@ const data = window.SCENE3D;
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(2);
-renderer.setSize(W, H, false);
+renderer.setSize(W, H, true);   // updateStyle: the element must stay 1920x1080 CSS
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
