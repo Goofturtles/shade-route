@@ -30,3 +30,7 @@ video/score.wav
 video/*.wav
 video/newscenes.png
 video/scene3d.json
+
+video/thumb-3840.png
+video/thumb-1920.png
+video/thumb-1280.png
