@@ -1191,25 +1191,43 @@ input[type="range"]:focus-visible { outline: 3px solid var(--shade); outline-off
     // addresses is a demo; a walk from your own doorstep is the product.
     if (state.origin) { surpriseFrom(state.origin); return; }
 
-    if (!navigator.geolocation) { surpriseFrom(state.places[Math.floor(Math.random() * state.places.length)]); return; }
+    function randomStart() {
+      surpriseFrom(state.places[Math.floor(Math.random() * state.places.length)]);
+    }
+    if (!navigator.geolocation) { randomStart(); return; }
 
-    say("Finding you first…", true);
+    // Ask the permission first where the browser supports it. Without this, a
+    // visitor who has blocked location waits out the full geolocation timeout
+    // before getting their walk -- 14 seconds of nothing, for a button whose
+    // whole appeal is that it is instant.
+    var gate = (navigator.permissions && navigator.permissions.query)
+      ? navigator.permissions.query({ name: "geolocation" }).catch(function () { return null; })
+      : Promise.resolve(null);
+
+    gate.then(function (status) {
+      if (status && status.state === "denied") { randomStart(); return; }
+      say("Finding you first…", true);
+      locateThen(randomStart);
+    });
+  });
+
+  function locateThen(onFail) {
     navigator.geolocation.getCurrentPosition(function (pos) {
       var lat = pos.coords.latitude, lon = pos.coords.longitude;
       moveArea(lat, lon, "Around you").then(function () {
         showMe(lat, lon);
         // The area just moved, so the place list is the new one.
         surpriseFrom({ lat: lat, lon: lon, name: "You are here" });
-      }).catch(function () {
-        surpriseFrom(state.places[Math.floor(Math.random() * state.places.length)]);
-      });
+      }).catch(onFail);
     }, function () {
-      // Location refused or unavailable: still give them a walk rather than
-      // an error, just not one that starts at their door.
+      // Refused or unavailable: still hand back a walk rather than an error,
+      // just not one that starts at their door.
       say("Could not get your location — picking a walk nearby instead.");
-      surpriseFrom(state.places[Math.floor(Math.random() * state.places.length)]);
-    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 });
-  });
+      onFail();
+    // 6s, not 12: this is the impatient path. The locate button, where waiting
+    // is the entire point, keeps the longer budget.
+    }, { enableHighAccuracy: false, timeout: 6000, maximumAge: 300000 });
+  }
 
   function showMe(lat, lon) {
     if (meMarker) { map.removeLayer(meMarker); }
