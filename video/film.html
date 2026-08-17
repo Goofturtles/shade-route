@@ -154,7 +154,7 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
              letter-spacing: -3.8px; line-height: 1.05; }
 
 /* Ink follows the ground. */
-.on-sun   .statement, .on-sun .headline, .on-sun .seclabel,
+.on-sun   .statement, .on-sun .headline, .on-sun .seclabel, .on-sun .thesis,
 .on-sun   .spec, .on-sun .bignum, .on-sun .wordmark, .on-sun .ledger .v { color: var(--ink-sun); }
 .on-sun   .support, .on-sun .eyebrow, .on-sun .bignum.secondary { color: var(--mut-sun); }
 .on-shade .statement, .on-shade .headline, .on-shade .seclabel, .on-shade .thesis,
@@ -162,7 +162,8 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
 .on-shade .ledger .v { color: var(--ink-shade); }
 .on-shade .support, .on-shade .eyebrow, .on-shade .bignum.secondary { color: var(--mut-shade); }
 .on-gl .eyebrow, .on-gl .headline, .on-gl .bignum, .on-gl .spec,
-.on-gl .ledger .v { color: var(--ink-shade); }
+.on-gl .ledger .v, .on-gl .statement, .on-gl .wordmark, .on-gl .seclabel,
+.on-gl .thesis { color: var(--ink-shade); }
 .on-gl .support { color: var(--mut-shade); }
 
 /* The descender rule. This project's named recurring failure: a mask box with
@@ -765,73 +766,6 @@ const rx = route.reduce((a, p) => a + p[0], 0) / route.length;
 const rn = route.reduce((a, p) => a + p[1], 0) / route.length;
 const LOOK = new THREE.Vector3(rx, 40, -rn);
 
-// Camera per 3D shot. Every move is a pure function of that shot's progress.
-// Find a stretch of route where BOTH she and the camera stand outside every
-// building footprint. The earlier version scored distance to the nearest
-// building VERTEX, which is the wrong question - a point can be far from every
-// corner and still sit in the middle of a large footprint, which is exactly
-// where the camera kept ending up. This is a ray-cast point-in-polygon test
-// against the real footprints, so "outside" means outside.
-const CLEAR_U = (() => {
-  // Footprints in the scene's own axes: p is [east, north], world z is -north.
-  const polys = data.buildings.map((b) => b.p.map(([e, n]) => [e, -n]));
-
-  function inside(x, z) {
-    for (const poly of polys) {
-      let hit = false;
-      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-        const [xi, zi] = poly[i], [xj, zj] = poly[j];
-        if ((zi > z) !== (zj > z) &&
-            x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) hit = !hit;
-      }
-      if (hit) return true;
-    }
-    return false;
-  }
-
-  // Clear means: her position, the camera behind her, and the points between
-  // are all outside. Checked across the whole 0.030 the shot travels.
-  function losClear(ax, az, bx, bz) {
-    const steps = 22;
-    for (let i = 0; i <= steps; i++) {
-      const f = i / steps;
-      if (inside(ax + (bx - ax) * f, az + (bz - az) * f)) return false;
-    }
-    return true;
-  }
-
-  function clearAt(u) {
-    for (const du of [0, 0.010, 0.020, 0.030]) {
-      const uu = Math.min(0.97, u + du);
-      const q = WALK_CURVE.getPointAt(uu);
-      const tg = WALK_CURVE.getTangentAt(uu);
-      if (inside(q.x, q.z)) return false;
-      const cx = q.x - tg.x * 16, cz = q.z - tg.z * 16;
-      if (inside(cx, cz)) return false;
-      // The lens must see her, and see a little way past her down the street.
-      if (!losClear(cx, cz, q.x, q.z)) return false;
-      if (!losClear(cx, cz, q.x + tg.x * 7, q.z + tg.z * 7)) return false;
-    }
-    return true;
-  }
-
-  const WALK_ENABLED = false;
-  if (!WALK_ENABLED) {
-    console.log('walk shot shelved: clearance passes but the view is still blocked');
-    return -1;
-  }
-
-  const SAMPLES = 120;
-  for (let i = 0; i < SAMPLES; i++) {
-    const u = 0.03 + (i / SAMPLES) * 0.90;
-    if (clearAt(u)) {
-      console.log('walk stretch u=' + u.toFixed(3) + ' (she and the camera are both outside)');
-      return u;
-    }
-  }
-  console.log('no clear stretch found - walk shot will be skipped');
-  return -1;
-})();
 
 function walkerVisible(on) {
   WALK.pivot.visible = on;
@@ -845,7 +779,7 @@ function camera3d(id, t) {
   if (id === 's01') {
     placeSun(KEY.az, KEY.el);
     const win = data.walk_window;
-    if (win) {
+    if (win && win.usable) {
       // Marisol walks a stretch of her own route. video/walk_window.py measured
       // the real clearance along it with polygon geometry rather than guessing:
       // the route never passes through a building — 0 of 401 samples — but the
@@ -855,7 +789,7 @@ function camera3d(id, t) {
       // intimate because the street is narrow, not because that was the plan.
       const u = win.u0 + (win.u1 - win.u0) * t;
       walkerVisible(true);
-      placeWalker(u, frameNow * 0.40);
+      placeWalker(u, frameNow * 0.158);
       const q = WALK_CURVE.getPointAt(u);
       const tg = WALK_CURVE.getTangentAt(u);
       const back = Math.min(7.0, Math.max(3.5, win.clearance_m - 2.0));
@@ -901,12 +835,9 @@ function camera3d(id, t) {
 // ============================================================================
 // Exposed so a framing probe can try camera candidates without editing the film.
 window.__film = { scene, camera, renderer, LOOK };
-window.__walkProbe = { curve: WALK_CURVE };
-window.__walkerShow = walkerVisible;
-window.__placeWalker = placeWalker;
-window.__walkerPivot = WALK.pivot;
 
 window.seek = function (frame) {
+  frame = Math.max(0, Math.min(window.TOTAL_FRAMES - 1, frame | 0));
   let active = null;
   for (const s of shots) {
     const { start, end } = s.cfg;
