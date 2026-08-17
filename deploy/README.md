@@ -1,6 +1,6 @@
 # Deployment
 
-**Live:** the app runs on the project's own VPS, alongside two unrelated
+**Live at https://srv1866344.hstgr.cloud** — the app runs on the project's own VPS, alongside two unrelated
 services, behind Caddy. That is the only deployment that exists.
 
 | File | Status |

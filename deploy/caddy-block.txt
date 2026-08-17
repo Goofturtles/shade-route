@@ -1,0 +1,29 @@
+
+# ---- Shade Route -----------------------------------------------------------
+# Appended as its own top-level block. The ghostbus.tech block above is not
+# touched: Caddy reload parses this file in a new process and only swaps
+# traffic if it succeeds, so a mistake here cannot take that site down.
+#
+# The hostname is the one Hostinger already assigns to the VPS, which resolves
+# publicly to this machine — so Let's Encrypt can validate it and no domain
+# had to be registered or transferred.
+srv1866344.hstgr.cloud {
+    encode zstd gzip
+
+    # The backdrop photograph and the committed OSM caches never change without
+    # a redeploy, so let browsers keep them.
+    header /img/* {
+        Cache-Control "public, max-age=604800"
+        defer
+    }
+
+    reverse_proxy 127.0.0.1:8010 {
+        # Building a shade field for a time nobody has asked for yet is real
+        # computation, and a judge dragging the time scrubber to a fresh hour
+        # pays for it. Caddy's default read timeout would cut that off and
+        # show a 502 for what is actually a working request.
+        transport http {
+            read_timeout 300s
+        }
+    }
+}

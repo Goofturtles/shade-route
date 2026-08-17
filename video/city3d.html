@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Shade Route — 3D city probe</title>
+
+<!--
+  Standalone probe for the film's 3D centrepiece, kept separate from scene.html
+  so the look can be judged before a two-minute film is built on top of it.
+
+  The geometry is not decorative. video/export_scene.py wrote scene3d.json from
+  the same OSM footprints and the same height rule the router uses, and the
+  directional light is placed at the solar azimuth and elevation the app's own
+  pvlib call returns. So the shadows falling across these streets are the
+  shadows the routing decision was actually made from — which is the only reason
+  a 3D shot belongs in this film at all.
+
+  Determinism: nothing animates itself. seek(frame) sets the camera and the sun,
+  then renders once. No clock, no rAF loop.
+-->
+
+<style>
+  html, body { margin: 0; height: 100%; background: #05090b; overflow: hidden; }
+  canvas { display: block; }
+  #err { position: fixed; left: 24px; top: 24px; color: #ff9ea6;
+         font: 16px/1.5 ui-monospace, monospace; white-space: pre-wrap; z-index: 9; }
+</style>
+
+<div id="err"></div>
+
+<script src="scene3d.js"></script>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.180.0/build/three.module.js';
+
+const W = 1920, H = 1080;
+const show = (m) => { document.getElementById('err').textContent += m + '\n'; };
+
+let renderer, scene, camera, sunLight, sunTarget;
+let ready = false;
+
+try {
+  const data = window.SCENE3D;
+  if (!data) throw new Error('scene3d.js did not load');
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);          // the capture supplies the resolution, not the DPR
+  renderer.setSize(W, H, false);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // ACES keeps the bright sunlit faces from clipping to flat white, which is
+  // what makes an untonemapped three.js render look like plastic.
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color('#dfe8ee');
+  scene.fog = new THREE.Fog('#dfe8ee', 1200, 3400);
+
+  camera = new THREE.PerspectiveCamera(26, W / H, 1, 4000);
+
+  // --- lighting ---
+  // Hemisphere light stands in for skylight: cool from above, warm bounce from
+  // the ground. Without it, everything the sun cannot see goes dead black.
+  scene.add(new THREE.HemisphereLight('#bcd6f5', '#8a8272', 1.35));
+
+  sunLight = new THREE.DirectionalLight('#fff1cf', 3.0);
+  sunLight.castShadow = true;
+  sunLight.shadow.mapSize.set(4096, 4096);
+  const S = 620;
+  Object.assign(sunLight.shadow.camera, { left: -S, right: S, top: S, bottom: -S, near: 1, far: 3000 });
+  // Bias fights acne on the large flat roofs; normalBias handles the walls.
+  sunLight.shadow.bias = -0.0006;
+  sunLight.shadow.normalBias = 0.6;
+  sunTarget = new THREE.Object3D();
+  scene.add(sunTarget);
+  sunLight.target = sunTarget;
+  scene.add(sunLight);
+
+  // --- ground ---
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(4000, 4000),
+    new THREE.MeshStandardMaterial({ color: '#b9b6ac', roughness: 1.0, metalness: 0 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // --- buildings ---
+  // One merged geometry rather than 356 meshes: the shadow pass runs over every
+  // mesh separately, and at 4K that difference is the whole frame budget.
+  const shapes = [];
+  let seed = 20260817;
+  for (const b of data.buildings) {
+    const shape = new THREE.Shape();
+    shape.moveTo(b.p[0][0], b.p[0][1]);
+    for (let i = 1; i < b.p.length; i++) shape.lineTo(b.p[i][0], b.p[i][1]);
+    shape.closePath();
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: b.h, bevelEnabled: false });
+    // Extrude builds on XY and pushes along +Z; rotate so height is +Y.
+    geo.rotateX(-Math.PI / 2);
+
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    const jitter = seed / 4294967296;
+    const tone = new THREE.Color().setHSL(
+      0.09 + jitter * 0.035,                 // warm stone through to pale sand
+      0.05 + jitter * 0.07,
+      0.62 + jitter * 0.19
+    );
+    const count = geo.attributes.position.count;
+    const colours = new Float32Array(count * 3);
+    for (let v = 0; v < count; v++) {
+      colours[v * 3] = tone.r; colours[v * 3 + 1] = tone.g; colours[v * 3 + 2] = tone.b;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(colours, 3));
+    shapes.push(geo);
+  }
+  const merged = mergeGeometries(shapes);
+  const buildings = new THREE.Mesh(
+    merged,
+    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0.0 })
+  );
+  buildings.castShadow = true;
+  buildings.receiveShadow = true;
+  // Slightly warm off-white: a real facade is never neutral grey, and neutral
+  // grey is exactly what makes a three.js render look like default material.
+
+  scene.add(buildings);
+  show(`${data.buildings.length} prisms, tallest ${data.tallest_m} m`);
+
+  // --- routes ---
+  function ribbon(points, colour, lift, width) {
+    const pts = points.map(([e, n]) => new THREE.Vector3(e, lift, -n));
+    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.0);
+    const geo = new THREE.TubeGeometry(curve, Math.min(1200, pts.length * 6), width, 8, false);
+    const mat = new THREE.MeshStandardMaterial({
+      color: colour, roughness: 0.45, metalness: 0.0,
+      emissive: new THREE.Color(colour), emissiveIntensity: 0.55,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = false;
+    return mesh;
+  }
+  scene.add(ribbon(data.route.shortest, '#8fb4f5', 2.0, 2.2));
+  scene.add(ribbon(data.route.shadiest, '#5fd39a', 3.2, 3.0));
+
+  // --- sun placement -------------------------------------------------------
+  // Azimuth is degrees clockwise from north; the scene's north is -Z and east
+  // is +X, so the horizontal direction is (sin az, cos az) and elevation lifts Y.
+  function placeSun(azDeg, elDeg) {
+    const az = azDeg * Math.PI / 180, el = elDeg * Math.PI / 180;
+    const d = 1400;
+    sunLight.position.set(
+      Math.sin(az) * Math.cos(el) * d,
+      Math.sin(el) * d,
+      -Math.cos(az) * Math.cos(el) * d
+    );
+    sunTarget.position.set(0, 0, 0);
+    sunLight.target.updateMatrixWorld();
+  }
+
+  window.__data = data;
+  window.placeSun = placeSun;
+
+  const route = data.route.shadiest;
+  const rx = route.reduce((a, p) => a + p[0], 0) / route.length;
+  const rn = route.reduce((a, p) => a + p[1], 0) / route.length;
+  const look = new THREE.Vector3(rx, 40, -rn);
+
+  window.seek = function (frame) {
+    const t = frame / 240;
+    placeSun(data.sun['15:00'].az, data.sun['15:00'].el);
+    // A slow arc from the south-west, high enough to read the grid and the
+    // shadows across it, low enough that the towers still have height. 26mm
+    // keeps the verticals close to parallel.
+    const a = 3.55 + t * 0.30;
+    const r = 1180 - t * 120;
+    camera.position.set(look.x + Math.sin(a) * r, 470 - t * 60, look.z + Math.cos(a) * r);
+    camera.lookAt(look);
+    renderer.render(scene, camera);
+  };
+  window.TOTAL_FRAMES = 240;
+  window.seek(0);
+  ready = true;
+  show('ok');
+} catch (e) {
+  show('FAILED: ' + (e && e.message ? e.message : String(e)));
+}
+
+// Minimal merge so the page needs no addon import; BufferGeometryUtils lives in
+// examples/jsm and pulling it in would mean a second CDN path to trust.
+function mergeGeometries(geos) {
+  let vertexCount = 0, indexCount = 0;
+  for (const g of geos) {
+    vertexCount += g.attributes.position.count;
+    indexCount += g.index ? g.index.count : g.attributes.position.count;
+  }
+  const pos = new Float32Array(vertexCount * 3);
+  const nor = new Float32Array(vertexCount * 3);
+  const col = new Float32Array(vertexCount * 3);
+  const idx = new Uint32Array(indexCount);
+  let vo = 0, io = 0;
+  for (const g of geos) {
+    const p = g.attributes.position.array;
+    const n = g.attributes.normal ? g.attributes.normal.array : null;
+    const c = g.attributes.color ? g.attributes.color.array : null;
+    pos.set(p, vo * 3);
+    if (n) nor.set(n, vo * 3);
+    if (c) col.set(c, vo * 3);
+    const count = g.attributes.position.count;
+    if (g.index) {
+      const gi = g.index.array;
+      for (let i = 0; i < gi.length; i++) idx[io + i] = gi[i] + vo;
+      io += gi.length;
+    } else {
+      for (let i = 0; i < count; i++) idx[io + i] = vo + i;
+      io += count;
+    }
+    vo += count;
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  out.setIndex(new THREE.BufferAttribute(idx, 1));
+  out.computeVertexNormals();
+  return out;
+}
+</script>
+</html>

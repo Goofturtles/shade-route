@@ -13,6 +13,28 @@ you honestly what that costs: *"+4 min walk, 61% shaded instead of 12%."*
 
 ---
 
+## Try it — no install
+
+**https://srv1866344.hstgr.cloud**
+
+It opens on a worked example: Marisol's actual errand, a bus stop to a pharmacy in inner
+Portland at 3pm. **85% of that walk stays in shade against 44% on the fastest route**, for
+148 m and about 2 minutes more walking — which cuts time in direct sun from 15 minutes to 4.
+
+Two things worth doing while you are there:
+
+1. **Drag the shade slider to 0.** The shadiest route collapses onto the shortest route
+   exactly. That is the honesty check — at zero aversion the cost function is plain length,
+   so if the two ever disagreed there, the comparison would be meaningless.
+2. **Move the time of day.** The shadows are recomputed from the sun's real position, so the
+   route changes because the geometry changed, not because a number was tuned.
+
+The hostname is the one the VPS ships with; there is no registered domain because buying one
+added nothing a judge can see. Everything else about the deployment is in
+[`deploy/README.md`](deploy/README.md).
+
+---
+
 ## Why
 
 Marisol is 71 and walks to the pharmacy and the bus stop three times a week. She takes a
