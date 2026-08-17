@@ -444,7 +444,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#5b7183');
-scene.fog = new THREE.Fog('#61788a', 1500, 4200);
+scene.fog = new THREE.Fog('#5b7183', 900, 2300);
 const camera = new THREE.PerspectiveCamera(26, W / H, 1, 5000);
 
 scene.add(new THREE.HemisphereLight('#9fbcdb', '#6d675c', 1.05));
@@ -522,19 +522,160 @@ function mergeGeometries(geos) {
   scene.add(mesh);
 }
 
-function ribbon(points, colour, lift, width) {
+// The ribbon is coloured per vertex by whether that point of the route is in
+// shadow at 15:00, tested against the SAME shade field the router weighted its
+// edges with. So the film shows *where* the route is shaded, not merely that it
+// is - which is the product's actual output.
+//
+// These booleans are for DRAWING ONLY and are never counted on screen. Vertex
+// sampling is not length-weighted, so it gives 70% where the router reports
+// 85%; every percentage the film states still comes from the API.
+function ribbon(points, flags, sunColour, shadeColour, lift, width) {
   const pts = points.map(([e, n]) => new THREE.Vector3(e, lift, -n));
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0);
-  const geo = new THREE.TubeGeometry(curve, Math.min(1400, pts.length * 6), width, 8, false);
+  const tubular = Math.min(1400, pts.length * 6), radial = 8;
+  const geo = new THREE.TubeGeometry(curve, tubular, width, radial, false);
+
+  const sun = new THREE.Color(sunColour), shd = new THREE.Color(shadeColour);
+  const count = geo.attributes.position.count;
+  const cols = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    // TubeGeometry lays out (tubular+1) rings of (radial+1) vertices.
+    const ring = Math.floor(i / (radial + 1));
+    const u = ring / tubular;
+    const c = flags && flags.length
+      ? (flags[Math.min(flags.length - 1, Math.round(u * (flags.length - 1)))] ? shd : sun)
+      : sun;
+    cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+
   return new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
-    color: colour, roughness: 0.5, metalness: 0,
-    emissive: new THREE.Color(colour), emissiveIntensity: 0.35,
+    vertexColors: true, roughness: 0.5, metalness: 0,
+    emissive: new THREE.Color('#2a0f06'), emissiveIntensity: 0.25,
   }));
 }
-// The shortest route is deliberately drab: it is not a second accent.
-const routeShort = ribbon(data.route.shortest, '#B9B3A8', 3.0, 5.0);
-const routeShade = ribbon(data.route.shadiest, '#E8552A', 5.0, 7.0);
-scene.add(routeShort, routeShade);
+const shadeFlags = data.route_shade || {};
+// Shortest route: drab, and it is not a second accent. Shadiest: vermilion where
+// it is in sun, deepened where it is in shadow.
+scene.add(ribbon(data.route.shortest, shadeFlags.shortest, '#C9C3B8', '#8A857B', 3.0, 5.0));
+scene.add(ribbon(data.route.shadiest, shadeFlags.shadiest, '#F2703F', '#B23A16', 5.0, 7.0));
+
+// --- trees ------------------------------------------------------------------
+// 445 of them, at their tagged crown radius and height. The film claims 737
+// tree shadows across the whole demo box; on these streets the canopy is most
+// of the shade the route is following, so a city without trees was arguing for
+// the wrong thing. One InstancedMesh, or the shadow pass walks 445 meshes.
+if (data.trees && data.trees.length) {
+  const crown = new THREE.IcosahedronGeometry(1, 1);
+  const mat = new THREE.MeshStandardMaterial({ color: '#5c6b4a', roughness: 0.95, metalness: 0 });
+  const mesh = new THREE.InstancedMesh(crown, mat, data.trees.length);
+  mesh.castShadow = true;
+  mesh.receiveShadow = false;
+  const m = new THREE.Matrix4();
+  const q = new THREE.Quaternion();
+  data.trees.forEach((t, i) => {
+    const r = Math.max(1.6, t.r);
+    // Squash slightly: a crown is wider than it is tall.
+    m.compose(new THREE.Vector3(t.p[0], Math.max(3, t.h) - r * 0.35, -t.p[1]),
+              q, new THREE.Vector3(r, r * 0.82, r));
+    mesh.setMatrixAt(i, m);
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+  scene.add(mesh);
+
+  // Trunks, one instanced cylinder. Without them the crowns float.
+  const trunkGeo = new THREE.CylinderGeometry(0.22, 0.3, 1, 6);
+  const trunkMat = new THREE.MeshStandardMaterial({ color: '#3f3a30', roughness: 1 });
+  const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, data.trees.length);
+  trunks.castShadow = true;
+  data.trees.forEach((t, i) => {
+    const h = Math.max(3, t.h) - Math.max(1.6, t.r) * 0.35;
+    m.compose(new THREE.Vector3(t.p[0], h / 2, -t.p[1]), q, new THREE.Vector3(1, h, 1));
+    trunks.setMatrixAt(i, m);
+  });
+  trunks.instanceMatrix.needsUpdate = true;
+  scene.add(trunks);
+}
+
+// --- Marisol -----------------------------------------------------------------
+// A walking figure, built from primitives and jointed at hip, knee, shoulder and
+// elbow. She is the reason the project exists, so the film should show the walk
+// rather than only the map of it. Her position is a pure function of frame like
+// everything else: no physics, no accumulation.
+const WALK = (() => {
+  const g = new THREE.Group();
+  const skin = new THREE.MeshStandardMaterial({ color: '#c9a48b', roughness: 0.85 });
+  const coat = new THREE.MeshStandardMaterial({ color: '#3d4f63', roughness: 0.9 });
+  const legM = new THREE.MeshStandardMaterial({ color: '#2f3540', roughness: 0.95 });
+  const hair = new THREE.MeshStandardMaterial({ color: '#d8d4cc', roughness: 1.0 });
+
+  const part = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.castShadow = true; return m; };
+
+  // Proportions of a 1.62 m adult, in metres.
+  const torso = part(new THREE.CapsuleGeometry(0.17, 0.42, 4, 10), coat, 0);
+  const head = part(new THREE.SphereGeometry(0.115, 14, 12), skin, 0.44);
+  const bun = part(new THREE.SphereGeometry(0.085, 10, 8), hair, 0.50);
+  bun.position.z = -0.06;
+
+  function limb(upperLen, lowerLen, mat, radius) {
+    const hipJoint = new THREE.Group();
+    const upper = new THREE.Mesh(new THREE.CapsuleGeometry(radius, upperLen, 4, 8), mat);
+    upper.position.y = -upperLen / 2;
+    upper.castShadow = true;
+    const kneeJoint = new THREE.Group();
+    kneeJoint.position.y = -upperLen;
+    const lower = new THREE.Mesh(new THREE.CapsuleGeometry(radius * 0.85, lowerLen, 4, 8), mat);
+    lower.position.y = -lowerLen / 2;
+    lower.castShadow = true;
+    kneeJoint.add(lower);
+    hipJoint.add(upper, kneeJoint);
+    return { root: hipJoint, knee: kneeJoint };
+  }
+
+  const legL = limb(0.42, 0.40, legM, 0.075);
+  const legR = limb(0.42, 0.40, legM, 0.075);
+  legL.root.position.set(0.09, -0.26, 0);
+  legR.root.position.set(-0.09, -0.26, 0);
+
+  const armL = limb(0.29, 0.26, coat, 0.055);
+  const armR = limb(0.29, 0.26, coat, 0.055);
+  armL.root.position.set(0.21, 0.20, 0);
+  armR.root.position.set(-0.21, 0.20, 0);
+
+  g.add(torso, head, bun, legL.root, legR.root, armL.root, armR.root);
+  const pivot = new THREE.Group();
+  pivot.add(g);
+  g.position.y = 1.02;                       // hips above the pavement
+  scene.add(pivot);
+  return { pivot, body: g, legL, legR, armL, armR };
+})();
+
+// Her path is the shadiest route - the one the router chose for her.
+const WALK_CURVE = new THREE.CatmullRomCurve3(
+  data.route.shadiest.map(([e, n]) => new THREE.Vector3(e, 0, -n)), false, 'centripetal', 0);
+
+function placeWalker(u, phase) {
+  const p = WALK_CURVE.getPointAt(Math.max(0, Math.min(1, u)));
+  const tan = WALK_CURVE.getTangentAt(Math.max(0, Math.min(1, u)));
+  WALK.pivot.position.copy(p);
+  WALK.pivot.rotation.y = Math.atan2(tan.x, tan.z);
+
+  // Walk cycle: legs in antiphase, arms opposite their leg, knees only bending
+  // on the back-swing, and the body rising twice per stride.
+  const sw = Math.sin(phase), sw2 = Math.sin(phase + Math.PI);
+  WALK.legL.root.rotation.x = sw * 0.62;
+  WALK.legR.root.rotation.x = sw2 * 0.62;
+  WALK.legL.knee.rotation.x = -Math.max(0, -sw) * 1.15;
+  WALK.legR.knee.rotation.x = -Math.max(0, -sw2) * 1.15;
+  WALK.armL.root.rotation.x = sw2 * 0.42;
+  WALK.armR.root.rotation.x = sw * 0.42;
+  WALK.armL.knee.rotation.x = -0.35 - Math.max(0, sw2) * 0.25;
+  WALK.armR.knee.rotation.x = -0.35 - Math.max(0, sw) * 0.25;
+  WALK.body.position.y = 1.02 + Math.abs(Math.cos(phase)) * 0.035;
+  WALK.body.rotation.z = Math.sin(phase) * 0.03;
+}
+placeWalker(0, 0);
 
 function placeSun(azDeg, elDeg) {
   const az = azDeg * Math.PI / 180, el = elDeg * Math.PI / 180, d = 1900;
@@ -561,13 +702,26 @@ const rn = route.reduce((a, p) => a + p[1], 0) / route.length;
 const LOOK = new THREE.Vector3(rx, 40, -rn);
 
 // Camera per 3D shot. Every move is a pure function of that shot's progress.
+function walkerVisible(on) { WALK.pivot.visible = on; }
+
+let frameNow = 0;
+
 function camera3d(id, t) {
+  walkerVisible(false);
   if (id === 's01') {
-    // Cold open: low and close on one tower's shadow across the pavement.
     placeSun(KEY.az, KEY.el);
-    const a = 3.30 + t * 0.10;
-    camera.position.set(LOOK.x + Math.sin(a) * 300, 60 - t * 14, LOOK.z + Math.cos(a) * 300);
-    camera.lookAt(LOOK.x - 40, 24, LOOK.z + 60);
+    // Marisol walks a stretch of her own route while the camera tracks beside
+    // her at eye height. 1.1 m/s over 1,901 m is the walking speed every figure
+    // in this film is derived from, so the distance she covers here is real.
+    const u = 0.055 + t * 0.030;
+    walkerVisible(true);
+    placeWalker(u, frameNow * 0.42);
+    const p = WALK_CURVE.getPointAt(u);
+    const tan = WALK_CURVE.getTangentAt(u);
+    // Offset to her left and slightly behind, so the sun is across frame.
+    const side = new THREE.Vector3(-tan.z, 0, tan.x).multiplyScalar(9.5);
+    camera.position.set(p.x + side.x - tan.x * 13.0, 3.4, p.z + side.z - tan.z * 13.0);
+    camera.lookAt(p.x + tan.x * 6, 1.15, p.z + tan.z * 6);
   } else if (id === 's04') {
     // Street level on the exposed route.
     placeSun(KEY.az, KEY.el);
@@ -578,22 +732,22 @@ function camera3d(id, t) {
     // The hero: a slow arc from the sun's own side, high enough to read the
     // grid and the shadows lying across it.
     placeSun(KEY.az, KEY.el);
-    const a = 3.50 + inOutSine(t) * 0.34;
-    const r = 1220 - inOutSine(t) * 150;
-    camera.position.set(LOOK.x + Math.sin(a) * r, 470 - inOutSine(t) * 70, LOOK.z + Math.cos(a) * r);
+    const a = 3.16 + inOutSine(t) * 0.30;
+    const r = 1080 - inOutSine(t) * 130;
+    camera.position.set(LOOK.x + Math.sin(a) * r, 505 - inOutSine(t) * 75, LOOK.z + Math.cos(a) * r);
     camera.lookAt(LOOK);
   } else if (id === 's10') {
     placeSun(KEY.az, KEY.el);
-    const a = 3.86 + t * 0.10;
-    camera.position.set(LOOK.x + Math.sin(a) * 980, 360 - t * 30, LOOK.z + Math.cos(a) * 980);
+    const a = 3.30 + t * 0.10;
+    camera.position.set(LOOK.x + Math.sin(a) * 900, 400 - t * 30, LOOK.z + Math.cos(a) * 900);
     camera.lookAt(LOOK);
   } else {
     // s12 - the day sweep. The camera barely moves so the shadows are the only
     // thing changing: 07:00 through 19:00 on the real solar track.
     const s = sunAt(t);
     placeSun(s.az, s.el);
-    const a = 3.62 + inOutSine(t) * 0.12;
-    camera.position.set(LOOK.x + Math.sin(a) * 1150, 430, LOOK.z + Math.cos(a) * 1150);
+    const a = 3.24 + inOutSine(t) * 0.12;
+    camera.position.set(LOOK.x + Math.sin(a) * 1020, 470, LOOK.z + Math.cos(a) * 1020);
     camera.lookAt(LOOK);
     const clock = document.getElementById('clock');
     if (clock) clock.textContent = s.label;
@@ -601,6 +755,9 @@ function camera3d(id, t) {
 }
 
 // ============================================================================
+// Exposed so a framing probe can try camera candidates without editing the film.
+window.__film = { scene, camera, renderer, LOOK };
+
 window.seek = function (frame) {
   let active = null;
   for (const s of shots) {
@@ -626,6 +783,7 @@ window.seek = function (frame) {
     ? 'radial-gradient(ellipse 80% 70% at 50% 48%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.055) 100%)'
     : 'radial-gradient(ellipse 78% 68% at 50% 48%, rgba(0,0,0,0) 42%, rgba(0,0,0,0.42) 100%)';
 
+  frameNow = frame;
   if (isGl) camera3d(cfg.el, t);
 
   // Words: mask-reveal from below. 2 frames apart at 30fps is 67ms - one

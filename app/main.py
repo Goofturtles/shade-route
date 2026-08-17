@@ -89,8 +89,79 @@ def client_config() -> dict:
         "bbox": {"west": west, "south": south, "east": east, "north": north},
         "timezone": config.TIMEZONE,
         "walking_speed_m_s": config.WALKING_SPEED_M_S,
-        "area_label": "Inner Portland, Oregon",
+        "area_label": config.current_area().label,
+        "area_id": config.current_area().id,
     }
+
+
+@app.post("/api/area")
+def set_area(
+    lat: float = Query(..., ge=-90.0, le=90.0),
+    lon: float = Query(..., ge=-180.0, le=180.0),
+    timezone: str = Query(..., min_length=1, max_length=64),
+    label: str | None = Query(None, max_length=120),
+) -> dict:
+    """Move the 2 km working area to a point, and report what is there.
+
+    The brief scoped this app to one hardcoded box in Portland. That made
+    "Use my location" useless to anybody who is not in Portland — which is
+    almost everybody — so the box became movable. It is still 2 km: shade is
+    O(edges x shadow polygons), and a bigger box stops being interactive.
+
+    The timezone comes from the browser (`Intl.DateTimeFormat()...timeZone`)
+    rather than being guessed from longitude. Solar position is the entire
+    model here, and it is a function of local time; a timezone wrong by an hour
+    puts every shadow in the wrong place, silently. The browser already knows
+    the right answer, so it is asked rather than approximated.
+    """
+    try:
+        ZoneInfo(timezone)
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail=f"'{timezone}' is not a timezone this server recognises.",
+        )
+
+    area = config.make_area(lat, lon, timezone, label)
+
+    # Held for the whole warm-up. The area is process-wide state, so releasing
+    # it early would let a second request compute one city's shadows against
+    # another city's streets.
+    with config.area_lock:
+        previous = config.current_area()
+        config.set_current_area(area)
+        try:
+            graph_obj = graph.load_graph()
+            places.all_places()
+            rest_stops.all_rest_stops()
+        except Exception as exc:
+            config.set_current_area(previous)
+            raise HTTPException(
+                status_code=502,
+                detail=(
+                    "Could not load map data for that location: "
+                    f"{exc}. OpenStreetMap's Overpass service may be busy, or "
+                    "there may be no mapped streets there."
+                ),
+            )
+
+        node_count = graph_obj.number_of_nodes()
+        if node_count < 25:
+            config.set_current_area(previous)
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "There are almost no mapped walking streets there "
+                    f"({node_count} nodes), so no route could be found. "
+                    "Try a town or city centre."
+                ),
+            )
+
+        payload = client_config()
+        payload["nodes"] = node_count
+        payload["places"] = len(places.all_places())
+        payload["rest_stops"] = len(rest_stops.all_rest_stops())
+    return payload
 
 
 @app.get("/api/places")
@@ -190,8 +261,9 @@ def compute_route(
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"The {label} is outside the demo area. Street data has only "
-                    "been downloaded for a 2 km by 2 km box of inner Portland."
+                    f"The {label} is outside the current 2 km area "
+                    f"({config.current_area().label}). Move the area with "
+                    '"Use my location", or pick a point inside the dashed box.'
                 ),
             )
 
@@ -413,8 +485,9 @@ def best_time_to_walk(
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"The {label} is outside the demo area. Street data has only "
-                    "been downloaded for a 2 km by 2 km box of inner Portland."
+                    f"The {label} is outside the current 2 km area "
+                    f"({config.current_area().label}). Move the area with "
+                    '"Use my location", or pick a point inside the dashed box.'
                 ),
             )
 

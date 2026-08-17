@@ -1,0 +1,3726 @@
+[
+ {
+  "name": "99 Pharmacy",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.653554,
+  "lon": -79.395621
+ },
+ {
+  "name": "I.D.A.",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.660432,
+  "lon": -79.385925
+ },
+ {
+  "name": "I.D.A.",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.654196,
+  "lon": -79.390607
+ },
+ {
+  "name": "Maple Leaf Pharmacy",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.661414,
+  "lon": -79.383857
+ },
+ {
+  "name": "Metro Drugs",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.656565,
+  "lon": -79.376151
+ },
+ {
+  "name": "Metro Pharmacy",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.649075,
+  "lon": -79.373014
+ },
+ {
+  "name": "Mister Pharmacist",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.656346,
+  "lon": -79.388275
+ },
+ {
+  "name": "Pharmamart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.651505,
+  "lon": -79.380559
+ },
+ {
+  "name": "Radiant Pharmacy",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.660333,
+  "lon": -79.382374
+ },
+ {
+  "name": "Remedy'sRx",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.663292,
+  "lon": -79.386335
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.660726,
+  "lon": -79.385447
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.651875,
+  "lon": -79.378851
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.646671,
+  "lon": -79.387394
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.64909,
+  "lon": -79.381565
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.657733,
+  "lon": -79.390062
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.648217,
+  "lon": -79.373868
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.650622,
+  "lon": -79.387013
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.649647,
+  "lon": -79.383265
+ },
+ {
+  "name": "Rexall",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.648059,
+  "lon": -79.37836
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.646119,
+  "lon": -79.392514
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.661573,
+  "lon": -79.382928
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.658308,
+  "lon": -79.385009
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.649079,
+  "lon": -79.377666
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.657173,
+  "lon": -79.388599
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.656805,
+  "lon": -79.380701
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.646994,
+  "lon": -79.379193
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.649832,
+  "lon": -79.391974
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.647624,
+  "lon": -79.38124
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.652829,
+  "lon": -79.379902
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.655673,
+  "lon": -79.380437
+ },
+ {
+  "name": "Shoppers Drug Mart",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.65892,
+  "lon": -79.390543
+ },
+ {
+  "name": "U&C Pharmacy",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.659067,
+  "lon": -79.390889
+ },
+ {
+  "name": "Victor Pharmacy",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.655725,
+  "lon": -79.386629
+ },
+ {
+  "name": "White Cross Drugs",
+  "category": "pharmacy",
+  "category_label": "Pharmacy",
+  "lat": 43.663224,
+  "lon": -79.384048
+ },
+ {
+  "name": "300 Bay Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.649243,
+  "lon": -79.380614
+ },
+ {
+  "name": "Adelaide Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.650012,
+  "lon": -79.380916
+ },
+ {
+  "name": "Adelaide Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.650137,
+  "lon": -79.380784
+ },
+ {
+  "name": "Adelaide Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.648972,
+  "lon": -79.385741
+ },
+ {
+  "name": "Albert Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.653049,
+  "lon": -79.382793
+ },
+ {
+  "name": "Albert Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.65289,
+  "lon": -79.382452
+ },
+ {
+  "name": "Alexander Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.66281,
+  "lon": -79.383599
+ },
+ {
+  "name": "Bay Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.646149,
+  "lon": -79.378831
+ },
+ {
+  "name": "Bay Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.646288,
+  "lon": -79.37772
+ },
+ {
+  "name": "Bus stop",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.660066,
+  "lon": -79.38996
+ },
+ {
+  "name": "Bus stop",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.660011,
+  "lon": -79.382625
+ },
+ {
+  "name": "Bus stop",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.660011,
+  "lon": -79.382362
+ },
+ {
+  "name": "Bus stop",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.647117,
+  "lon": -79.373453
+ },
+ {
+  "name": "Bus stop",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.656228,
+  "lon": -79.385355
+ },
+ {
+  "name": "Carlton Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663062,
+  "lon": -79.37291
+ },
+ {
+  "name": "Carlton Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663406,
+  "lon": -79.373224
+ },
+ {
+  "name": "Carlton Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.661798,
+  "lon": -79.383175
+ },
+ {
+  "name": "Church Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.647183,
+  "lon": -79.373575
+ },
+ {
+  "name": "College Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.66103,
+  "lon": -79.386059
+ },
+ {
+  "name": "College Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.660645,
+  "lon": -79.385616
+ },
+ {
+  "name": "College Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.660138,
+  "lon": -79.390845
+ },
+ {
+  "name": "College Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.661498,
+  "lon": -79.383234
+ },
+ {
+  "name": "Dundas Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.656221,
+  "lon": -79.380768
+ },
+ {
+  "name": "Dundas Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.656515,
+  "lon": -79.381075
+ },
+ {
+  "name": "Dundas Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.655009,
+  "lon": -79.388661
+ },
+ {
+  "name": "Dundas Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.655127,
+  "lon": -79.388169
+ },
+ {
+  "name": "Dundas Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.655842,
+  "lon": -79.383904
+ },
+ {
+  "name": "Dundas Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.655548,
+  "lon": -79.383512
+ },
+ {
+  "name": "Elm St at University Ave East Side",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.656464,
+  "lon": -79.387821
+ },
+ {
+  "name": "Elm Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.657877,
+  "lon": -79.381451
+ },
+ {
+  "name": "Elm Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.657989,
+  "lon": -79.381713
+ },
+ {
+  "name": "Elm Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.657448,
+  "lon": -79.38455
+ },
+ {
+  "name": "Elm Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.657176,
+  "lon": -79.384189
+ },
+ {
+  "name": "Front Street East",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.646794,
+  "lon": -79.376791
+ },
+ {
+  "name": "Front Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.646152,
+  "lon": -79.379327
+ },
+ {
+  "name": "Front Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.646984,
+  "lon": -79.377069
+ },
+ {
+  "name": "Gerrard St West at University Ave",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.657724,
+  "lon": -79.389038
+ },
+ {
+  "name": "Gerrard St at Elizabeth St West Side",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.658158,
+  "lon": -79.386805
+ },
+ {
+  "name": "Gerrard Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.65903,
+  "lon": -79.381929
+ },
+ {
+  "name": "Gerrard Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.658821,
+  "lon": -79.38207
+ },
+ {
+  "name": "Gerrard Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.658603,
+  "lon": -79.385025
+ },
+ {
+  "name": "Gerrard Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.657482,
+  "lon": -79.389134
+ },
+ {
+  "name": "Gerrard Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.658817,
+  "lon": -79.38484
+ },
+ {
+  "name": "Gould Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.65756,
+  "lon": -79.381525
+ },
+ {
+  "name": "Grosvenor Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.662572,
+  "lon": -79.386551
+ },
+ {
+  "name": "Grosvenor Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.662365,
+  "lon": -79.386195
+ },
+ {
+  "name": "Grosvenor Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663097,
+  "lon": -79.383896
+ },
+ {
+  "name": "Hagerman Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.654503,
+  "lon": -79.383383
+ },
+ {
+  "name": "Hagerman Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.654211,
+  "lon": -79.383005
+ },
+ {
+  "name": "King Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.649062,
+  "lon": -79.377748
+ },
+ {
+  "name": "King Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.649268,
+  "lon": -79.378029
+ },
+ {
+  "name": "King Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.649492,
+  "lon": -79.377934
+ },
+ {
+  "name": "King Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.648483,
+  "lon": -79.380069
+ },
+ {
+  "name": "King Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.64875,
+  "lon": -79.380393
+ },
+ {
+  "name": "Queen Street East",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.652316,
+  "lon": -79.379126
+ },
+ {
+  "name": "Queen Street East",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.65255,
+  "lon": -79.37941
+ },
+ {
+  "name": "Queen Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.6519,
+  "lon": -79.382161
+ },
+ {
+  "name": "Queen Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.651752,
+  "lon": -79.381444
+ },
+ {
+  "name": "Queen Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.650922,
+  "lon": -79.386927
+ },
+ {
+  "name": "Queen Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.651251,
+  "lon": -79.386497
+ },
+ {
+  "name": "Queen's Park Cres East at College St North Side",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.660911,
+  "lon": -79.390167
+ },
+ {
+  "name": "Queen's Park Crescent East",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663559,
+  "lon": -79.390299
+ },
+ {
+  "name": "Queen's Park Crescent East",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663762,
+  "lon": -79.390411
+ },
+ {
+  "name": "Queen's Part Cres East at Wellesley St West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663351,
+  "lon": -79.390428
+ },
+ {
+  "name": "Queen's Part Cres West at Hart House",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663673,
+  "lon": -79.39349
+ },
+ {
+  "name": "Richmond Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.651609,
+  "lon": -79.378835
+ },
+ {
+  "name": "Richmond Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.65179,
+  "lon": -79.379091
+ },
+ {
+  "name": "Scott Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.647064,
+  "lon": -79.376335
+ },
+ {
+  "name": "Shuter Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.653974,
+  "lon": -79.379813
+ },
+ {
+  "name": "Shuter Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.654126,
+  "lon": -79.380115
+ },
+ {
+  "name": "Stephanie Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.65131,
+  "lon": -79.390074
+ },
+ {
+  "name": "Toronto Eaton Centre",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.654783,
+  "lon": -79.380386
+ },
+ {
+  "name": "University Ave at College St - Queen's Park Station",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.659694,
+  "lon": -79.390147
+ },
+ {
+  "name": "University Ave at College St - Queen's Park Station",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.6596,
+  "lon": -79.390574
+ },
+ {
+  "name": "University Ave at Gerrard St West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.65823,
+  "lon": -79.390028
+ },
+ {
+  "name": "Wellesley Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663252,
+  "lon": -79.391876
+ },
+ {
+  "name": "Wellesley Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.663982,
+  "lon": -79.387157
+ },
+ {
+  "name": "Wellington Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.647368,
+  "lon": -79.377039
+ },
+ {
+  "name": "Wellington Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.647168,
+  "lon": -79.379487
+ },
+ {
+  "name": "Wellington Street West",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.648017,
+  "lon": -79.377508
+ },
+ {
+  "name": "Yonge Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.6466,
+  "lon": -79.377059
+ },
+ {
+  "name": "Yonge Street",
+  "category": "bus_stop",
+  "category_label": "Bus stop",
+  "lat": 43.647071,
+  "lon": -79.3768
+ },
+ {
+  "name": "7-Eleven",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.651042,
+  "lon": -79.38141
+ },
+ {
+  "name": "Bestco",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.647603,
+  "lon": -79.393148
+ },
+ {
+  "name": "Bulk Barn",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.661527,
+  "lon": -79.382587
+ },
+ {
+  "name": "Canar Gifts",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.650283,
+  "lon": -79.384865
+ },
+ {
+  "name": "Circle K",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.655574,
+  "lon": -79.385077
+ },
+ {
+  "name": "Circle K",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.649384,
+  "lon": -79.377466
+ },
+ {
+  "name": "Circle K",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.653788,
+  "lon": -79.379679
+ },
+ {
+  "name": "Convenience",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.64765,
+  "lon": -79.384512
+ },
+ {
+  "name": "Convenience",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.647825,
+  "lon": -79.384505
+ },
+ {
+  "name": "Crown Variety & Snack",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.653004,
+  "lon": -79.375927
+ },
+ {
+  "name": "Dundas Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.656536,
+  "lon": -79.376297
+ },
+ {
+  "name": "Eataly",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.654899,
+  "lon": -79.380725
+ },
+ {
+  "name": "Elm Basket Food & Variety",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.657466,
+  "lon": -79.382802
+ },
+ {
+  "name": "Farm Boy",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.660315,
+  "lon": -79.384486
+ },
+ {
+  "name": "Fleets Food",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.660877,
+  "lon": -79.378687
+ },
+ {
+  "name": "French Quarter Convenience & Grocery",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.652501,
+  "lon": -79.372924
+ },
+ {
+  "name": "Friends Convenience & Grocery",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.652081,
+  "lon": -79.377657
+ },
+ {
+  "name": "Gardenview Convenience",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.649962,
+  "lon": -79.391318
+ },
+ {
+  "name": "Gateway Newsstands",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.65276,
+  "lon": -79.378715
+ },
+ {
+  "name": "Gateway Newsstands",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.661003,
+  "lon": -79.383478
+ },
+ {
+  "name": "Grange Green Farms",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.65387,
+  "lon": -79.391065
+ },
+ {
+  "name": "Grange Lottery & News",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.653875,
+  "lon": -79.390772
+ },
+ {
+  "name": "H Mart",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.657568,
+  "lon": -79.381614
+ },
+ {
+  "name": "Hasty Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.656144,
+  "lon": -79.389999
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.656597,
+  "lon": -79.377352
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648674,
+  "lon": -79.372816
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.646223,
+  "lon": -79.382599
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.65475,
+  "lon": -79.38939
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.659208,
+  "lon": -79.391273
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648173,
+  "lon": -79.396441
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.649907,
+  "lon": -79.374959
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.649954,
+  "lon": -79.383537
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.656608,
+  "lon": -79.381664
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.661394,
+  "lon": -79.38626
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.658676,
+  "lon": -79.395307
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.646032,
+  "lon": -79.384148
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.64824,
+  "lon": -79.383266
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.646659,
+  "lon": -79.380328
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.663233,
+  "lon": -79.383629
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.66147,
+  "lon": -79.380591
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648995,
+  "lon": -79.392123
+ },
+ {
+  "name": "INS Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.661034,
+  "lon": -79.382986
+ },
+ {
+  "name": "Independent CityMarket",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648013,
+  "lon": -79.392845
+ },
+ {
+  "name": "International News",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.652444,
+  "lon": -79.378561
+ },
+ {
+  "name": "JC Mart",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.649334,
+  "lon": -79.387031
+ },
+ {
+  "name": "Jarvis Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.660207,
+  "lon": -79.375971
+ },
+ {
+  "name": "Joy Convenience",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.659395,
+  "lon": -79.385484
+ },
+ {
+  "name": "KC's Convenience",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.66097,
+  "lon": -79.376395
+ },
+ {
+  "name": "Kai Wei Supermarket",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.652139,
+  "lon": -79.397399
+ },
+ {
+  "name": "King Fresh Foodmarket",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.646767,
+  "lon": -79.389604
+ },
+ {
+  "name": "Little Bee Supermarket",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.662959,
+  "lon": -79.374966
+ },
+ {
+  "name": "Loblaws",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.662017,
+  "lon": -79.379748
+ },
+ {
+  "name": "Local Central Shop",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.662122,
+  "lon": -79.377527
+ },
+ {
+  "name": "Longo's",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.655348,
+  "lon": -79.384959
+ },
+ {
+  "name": "Longo's",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648488,
+  "lon": -79.382186
+ },
+ {
+  "name": "Lucky Moose Food Mart",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.653561,
+  "lon": -79.394384
+ },
+ {
+  "name": "Maple Leaf Convenience",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.663849,
+  "lon": -79.38004
+ },
+ {
+  "name": "Maple Leaf Convenience Mart",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.663862,
+  "lon": -79.379931
+ },
+ {
+  "name": "March\u00e9 Leo\u2019s",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.656596,
+  "lon": -79.38192
+ },
+ {
+  "name": "McEwan",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.647429,
+  "lon": -79.381109
+ },
+ {
+  "name": "Metro",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.658216,
+  "lon": -79.376892
+ },
+ {
+  "name": "Metro",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.649024,
+  "lon": -79.37316
+ },
+ {
+  "name": "Metro",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.66063,
+  "lon": -79.383524
+ },
+ {
+  "name": "Mini Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.654913,
+  "lon": -79.385704
+ },
+ {
+  "name": "No Frills",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648763,
+  "lon": -79.391552
+ },
+ {
+  "name": "No Frills",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.654854,
+  "lon": -79.375584
+ },
+ {
+  "name": "Nutrition House",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.647509,
+  "lon": -79.381024
+ },
+ {
+  "name": "Parsian Fine Foods",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.653464,
+  "lon": -79.373817
+ },
+ {
+  "name": "Petra Ave Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.65553,
+  "lon": -79.385434
+ },
+ {
+  "name": "Pinto Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.647915,
+  "lon": -79.384482
+ },
+ {
+  "name": "Quik Mart",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648422,
+  "lon": -79.390672
+ },
+ {
+  "name": "Rabba",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.659276,
+  "lon": -79.375675
+ },
+ {
+  "name": "Rabba",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.658406,
+  "lon": -79.384599
+ },
+ {
+  "name": "Rabba",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.65188,
+  "lon": -79.377522
+ },
+ {
+  "name": "Rabba March\u00e9",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.649126,
+  "lon": -79.386993
+ },
+ {
+  "name": "Richie Neighbourhood Store",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648057,
+  "lon": -79.373472
+ },
+ {
+  "name": "St. Patrick's Mini Market",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.650888,
+  "lon": -79.389026
+ },
+ {
+  "name": "Sun Ming Hong",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.653695,
+  "lon": -79.394967
+ },
+ {
+  "name": "Sunny Convenience",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.647075,
+  "lon": -79.395367
+ },
+ {
+  "name": "Super Eater",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.658892,
+  "lon": -79.382167
+ },
+ {
+  "name": "Thai Mart",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.663123,
+  "lon": -79.384003
+ },
+ {
+  "name": "The Market by Longo's",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.647037,
+  "lon": -79.37891
+ },
+ {
+  "name": "Tiee Express",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.646367,
+  "lon": -79.389806
+ },
+ {
+  "name": "Underprice Convenience Store",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.648949,
+  "lon": -79.396763
+ },
+ {
+  "name": "Victoria Variety & Gift",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.650393,
+  "lon": -79.377247
+ },
+ {
+  "name": "\u5927\u7d71\u83ef T&T Supermarket",
+  "category": "supermarket",
+  "category_label": "Groceries",
+  "lat": 43.656927,
+  "lon": -79.3824
+ },
+ {
+  "name": "Acupuncture Toronto - ALIVE Holistic Health & Fertility Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.661654,
+  "lon": -79.382881
+ },
+ {
+  "name": "Adelaide Club",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.649338,
+  "lon": -79.382145
+ },
+ {
+  "name": "Aegis Clinical",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.653555,
+  "lon": -79.395614
+ },
+ {
+  "name": "Align",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.649017,
+  "lon": -79.381893
+ },
+ {
+  "name": "Appletree Medical Centre",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.654263,
+  "lon": -79.390436
+ },
+ {
+  "name": "Bay College Medical & Lockwood Diagnostic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.660497,
+  "lon": -79.385954
+ },
+ {
+  "name": "Bay College Medical Centre",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.66011,
+  "lon": -79.384997
+ },
+ {
+  "name": "Best Doctors Canada",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.652348,
+  "lon": -79.378992
+ },
+ {
+  "name": "Can Health Medical Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.6607,
+  "lon": -79.385089
+ },
+ {
+  "name": "Church Street Chiropractic-Acupuncture Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.663896,
+  "lon": -79.38006
+ },
+ {
+  "name": "Cloud Care Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.656031,
+  "lon": -79.378735
+ },
+ {
+  "name": "Cloud Care Clinics",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.65593,
+  "lon": -79.378697
+ },
+ {
+  "name": "Commerce Court Health Center",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.647713,
+  "lon": -79.37869
+ },
+ {
+  "name": "Dr. Alan Ching Dentist/Dr. Bonnie Y. Tang Family Physician",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.653416,
+  "lon": -79.39385
+ },
+ {
+  "name": "Dundas University Health Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.654222,
+  "lon": -79.388461
+ },
+ {
+  "name": "EnerHealth Medical & Wellness Centre",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.663204,
+  "lon": -79.384055
+ },
+ {
+  "name": "Footcare on Bay",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.663628,
+  "lon": -79.386503
+ },
+ {
+  "name": "Gallery Wellness",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.654179,
+  "lon": -79.392825
+ },
+ {
+  "name": "Hassle Free Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.659946,
+  "lon": -79.378746
+ },
+ {
+  "name": "Hospital for Sick Children",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.657277,
+  "lon": -79.387579
+ },
+ {
+  "name": "Intrepid Health",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.66321,
+  "lon": -79.384027
+ },
+ {
+  "name": "LASIK MD",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.649356,
+  "lon": -79.381701
+ },
+ {
+  "name": "Mary Wong",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.66158,
+  "lon": -79.382856
+ },
+ {
+  "name": "Medical Centre",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.660672,
+  "lon": -79.385383
+ },
+ {
+  "name": "Metro Central Ultrasound",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.652506,
+  "lon": -79.37782
+ },
+ {
+  "name": "Mount Sinai Hospital",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.657904,
+  "lon": -79.391754
+ },
+ {
+  "name": "Mount Sinai Hospital",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.657451,
+  "lon": -79.390321
+ },
+ {
+  "name": "Myo Brookfield Place",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.646419,
+  "lon": -79.378611
+ },
+ {
+  "name": "Myodetox",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.648671,
+  "lon": -79.383487
+ },
+ {
+  "name": "Osgoode Health Centre",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.650549,
+  "lon": -79.387039
+ },
+ {
+  "name": "Passport Health Downtown Toronto Travel Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.65022,
+  "lon": -79.377262
+ },
+ {
+  "name": "Patient Networks",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.651889,
+  "lon": -79.37874
+ },
+ {
+  "name": "PhysioHealth",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.650049,
+  "lon": -79.376837
+ },
+ {
+  "name": "Princess Margaret Cancer Centre",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.658171,
+  "lon": -79.39063
+ },
+ {
+  "name": "Prism Medical",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.655189,
+  "lon": -79.389043
+ },
+ {
+  "name": "Queen's Park Health",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.663217,
+  "lon": -79.38629
+ },
+ {
+  "name": "St. Michael's Hospital",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.653635,
+  "lon": -79.377806
+ },
+ {
+  "name": "TO Orthotics",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.647944,
+  "lon": -79.382315
+ },
+ {
+  "name": "The Doctor's Office",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.655987,
+  "lon": -79.383499
+ },
+ {
+  "name": "Toronto General Hospital",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.658648,
+  "lon": -79.388152
+ },
+ {
+  "name": "Toronto Rehab",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.656677,
+  "lon": -79.389976
+ },
+ {
+  "name": "Trio Fertility",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.657801,
+  "lon": -79.384227
+ },
+ {
+  "name": "TrueNorth Medical Centre",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.652948,
+  "lon": -79.37621
+ },
+ {
+  "name": "Twig Fertility",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.648229,
+  "lon": -79.383424
+ },
+ {
+  "name": "University Eye Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.659299,
+  "lon": -79.391359
+ },
+ {
+  "name": "WELL Health Medical Services",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.660459,
+  "lon": -79.386039
+ },
+ {
+  "name": "Walk-In Clinic",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.646731,
+  "lon": -79.380116
+ },
+ {
+  "name": "Women's College Hospital",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.661734,
+  "lon": -79.387541
+ },
+ {
+  "name": "b-stretched",
+  "category": "healthcare",
+  "category_label": "Healthcare",
+  "lat": 43.64906,
+  "lon": -79.379319
+ },
+ {
+  "name": "Caven Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.661714,
+  "lon": -79.396546
+ },
+ {
+  "name": "Dorothy H. Hoover Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.653375,
+  "lon": -79.39005
+ },
+ {
+  "name": "Engineering & Computer Science Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.660169,
+  "lon": -79.39498
+ },
+ {
+  "name": "Gerstein Science Information Centre",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.662108,
+  "lon": -79.393691
+ },
+ {
+  "name": "Great Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.651833,
+  "lon": -79.385525
+ },
+ {
+  "name": "Hart House Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.663612,
+  "lon": -79.394786
+ },
+ {
+  "name": "Library Building",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.657903,
+  "lon": -79.380564
+ },
+ {
+  "name": "Mathematical Sciences Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.65962,
+  "lon": -79.397407
+ },
+ {
+  "name": "Regis College Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.663902,
+  "lon": -79.390145
+ },
+ {
+  "name": "Toronto Public Library - City Hall",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.65313,
+  "lon": -79.383234
+ },
+ {
+  "name": "University College Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.662721,
+  "lon": -79.395076
+ },
+ {
+  "name": "University of Toronto Dentistry Library",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.656009,
+  "lon": -79.387214
+ },
+ {
+  "name": "University of Toronto Department of Family and Community Medicine",
+  "category": "library",
+  "category_label": "Library",
+  "lat": 43.655448,
+  "lon": -79.389016
+ },
+ {
+  "name": "Alexander Street Parkette",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.663386,
+  "lon": -79.382797
+ },
+ {
+  "name": "Allan Gardens",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.661895,
+  "lon": -79.374331
+ },
+ {
+  "name": "Arena Gardens",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.655889,
+  "lon": -79.37557
+ },
+ {
+  "name": "Arnell Plaza",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.650436,
+  "lon": -79.379991
+ },
+ {
+  "name": "Berczy Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.648026,
+  "lon": -79.375258
+ },
+ {
+  "name": "Breadalbane Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.663856,
+  "lon": -79.386007
+ },
+ {
+  "name": "Butterfield Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.652697,
+  "lon": -79.391105
+ },
+ {
+  "name": "Children's Healing Garden",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.657438,
+  "lon": -79.388866
+ },
+ {
+  "name": "College Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.659697,
+  "lon": -79.383846
+ },
+ {
+  "name": "Courthouse Square",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.650469,
+  "lon": -79.375459
+ },
+ {
+  "name": "Downtown Diversity Garden on Elizabeth Street",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.654461,
+  "lon": -79.3845
+ },
+ {
+  "name": "Front Campus",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.661731,
+  "lon": -79.39515
+ },
+ {
+  "name": "Gallery Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.654518,
+  "lon": -79.391329
+ },
+ {
+  "name": "Grange Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.652451,
+  "lon": -79.392236
+ },
+ {
+  "name": "Joseph Sheard Parkette",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.660355,
+  "lon": -79.381859
+ },
+ {
+  "name": "Julius Deutsch Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.656672,
+  "lon": -79.397102
+ },
+ {
+  "name": "Kerr Hall Quad",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.658742,
+  "lon": -79.379279
+ },
+ {
+  "name": "Larry Sefton Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.654407,
+  "lon": -79.383665
+ },
+ {
+  "name": "Lord and Lady Martonmere Gardens",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.658996,
+  "lon": -79.387172
+ },
+ {
+  "name": "McCaul-Orde Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.657833,
+  "lon": -79.392592
+ },
+ {
+  "name": "McGill Parkette",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.659804,
+  "lon": -79.381644
+ },
+ {
+  "name": "Montague Parkette",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.663715,
+  "lon": -79.375361
+ },
+ {
+  "name": "Pitman Quad",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.658938,
+  "lon": -79.377494
+ },
+ {
+  "name": "Queen's Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.663758,
+  "lon": -79.391979
+ },
+ {
+  "name": "Sculpture Gardens",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.649844,
+  "lon": -79.373643
+ },
+ {
+  "name": "St. James Park",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.650781,
+  "lon": -79.373331
+ },
+ {
+  "name": "St. Patrick's Square",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.650699,
+  "lon": -79.390655
+ },
+ {
+  "name": "The Pasture",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.647425,
+  "lon": -79.382199
+ },
+ {
+  "name": "Trinity Square",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.654454,
+  "lon": -79.381898
+ },
+ {
+  "name": "Ziibiing Indigenous Landscape",
+  "category": "park",
+  "category_label": "Park",
+  "lat": 43.663076,
+  "lon": -79.394315
+ },
+ {
+  "name": "18 Feet",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.660173,
+  "lon": -79.377776
+ },
+ {
+  "name": "18feet",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659925,
+  "lon": -79.391614
+ },
+ {
+  "name": "9 Sips Tea Shoppe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656841,
+  "lon": -79.382684
+ },
+ {
+  "name": "Alfies",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656072,
+  "lon": -79.393962
+ },
+ {
+  "name": "Aroma Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649362,
+  "lon": -79.380195
+ },
+ {
+  "name": "Aroma Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655173,
+  "lon": -79.383744
+ },
+ {
+  "name": "Aroma Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659143,
+  "lon": -79.389656
+ },
+ {
+  "name": "Aroma Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648228,
+  "lon": -79.376283
+ },
+ {
+  "name": "Aroma Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647857,
+  "lon": -79.382963
+ },
+ {
+  "name": "Au Pain Dor\u00e9",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.64622,
+  "lon": -79.387645
+ },
+ {
+  "name": "Au Pain Dor\u00e9 Bakery",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.64871,
+  "lon": -79.372711
+ },
+ {
+  "name": "Avenue Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.6569,
+  "lon": -79.374672
+ },
+ {
+  "name": "Avenue Cafe & Bistro",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655225,
+  "lon": -79.388909
+ },
+ {
+  "name": "Bagel Stop",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656617,
+  "lon": -79.380529
+ },
+ {
+  "name": "Balzac's Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657758,
+  "lon": -79.37915
+ },
+ {
+  "name": "Black Canary",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656978,
+  "lon": -79.381006
+ },
+ {
+  "name": "Black Wolf Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659026,
+  "lon": -79.384827
+ },
+ {
+  "name": "Bloom Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658448,
+  "lon": -79.395591
+ },
+ {
+  "name": "Brandor Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647216,
+  "lon": -79.384831
+ },
+ {
+  "name": "Bready",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649027,
+  "lon": -79.383774
+ },
+ {
+  "name": "Bulldog Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.661088,
+  "lon": -79.378598
+ },
+ {
+  "name": "Butter & Blue",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656073,
+  "lon": -79.392578
+ },
+ {
+  "name": "CHICHA San Chen",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.661113,
+  "lon": -79.393794
+ },
+ {
+  "name": "Cafe For\u00eat",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65518,
+  "lon": -79.385736
+ },
+ {
+  "name": "Caf\u00e9 Moroc",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647935,
+  "lon": -79.374241
+ },
+ {
+  "name": "Caf\u00e9 Plenty",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654721,
+  "lon": -79.389503
+ },
+ {
+  "name": "Carbonic Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655875,
+  "lon": -79.393506
+ },
+ {
+  "name": "Cha Miao\u00b2",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65486,
+  "lon": -79.387289
+ },
+ {
+  "name": "Chatime",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648458,
+  "lon": -79.397262
+ },
+ {
+  "name": "Chatime",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655649,
+  "lon": -79.384711
+ },
+ {
+  "name": "Chicha San Chen",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653008,
+  "lon": -79.396175
+ },
+ {
+  "name": "Chicha San Chen",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654845,
+  "lon": -79.385151
+ },
+ {
+  "name": "CoCo Fresh Tea & Juice",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649153,
+  "lon": -79.395392
+ },
+ {
+  "name": "CoCo Fresh Tea & Juice",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658713,
+  "lon": -79.382228
+ },
+ {
+  "name": "Coffee Exchange",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653671,
+  "lon": -79.390916
+ },
+ {
+  "name": "Columbus Cafe & Co",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.64947,
+  "lon": -79.383555
+ },
+ {
+  "name": "Columbus Caf\u00e9 & Co",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647709,
+  "lon": -79.389872
+ },
+ {
+  "name": "Cotti Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658813,
+  "lon": -79.382138
+ },
+ {
+  "name": "Cotti Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658117,
+  "lon": -79.38573
+ },
+ {
+  "name": "Country Style",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.66044,
+  "lon": -79.384713
+ },
+ {
+  "name": "C\u1ed9ng C\u00e0 Ph\u00ea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657704,
+  "lon": -79.381957
+ },
+ {
+  "name": "Daily Ritual Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648938,
+  "lon": -79.378334
+ },
+ {
+  "name": "Daon Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.662199,
+  "lon": -79.38321
+ },
+ {
+  "name": "Dark Horse Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650647,
+  "lon": -79.396862
+ },
+ {
+  "name": "Dark Horse Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647727,
+  "lon": -79.395178
+ },
+ {
+  "name": "Dark Horse Espresso Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648343,
+  "lon": -79.390295
+ },
+ {
+  "name": "Diabolos Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.6631,
+  "lon": -79.396465
+ },
+ {
+  "name": "Dineen Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.651149,
+  "lon": -79.378928
+ },
+ {
+  "name": "Dineen Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647736,
+  "lon": -79.38548
+ },
+ {
+  "name": "Enjoy the Tea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653196,
+  "lon": -79.396239
+ },
+ {
+  "name": "Evana Cafe & Lounge",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654247,
+  "lon": -79.392505
+ },
+ {
+  "name": "Fahrenheit Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.652411,
+  "lon": -79.372916
+ },
+ {
+  "name": "Fruiteao",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653755,
+  "lon": -79.390833
+ },
+ {
+  "name": "Goldstruck",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650051,
+  "lon": -79.384588
+ },
+ {
+  "name": "Goldstruck Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.661239,
+  "lon": -79.381558
+ },
+ {
+  "name": "Gong Cha",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648747,
+  "lon": -79.396877
+ },
+ {
+  "name": "Gong Cha",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654769,
+  "lon": -79.381211
+ },
+ {
+  "name": "Hailed Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658939,
+  "lon": -79.383827
+ },
+ {
+  "name": "Hailed Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654757,
+  "lon": -79.385123
+ },
+ {
+  "name": "Hale Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650402,
+  "lon": -79.378004
+ },
+ {
+  "name": "Heytea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.663393,
+  "lon": -79.383658
+ },
+ {
+  "name": "HotBlack Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650296,
+  "lon": -79.388664
+ },
+ {
+  "name": "Icha Tea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.651424,
+  "lon": -79.397038
+ },
+ {
+  "name": "Incha",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659588,
+  "lon": -79.385026
+ },
+ {
+  "name": "Jarvis house bed and breakfast",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.66292,
+  "lon": -79.37714
+ },
+ {
+  "name": "Jimmy's Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658477,
+  "lon": -79.38556
+ },
+ {
+  "name": "Jimmy's Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655758,
+  "lon": -79.392189
+ },
+ {
+  "name": "JuJu Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654932,
+  "lon": -79.386865
+ },
+ {
+  "name": "Ka-Nom",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653507,
+  "lon": -79.390732
+ },
+ {
+  "name": "Kati",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.663119,
+  "lon": -79.384009
+ },
+ {
+  "name": "Khem Thai Pulled Yea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655845,
+  "lon": -79.393571
+ },
+ {
+  "name": "Le Gourmand",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648251,
+  "lon": -79.396455
+ },
+ {
+  "name": "Lettieri",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650565,
+  "lon": -79.37727
+ },
+ {
+  "name": "M Ch\u00e1 Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655707,
+  "lon": -79.384398
+ },
+ {
+  "name": "M Square Coffee Co.",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650942,
+  "lon": -79.38367
+ },
+ {
+  "name": "Marry Me Mochi",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654151,
+  "lon": -79.380739
+ },
+ {
+  "name": "Mast Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655088,
+  "lon": -79.375791
+ },
+ {
+  "name": "Matcha Matcha",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654496,
+  "lon": -79.391082
+ },
+ {
+  "name": "Mersivity",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654276,
+  "lon": -79.392421
+ },
+ {
+  "name": "Michel\u2019s Bakery Caf\u00e9",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648305,
+  "lon": -79.382897
+ },
+ {
+  "name": "Mieluna Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653293,
+  "lon": -79.382014
+ },
+ {
+  "name": "Mini Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647161,
+  "lon": -79.396016
+ },
+ {
+  "name": "Mizzica Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649741,
+  "lon": -79.391183
+ },
+ {
+  "name": "Mofer Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646934,
+  "lon": -79.384091
+ },
+ {
+  "name": "Mofer Coffee Front St",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648375,
+  "lon": -79.373563
+ },
+ {
+  "name": "Mos Mos",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648133,
+  "lon": -79.378573
+ },
+ {
+  "name": "Mos Mos",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657668,
+  "lon": -79.38432
+ },
+ {
+  "name": "Mos Mos",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646779,
+  "lon": -79.380123
+ },
+ {
+  "name": "Mos Mos Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647996,
+  "lon": -79.379249
+ },
+ {
+  "name": "Neo Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648188,
+  "lon": -79.383027
+ },
+ {
+  "name": "Neo Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.660114,
+  "lon": -79.385847
+ },
+ {
+  "name": "Nord Lyon Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65002,
+  "lon": -79.390955
+ },
+ {
+  "name": "Oakham Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657878,
+  "lon": -79.378319
+ },
+ {
+  "name": "On the Way Caf\u00e9",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657411,
+  "lon": -79.390437
+ },
+ {
+  "name": "Page One Caf\u00e9",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657893,
+  "lon": -79.376282
+ },
+ {
+  "name": "Pigeon Caf\u00e9 & Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646081,
+  "lon": -79.391435
+ },
+ {
+  "name": "Pigeon Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647036,
+  "lon": -79.378144
+ },
+ {
+  "name": "Pilot Coffee Roasters",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649276,
+  "lon": -79.380765
+ },
+ {
+  "name": "Pinocho",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658487,
+  "lon": -79.382002
+ },
+ {
+  "name": "Plearn Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.661289,
+  "lon": -79.381366
+ },
+ {
+  "name": "Pret A Manger",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649787,
+  "lon": -79.382029
+ },
+ {
+  "name": "Pret A Manger",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647131,
+  "lon": -79.380995
+ },
+ {
+  "name": "Pronto Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.660448,
+  "lon": -79.386414
+ },
+ {
+  "name": "Real Fruit Bubble Tea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650431,
+  "lon": -79.387985
+ },
+ {
+  "name": "Real Fruit Bubble Tea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65575,
+  "lon": -79.381038
+ },
+ {
+  "name": "Real Fruit Bubble Tea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.66088,
+  "lon": -79.383131
+ },
+ {
+  "name": "Rooms Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656034,
+  "lon": -79.39284
+ },
+ {
+  "name": "Sam James Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647955,
+  "lon": -79.383899
+ },
+ {
+  "name": "Sam James Coffee Bar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650394,
+  "lon": -79.376106
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659261,
+  "lon": -79.396916
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.652532,
+  "lon": -79.380161
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.652978,
+  "lon": -79.377579
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655805,
+  "lon": -79.380972
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650274,
+  "lon": -79.379785
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648338,
+  "lon": -79.379045
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65888,
+  "lon": -79.394159
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646453,
+  "lon": -79.389845
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657481,
+  "lon": -79.389976
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.663367,
+  "lon": -79.387196
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.66067,
+  "lon": -79.384757
+ },
+ {
+  "name": "Second Cup",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.660718,
+  "lon": -79.396431
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.64927,
+  "lon": -79.378218
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646194,
+  "lon": -79.380061
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.652326,
+  "lon": -79.378274
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656563,
+  "lon": -79.380495
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653315,
+  "lon": -79.380451
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646205,
+  "lon": -79.392043
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65529,
+  "lon": -79.384777
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649256,
+  "lon": -79.381698
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.660633,
+  "lon": -79.392801
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658467,
+  "lon": -79.388715
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657657,
+  "lon": -79.381093
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.652229,
+  "lon": -79.379628
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649654,
+  "lon": -79.383424
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.6474,
+  "lon": -79.380978
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654592,
+  "lon": -79.378674
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659376,
+  "lon": -79.389743
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650444,
+  "lon": -79.387895
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653623,
+  "lon": -79.380034
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653589,
+  "lon": -79.380714
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655104,
+  "lon": -79.381179
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657481,
+  "lon": -79.374497
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.661951,
+  "lon": -79.379937
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65856,
+  "lon": -79.395608
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654449,
+  "lon": -79.387717
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646797,
+  "lon": -79.389607
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657531,
+  "lon": -79.386993
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646761,
+  "lon": -79.380202
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.6492,
+  "lon": -79.381146
+ },
+ {
+  "name": "Starbucks",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.660443,
+  "lon": -79.383546
+ },
+ {
+  "name": "Tanghulu Tanghulu",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65596,
+  "lon": -79.381031
+ },
+ {
+  "name": "Ten Ren's Tea",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65343,
+  "lon": -79.39637
+ },
+ {
+  "name": "The Alley",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659551,
+  "lon": -79.383124
+ },
+ {
+  "name": "The Brick Room Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.64627,
+  "lon": -79.378934
+ },
+ {
+  "name": "The Library Specialty Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654331,
+  "lon": -79.390834
+ },
+ {
+  "name": "The Owlery Caf\u00e9",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.662686,
+  "lon": -79.395559
+ },
+ {
+  "name": "The Sweet Spot",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655836,
+  "lon": -79.393637
+ },
+ {
+  "name": "Third Wave Coffee Inc.",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649409,
+  "lon": -79.374244
+ },
+ {
+  "name": "Thor Espresso",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650762,
+  "lon": -79.391629
+ },
+ {
+  "name": "Tiger Sugar",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.661106,
+  "lon": -79.382822
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.661144,
+  "lon": -79.383289
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656736,
+  "lon": -79.379897
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659498,
+  "lon": -79.390945
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649505,
+  "lon": -79.376892
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647964,
+  "lon": -79.376125
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65144,
+  "lon": -79.379004
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.660501,
+  "lon": -79.383671
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647895,
+  "lon": -79.38458
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649739,
+  "lon": -79.387268
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.651669,
+  "lon": -79.382151
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.652962,
+  "lon": -79.397072
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654523,
+  "lon": -79.388976
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.651122,
+  "lon": -79.379978
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649696,
+  "lon": -79.378735
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656478,
+  "lon": -79.381597
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65819,
+  "lon": -79.390243
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.662225,
+  "lon": -79.376849
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646838,
+  "lon": -79.380016
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.653825,
+  "lon": -79.378327
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.66156,
+  "lon": -79.386882
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65769,
+  "lon": -79.390342
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656592,
+  "lon": -79.38079
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.657537,
+  "lon": -79.388035
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655388,
+  "lon": -79.383236
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646977,
+  "lon": -79.395094
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647961,
+  "lon": -79.373762
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.64719,
+  "lon": -79.384233
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650315,
+  "lon": -79.383356
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.658562,
+  "lon": -79.385094
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648041,
+  "lon": -79.381978
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659858,
+  "lon": -79.388129
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648694,
+  "lon": -79.396042
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646087,
+  "lon": -79.382574
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.649389,
+  "lon": -79.391036
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.64712,
+  "lon": -79.377214
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655673,
+  "lon": -79.381509
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656953,
+  "lon": -79.374261
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.646165,
+  "lon": -79.384426
+ },
+ {
+  "name": "Tim Hortons",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.651357,
+  "lon": -79.37469
+ },
+ {
+  "name": "Timothy's",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65139,
+  "lon": -79.376617
+ },
+ {
+  "name": "Timothy's",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.648755,
+  "lon": -79.390928
+ },
+ {
+  "name": "Timothy's",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.660396,
+  "lon": -79.384109
+ },
+ {
+  "name": "Timothy's",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656894,
+  "lon": -79.389881
+ },
+ {
+  "name": "Timothy's",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656752,
+  "lon": -79.38064
+ },
+ {
+  "name": "ToGo Coffee",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.656458,
+  "lon": -79.374561
+ },
+ {
+  "name": "Treats",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.66097,
+  "lon": -79.383362
+ },
+ {
+  "name": "Treats",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65121,
+  "lon": -79.375638
+ },
+ {
+  "name": "Trinity Square Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.654584,
+  "lon": -79.381456
+ },
+ {
+  "name": "Tuck Shop Provisions",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.651254,
+  "lon": -79.389987
+ },
+ {
+  "name": "Twilight Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.655538,
+  "lon": -79.379452
+ },
+ {
+  "name": "Uslurp Noodle",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65496,
+  "lon": -79.386806
+ },
+ {
+  "name": "Vereda Central",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.647345,
+  "lon": -79.38262
+ },
+ {
+  "name": "Versus",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.65128,
+  "lon": -79.375254
+ },
+ {
+  "name": "Wonder Pet Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.64954,
+  "lon": -79.392034
+ },
+ {
+  "name": "Young Cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.650494,
+  "lon": -79.376153
+ },
+ {
+  "name": "la prep(closed)",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.651379,
+  "lon": -79.382482
+ },
+ {
+  "name": "world cafe",
+  "category": "cafe",
+  "category_label": "Cafe",
+  "lat": 43.659229,
+  "lon": -79.383107
+ },
+ {
+  "name": "Adelaide Post Office",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.650555,
+  "lon": -79.377042
+ },
+ {
+  "name": "Bay and Gerrard Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.658166,
+  "lon": -79.385532
+ },
+ {
+  "name": "Brookfield Place Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.647091,
+  "lon": -79.379165
+ },
+ {
+  "name": "Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.647956,
+  "lon": -79.382122
+ },
+ {
+  "name": "Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.651336,
+  "lon": -79.379738
+ },
+ {
+  "name": "Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.649057,
+  "lon": -79.377606
+ },
+ {
+  "name": "DHL",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.651591,
+  "lon": -79.376987
+ },
+ {
+  "name": "Dundas Square Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.655659,
+  "lon": -79.380368
+ },
+ {
+  "name": "Eaton Centre Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.652794,
+  "lon": -79.379871
+ },
+ {
+  "name": "FedEx Office",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.6507,
+  "lon": -79.380866
+ },
+ {
+  "name": "First Canadian Place Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.649205,
+  "lon": -79.381772
+ },
+ {
+  "name": "Purolator",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.650447,
+  "lon": -79.377737
+ },
+ {
+  "name": "Royal Bank Plaza Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.646038,
+  "lon": -79.379782
+ },
+ {
+  "name": "The UPS Store",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.649884,
+  "lon": -79.376224
+ },
+ {
+  "name": "The UPS Store",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.654987,
+  "lon": -79.385209
+ },
+ {
+  "name": "The UPS Store",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.653189,
+  "lon": -79.39629
+ },
+ {
+  "name": "Toronto King Street Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.646169,
+  "lon": -79.392604
+ },
+ {
+  "name": "Toronto Station B Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.646932,
+  "lon": -79.395299
+ },
+ {
+  "name": "Toronto Station Commerce Court Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.647757,
+  "lon": -79.378332
+ },
+ {
+  "name": "Wood Street Canada Post",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.661625,
+  "lon": -79.382934
+ },
+ {
+  "name": "\u987a\u4e30\u56fd\u9645 International",
+  "category": "post_office",
+  "category_label": "Post office",
+  "lat": 43.654634,
+  "lon": -79.390028
+ }
+]

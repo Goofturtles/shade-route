@@ -19,9 +19,26 @@ from app import config
 
 log = logging.getLogger("shade_route.graph")
 
+def graph_file(area=None) -> "Path":
+    """Where this area's street graph lives on disk.
+
+    Portland keeps the original unsuffixed name so the graph committed to the
+    repository is still found — that file is the reason a fresh clone answers
+    its first request without calling Overpass.
+    """
+    area = area or config.current_area()
+    if area.id == "portland":
+        return config.CACHE_DIR / "walk_graph.graphml"
+    safe = area.id.replace(",", "_").replace(".", "p").replace("-", "m")
+    return config.CACHE_DIR / f"walk_graph_{safe}.graphml"
+
+
+# Kept as a module attribute for the scripts that import it by name.
 GRAPH_FILE = config.CACHE_DIR / "walk_graph.graphml"
 
-_graph: nx.MultiDiGraph | None = None
+# One graph per area, not one graph. Switching city and back is then free,
+# and Portland stays resident once loaded.
+_graphs: dict[str, nx.MultiDiGraph] = {}
 # Two simultaneous first-requests would otherwise both start a download.
 _graph_lock = threading.Lock()
 
@@ -81,53 +98,61 @@ def _download_graph() -> nx.MultiDiGraph:
     graph = ox.graph_from_bbox(config.DEMO_BBOX, network_type="walk")
     verify_bbox_orientation(graph)
     GRAPH_FILE.parent.mkdir(parents=True, exist_ok=True)
-    ox.save_graphml(graph, GRAPH_FILE)
+    ox.save_graphml(graph, graph_file())
     log.info("Cached walking network to %s", GRAPH_FILE)
     return graph
 
 
 def load_graph() -> nx.MultiDiGraph:
-    """Return the walking graph, downloading it only if no cache exists."""
-    global _graph
-    if _graph is not None:
-        return _graph
+    """Return the walking graph for the current area, downloading only if new."""
+    area = config.current_area()
+    cached = _graphs.get(area.id)
+    if cached is not None:
+        return cached
 
     with _graph_lock:
-        if _graph is not None:  # another thread won the race
-            return _graph
+        cached = _graphs.get(area.id)
+        if cached is not None:  # another thread won the race
+            return cached
         _configure_osmnx()
-        if GRAPH_FILE.exists():
-            log.info("Loading cached walking network from %s", GRAPH_FILE)
-            _graph = ox.load_graphml(GRAPH_FILE)
+        path = graph_file(area)
+        if path.exists():
+            log.info("Loading cached walking network from %s", path)
+            graph = ox.load_graphml(path)
         else:
-            _graph = _download_graph()
-    return _graph
+            graph = _download_graph()
+        _graphs[area.id] = graph
+    return graph
 
 
 def is_cached() -> bool:
-    return _graph is not None or GRAPH_FILE.exists()
+    area = config.current_area()
+    return area.id in _graphs or graph_file(area).exists()
 
 
-_node_ids: np.ndarray | None = None
-_node_lat: np.ndarray | None = None
-_node_lon: np.ndarray | None = None
+# Keyed by id(graph), not by area: the index describes one specific graph
+# object, and tying it to the object it was built from makes it impossible to
+# hand another area's node coordinates back by mistake. That was a live risk
+# once the graph stopped being a singleton.
+_node_index: dict[int, tuple[np.ndarray, np.ndarray, np.ndarray]] = {}
 
 
 def _node_arrays(graph: nx.MultiDiGraph) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    global _node_ids, _node_lat, _node_lon
-    if _node_ids is None:
-        ids, lats, lons = [], [], []
-        for node_id, data in graph.nodes(data=True):
-            ids.append(node_id)
-            lats.append(data["y"])
-            lons.append(data["x"])
-        # Publish _node_ids LAST. It is the guard the check above reads, so
-        # assigning it first would let a second thread through while the lat/lon
-        # arrays are still None.
-        _node_lat = np.asarray(lats, dtype=np.float64)
-        _node_lon = np.asarray(lons, dtype=np.float64)
-        _node_ids = np.asarray(ids, dtype=np.int64)
-    return _node_ids, _node_lat, _node_lon
+    hit = _node_index.get(id(graph))
+    if hit is not None:
+        return hit
+    ids, lats, lons = [], [], []
+    for node_id, data in graph.nodes(data=True):
+        ids.append(node_id)
+        lats.append(data["y"])
+        lons.append(data["x"])
+    built = (
+        np.asarray(ids, dtype=np.int64),
+        np.asarray(lats, dtype=np.float64),
+        np.asarray(lons, dtype=np.float64),
+    )
+    _node_index[id(graph)] = built
+    return built
 
 
 def nearest_node(graph: nx.MultiDiGraph, lat: float, lon: float) -> int:

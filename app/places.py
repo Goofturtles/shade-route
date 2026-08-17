@@ -25,6 +25,15 @@ from app import config
 
 log = logging.getLogger("shade_route.places")
 
+def places_file(area=None):
+    """Per-area cache file. Portland keeps the committed unsuffixed name."""
+    area = area or config.current_area()
+    if area.id == "portland":
+        return config.CACHE_DIR / "places.json"
+    safe = area.id.replace(",", "_").replace(".", "p").replace("-", "m")
+    return config.CACHE_DIR / f"places_{safe}.json"
+
+
 PLACES_FILE = config.CACHE_DIR / "places.json"
 
 # One combined query. OSMnx turns a multi-key dict into a single Overpass
@@ -57,7 +66,7 @@ CATEGORY_ORDER = [
     "Library", "Park", "Cafe", "Post office",
 ]
 
-_cache: list[dict] | None = None
+_cache: dict[str, list[dict]] = {}
 _lock = threading.Lock()
 
 
@@ -142,30 +151,34 @@ def _download() -> list[dict]:
 
 def all_places(refresh: bool = False) -> list[dict]:
     """Every named place in the demo area. Disk-cached; fetched at most once."""
-    global _cache
-    if _cache is not None and not refresh:
-        return _cache
+    aid = config.current_area().id
+    hit = _cache.get(aid)
+    if hit is not None and not refresh:
+        return hit
 
     with _lock:
-        if _cache is not None and not refresh:
-            return _cache
+        hit = _cache.get(aid)
+        if hit is not None and not refresh:
+            return hit
 
-        if PLACES_FILE.exists() and not refresh:
+        path = places_file()
+        if path.exists() and not refresh:
             try:
-                _cache = json.loads(PLACES_FILE.read_text(encoding="utf-8"))
-                log.info("Loaded %d places from %s", len(_cache), PLACES_FILE)
-                return _cache
+                loaded = json.loads(path.read_text(encoding="utf-8"))
+                log.info("Loaded %d places from %s", len(loaded), path)
+                _cache[aid] = loaded
+                return loaded
             except (OSError, json.JSONDecodeError) as exc:
                 log.warning("Places cache unreadable (%s); refetching.", exc)
 
         places = _download()
         if places:
-            PLACES_FILE.parent.mkdir(parents=True, exist_ok=True)
-            PLACES_FILE.write_text(json.dumps(places, indent=1), encoding="utf-8")
-            log.info("Cached %d places to %s", len(places), PLACES_FILE)
-        _cache = places
-    return _cache
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(places, indent=1), encoding="utf-8")
+            log.info("Cached %d places to %s", len(places), path)
+        _cache[aid] = places
+    return places
 
 
 def is_loaded() -> bool:
-    return _cache is not None or PLACES_FILE.exists()
+    return config.current_area().id in _cache or places_file().exists()

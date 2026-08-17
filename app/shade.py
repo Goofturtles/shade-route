@@ -36,7 +36,7 @@ DEFAULT_TREE_HEIGHT_M = 8.0
 DEFAULT_TREE_CROWN_RADIUS_M = 3.5
 
 _cache: dict[tuple, "ShadeField"] = {}
-_features_cache: dict[str, gpd.GeoDataFrame] = {}
+_features_cache: dict[tuple, gpd.GeoDataFrame] = {}
 _lock = threading.Lock()
 
 
@@ -85,8 +85,9 @@ def tree_crown_radius(row) -> float:
 
 def _fetch(name: str, tags: dict) -> gpd.GeoDataFrame:
     """Fetch OSM features for the demo bbox, memoised for the process lifetime."""
-    if name in _features_cache:
-        return _features_cache[name]
+    key = (config.current_area().id, name)
+    if key in _features_cache:
+        return _features_cache[key]
     # Must happen before the first Overpass call from *this* module. Without it
     # the cache folder depends on which module ran first: check_shade.py reached
     # here before anything configured OSMnx and wrote to ./cache instead of
@@ -98,7 +99,7 @@ def _fetch(name: str, tags: dict) -> gpd.GeoDataFrame:
     except Exception as exc:  # noqa: BLE001 - an empty layer is survivable, a crash is not
         log.warning("Could not fetch %s: %s", name, exc)
         gdf = gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
-    _features_cache[name] = gdf
+    _features_cache[key] = gdf
     return gdf
 
 
@@ -297,8 +298,15 @@ def shadow_geojson(field_obj: "ShadeField", simplify_m: float = 1.5) -> dict:
 
 
 def cache_key(when) -> tuple:
-    """Shade is cached per quarter-hour: shadows do not move meaningfully faster."""
-    return (when.date().isoformat(), when.hour, when.minute // 15)
+    """Shade is cached per area and quarter-hour.
+
+    The area id is part of the key because the shadows, the features they are
+    built from and the graph they are measured against are all area-specific.
+    Without it, moving the map to another city would have served Portland's
+    shadow field for the new city's streets — geometry that would look
+    plausible and be entirely wrong.
+    """
+    return (config.current_area().id, when.date().isoformat(), when.hour, when.minute // 15)
 
 
 # Each ShadeField holds a few thousand Shapely polygons plus an STRtree, and

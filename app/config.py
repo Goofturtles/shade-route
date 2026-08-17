@@ -51,15 +51,110 @@ def _derive_bbox() -> tuple[float, float, float, float]:
     )
 
 
-# (west, south, east, north) — believed to be the ordering OSMnx v2 expects for
-# its `bbox` argument, i.e. (left, bottom, right, top).
-#
-# NOT YET VERIFIED. scripts/verify_env.py confirms the *signature*
-# (`bbox: tuple[float, float, float, float]`) but a type annotation says nothing
-# about element order, and getting it wrong returns a graph for the wrong place
-# rather than raising. M1 must confirm this empirically from the coordinates of
-# the downloaded nodes before anything is built on top of it.
+# (west, south, east, north) — the ordering OSMnx v2 expects for its `bbox`
+# argument, i.e. (left, bottom, right, top). Verified empirically in M1 from the
+# coordinates of the downloaded nodes, because a type annotation says nothing
+# about element order and getting it wrong returns a graph for the wrong place
+# rather than raising.
 DEMO_BBOX = _derive_bbox()
+
+
+# --------------------------------------------------------------------------
+# Areas
+#
+# The brief scoped this to one hardcoded 2 km box and listed multi-city as out
+# of scope. That was the right call for a one-day build, and it is being
+# overridden deliberately: "Use my location" is unusable if the only place the
+# app accepts is a city the visitor is probably not in.
+#
+# An Area is a 2 km box around a point, with its own timezone. Every cache in
+# the app keys on `area.id`, so switching away and back is free, and Portland
+# stays pre-warmed on disk as the default.
+#
+# The box stays 2 km for the reason §5 gives: shade is O(edges x polygons) and a
+# bigger box stops being interactive. This makes the box *movable*, not bigger.
+# --------------------------------------------------------------------------
+
+import threading
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Area:
+    id: str
+    label: str
+    center_lat: float
+    center_lon: float
+    bbox: tuple[float, float, float, float]
+    timezone: str
+
+
+def _bbox_around(lat: float, lon: float, half_m: float = DEMO_HALF_EXTENT_M):
+    d_lat = half_m / _M_PER_DEG_LAT
+    # cos(lat) guards the poles, where a degree of longitude collapses to zero
+    # and the box would otherwise become infinitely wide.
+    d_lon = half_m / max(_M_PER_DEG_LAT * math.cos(math.radians(lat)), 1.0)
+    return (lon - d_lon, lat - d_lat, lon + d_lon, lat + d_lat)
+
+
+DEFAULT_AREA = Area(
+    id="portland",
+    label="Inner Portland, Oregon",
+    center_lat=DEMO_CENTER_LAT,
+    center_lon=DEMO_CENTER_LON,
+    bbox=DEMO_BBOX,
+    timezone=TIMEZONE,
+)
+
+_areas: dict[str, Area] = {DEFAULT_AREA.id: DEFAULT_AREA}
+_current: Area = DEFAULT_AREA
+area_lock = threading.RLock()
+
+
+def make_area(lat: float, lon: float, timezone: str, label: str | None = None) -> Area:
+    """An Area centred on a point, snapped so nearby points share a cache.
+
+    Snapping to ~500 m means two visitors on the same street get the same area
+    id and therefore the same cached graph, rather than each paying a fresh
+    Overpass download for a box a few metres apart.
+    """
+    snap = 0.005
+    slat = round(lat / snap) * snap
+    slon = round(lon / snap) * snap
+    aid = f"{slat:.3f},{slon:.3f}"
+    if aid in _areas:
+        return _areas[aid]
+    area = Area(
+        id=aid,
+        label=label or f"{slat:.3f}, {slon:.3f}",
+        center_lat=slat,
+        center_lon=slon,
+        bbox=_bbox_around(slat, slon),
+        timezone=timezone,
+    )
+    _areas[aid] = area
+    return area
+
+
+def current_area() -> Area:
+    return _current
+
+
+def set_current_area(area: Area) -> None:
+    """Point the module-level globals at `area`.
+
+    Every other module reads these as `config.NAME` at call time rather than
+    importing the value, so reassigning here redirects the whole app. Callers
+    MUST hold `area_lock` for as long as they depend on the result — the
+    globals are process-wide, so an unlocked switch mid-request would compute
+    one city's shade against another's street graph.
+    """
+    global _current, DEMO_BBOX, DEMO_CENTER_LAT, DEMO_CENTER_LON, TIMEZONE
+    _current = area
+    DEMO_BBOX = area.bbox
+    DEMO_CENTER_LAT = area.center_lat
+    DEMO_CENTER_LON = area.center_lon
+    TIMEZONE = area.timezone
 
 
 def bbox_contains(lat: float, lon: float) -> bool:

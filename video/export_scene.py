@@ -39,6 +39,8 @@ os.chdir(REPO_ROOT)
 import geopandas as gpd  # noqa: E402
 from shapely.geometry import Point, box  # noqa: E402
 
+from datetime import datetime as _dt  # noqa: E402
+
 from app import config, shade, sun  # noqa: E402
 
 BASE = "http://127.0.0.1:8000"
@@ -133,8 +135,40 @@ def main() -> int:
         series = gpd.GeoSeries([Point(lon, lat) for lat, lon in coords], crs="EPSG:4326")
         return [[round(p.x - ox, 2), round(p.y - oy, 2)] for p in series.to_crs(crs)]
 
+    print("trees...")
+    trees = shade._fetch("trees", {"natural": "tree"})
+    out_trees = []
+    if not trees.empty:
+        tp = trees.to_crs(crs)
+        for _, row in tp.iterrows():
+            g = row.geometry
+            if g is None or g.is_empty:
+                continue
+            pt = g.centroid
+            x, y = pt.x - ox, pt.y - oy
+            if abs(x) > HALF_EXTENT_M or abs(y) > HALF_EXTENT_M:
+                continue
+            out_trees.append({
+                "p": [round(x, 2), round(y, 2)],
+                "r": round(shade.tree_crown_radius(row), 2),
+                "h": round(shade.tree_height(row), 2),
+            })
+    print(f"  {len(out_trees):,} within the scene")
+
     print("route -> local metres...")
     local_routes = {"shadiest": to_local(shadiest), "shortest": to_local(shortest)}
+
+    print("route shade flags...")
+    when = _dt.fromisoformat(ROUTE_PARAMS["when"])
+    field = shade.get_shade_field(when)
+    flags = {}
+    for key, coords in (("shadiest", shadiest), ("shortest", shortest)):
+        pts = gpd.GeoSeries([Point(lon, lat) for lat, lon in coords],
+                            crs="EPSG:4326").to_crs(field.crs)
+        flags[key] = [int(bool(field.tree.query(pt, predicate="intersects").size))
+                      for pt in pts]
+        shaded = sum(flags[key])
+        print(f"  {key}: {shaded}/{len(flags[key])} vertices in shadow")
 
     print("sun...")
     day = datetime.fromisoformat(ROUTE_PARAMS["when"])
@@ -178,6 +212,8 @@ def main() -> int:
         "bounds": {"minx": min(xs), "maxx": max(xs), "miny": min(ys), "maxy": max(ys)},
         "buildings": out_buildings,
         "route": local_routes,
+        "route_shade": flags,
+        "trees": out_trees,
         "sun": sun_table,
         "sun_track": track,
         "sun_peak": peak,

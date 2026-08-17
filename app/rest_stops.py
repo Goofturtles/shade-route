@@ -20,11 +20,20 @@ from app import config
 
 log = logging.getLogger("shade_route.rest_stops")
 
+def rest_stops_file(area=None):
+    """Per-area cache file. Portland keeps the committed unsuffixed name."""
+    area = area or config.current_area()
+    if area.id == "portland":
+        return config.CACHE_DIR / "rest_stops.json"
+    safe = area.id.replace(",", "_").replace(".", "p").replace("-", "m")
+    return config.CACHE_DIR / f"rest_stops_{safe}.json"
+
+
 REST_STOPS_FILE = config.CACHE_DIR / "rest_stops.json"
 
 TAGS: dict[str, list[str]] = {"amenity": ["bench", "drinking_water"]}
 
-_cache: list[dict] | None = None
+_cache: dict[str, list[dict]] = {}
 _lock = threading.Lock()
 
 
@@ -70,27 +79,31 @@ def _download() -> list[dict]:
 
 
 def all_rest_stops(refresh: bool = False) -> list[dict]:
-    global _cache
-    if _cache is not None and not refresh:
-        return _cache
+    aid = config.current_area().id
+    hit = _cache.get(aid)
+    if hit is not None and not refresh:
+        return hit
     with _lock:
-        if _cache is not None and not refresh:
-            return _cache
-        if REST_STOPS_FILE.exists() and not refresh:
+        hit = _cache.get(aid)
+        if hit is not None and not refresh:
+            return hit
+        path = rest_stops_file()
+        if path.exists() and not refresh:
             try:
-                _cache = json.loads(REST_STOPS_FILE.read_text(encoding="utf-8"))
-                log.info("Loaded %d rest stops from %s", len(_cache), REST_STOPS_FILE)
-                return _cache
+                loaded = json.loads(path.read_text(encoding="utf-8"))
+                log.info("Loaded %d rest stops from %s", len(loaded), path)
+                _cache[aid] = loaded
+                return loaded
             except (OSError, json.JSONDecodeError) as exc:
                 log.warning("Rest-stop cache unreadable (%s); refetching.", exc)
         stops = _download()
         if stops:
-            REST_STOPS_FILE.parent.mkdir(parents=True, exist_ok=True)
-            REST_STOPS_FILE.write_text(json.dumps(stops, indent=1), encoding="utf-8")
-            log.info("Cached %d rest stops to %s", len(stops), REST_STOPS_FILE)
-        _cache = stops
-    return _cache
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(stops, indent=1), encoding="utf-8")
+            log.info("Cached %d rest stops to %s", len(stops), path)
+        _cache[aid] = stops
+    return stops
 
 
 def is_loaded() -> bool:
-    return _cache is not None or REST_STOPS_FILE.exists()
+    return config.current_area().id in _cache or rest_stops_file().exists()
