@@ -94,39 +94,6 @@ def client_config() -> dict:
     }
 
 
-def _warm_area_async(area) -> None:
-    """Warm the one expensive local step, off the request.
-
-    Only the shade field. It is pure computation over data already on disk --
-    about half a second -- so the area lock is held briefly and predictably.
-
-    Places and benches are deliberately NOT warmed here. They are network
-    fetches that can take a minute when Overpass is slow, and holding the
-    process-wide area lock for that long makes the *next* visitor's area switch
-    queue behind this one: switching to Portland blocked a switch to Toronto for
-    two minutes in testing. They load lazily on /api/places instead, which
-    costs the same time in a place where nothing else is waiting on it.
-    """
-    def work() -> None:
-        try:
-            # Do not queue behind another switch; this is an optimisation, and
-            # a missed warm-up only means the first route pays for itself.
-            if not config.area_lock.acquire(timeout=2.0):
-                return
-            try:
-                if config.current_area().id != area.id:
-                    return
-                shade.get_shade_field(
-                    datetime.now(ZoneInfo(area.timezone)).replace(tzinfo=None)
-                )
-            finally:
-                config.area_lock.release()
-        except Exception:
-            pass
-
-    threading.Thread(target=work, name=f"warm-{area.id}", daemon=True).start()
-
-
 @app.post("/api/area")
 def set_area(
     lat: float = Query(..., ge=-90.0, le=90.0),
@@ -191,12 +158,15 @@ def set_area(
         payload = client_config()
         payload["nodes"] = node_count
 
-        # Everything else this area needs -- named places, benches, and the
-        # shade field for the current quarter-hour -- is fetched off the
-        # request. Only the street graph is needed to answer "can I route
-        # here", and making the visitor watch three sequential Overpass
-        # downloads finish was the whole of the wait they complained about.
-        _warm_area_async(area)
+        # Only the street graph is loaded here. Places, benches and the shade
+        # field are left to load on the endpoints that need them.
+        #
+        # A background thread used to pre-warm them. It was removed: warming
+        # touches Overpass, and it held the process-wide area lock while doing
+        # so, which made the NEXT visitor's area switch queue behind it --
+        # switching to Portland blocked a switch to Toronto for two minutes.
+        # Paying that cost on the request that needs the data is slower in
+        # theory and far better in practice, because nothing else waits on it.
 
     return payload
 

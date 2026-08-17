@@ -95,9 +95,7 @@ def _fetch(name: str, tags: dict) -> gpd.GeoDataFrame:
     config.configure_osmnx()
     log.info("Fetching %s from OpenStreetMap ...", name)
     try:
-        gdf = config.with_overpass_fallback(
-            lambda: ox.features_from_bbox(config.DEMO_BBOX, tags)
-        )
+        gdf = ox.features_from_bbox(config.DEMO_BBOX, tags)
     except Exception as exc:  # noqa: BLE001 - an empty layer is survivable, a crash is not
         log.warning("Could not fetch %s: %s", name, exc)
         gdf = gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")

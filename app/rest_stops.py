@@ -41,9 +41,7 @@ def _download() -> list[dict]:
     config.configure_osmnx()
     log.info("Fetching benches and drinking fountains from OpenStreetMap ...")
     try:
-        gdf = config.with_overpass_fallback(
-            lambda: ox.features_from_bbox(config.DEMO_BBOX, TAGS)
-        )
+        gdf = ox.features_from_bbox(config.DEMO_BBOX, TAGS)
     except Exception as exc:  # noqa: BLE001 - the route still works without these
         log.warning("Could not fetch rest stops: %s", exc)
         return []

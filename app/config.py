@@ -118,6 +118,14 @@ def make_area(lat: float, lon: float, timezone: str, label: str | None = None) -
     id and therefore the same cached graph, rather than each paying a fresh
     Overpass download for a box a few metres apart.
     """
+    # Anyone standing inside the pre-built demo box gets the pre-built demo box.
+    # Without this, "Use my location" in Portland minted a near-identical area a
+    # few hundred metres off centre, whose caches did not exist -- so the one
+    # place guaranteed to be instant became a cold Overpass download.
+    dw, ds, de, dn = DEFAULT_AREA.bbox
+    if ds <= lat <= dn and dw <= lon <= de:
+        return DEFAULT_AREA
+
     snap = 0.005
     slat = round(lat / snap) * snap
     slon = round(lon / snap) * snap
@@ -155,6 +163,119 @@ def set_current_area(area: Area) -> None:
     DEMO_CENTER_LAT = area.center_lat
     DEMO_CENTER_LON = area.center_lon
     TIMEZONE = area.timezone
+
+
+def bbox_contains(lat: float, lon: float) -> bool:
+    west, south, east, north = DEMO_BBOX
+    return south <= lat <= north and west <= lon <= east
+
+
+_osmnx_configured = False
+
+
+def configure_osmnx() -> None:
+    """Point OSMnx at our on-disk HTTP cache.
+
+    Must run before *any* Overpass call, from whichever module gets there
+    first. Overpass is a shared public service that rate-limits, and without
+    this every process restart re-downloads and eventually gets refused.
+    """
+    global _osmnx_configured
+    if _osmnx_configured:
+        return
+    import osmnx as ox
+
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    ox.settings.use_cache = True
+    ox.settings.cache_folder = str(CACHE_DIR / "osmnx")
+    ox.settings.log_console = False
+
+    # OSMnx defaults to a 180-second request timeout. When Overpass refuses
+    # connections -- which it does, and which it did twice during this build --
+    # that turns a dead upstream into a three-minute hang with no explanation.
+    # Twelve seconds across three mirrors bounds the whole attempt at about a
+    # minute, and a healthy Overpass answers a 2 km query well inside it.
+    ox.settings.requests_timeout = 12
+    _osmnx_configured = True
+
+
+# Overpass mirroring was tried here and REMOVED. OSMnx keys its on-disk HTTP
+# cache by request URL, so pointing at a mirror makes every cached response a
+# miss -- which turned the committed Portland cache, the whole reason a fresh
+# clone works without Overpass, into a two-minute pile of retries against a
+# dead upstream. The tightened requests_timeout above is kept: it was the part
+# that actually helped, bounding a dead upstream at 12s instead of 180s.
+
+
+def bbox_contains(lat: float, lon: float) -> bool:
+    west, south, east, north = DEMO_BBOX
+    return south <= lat <= north and west <= lon <= east
+
+
+_osmnx_configured = False
+
+
+def configure_osmnx() -> None:
+    """Point OSMnx at our on-disk HTTP cache.
+
+    Must run before *any* Overpass call, from whichever module gets there
+    first. Overpass is a shared public service that rate-limits, and without
+    this every process restart re-downloads and eventually gets refused.
+    """
+    global _osmnx_configured
+    if _osmnx_configured:
+        return
+    import osmnx as ox
+
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    ox.settings.use_cache = True
+    ox.settings.cache_folder = str(CACHE_DIR / "osmnx")
+    ox.settings.log_console = False
+
+    # OSMnx defaults to a 180-second request timeout. When Overpass refuses
+    # connections -- which it does, and which it did twice during this build --
+    # that turns a dead upstream into a three-minute hang with no explanation.
+    # Twelve seconds across three mirrors bounds the whole attempt at about a
+    # minute, and a healthy Overpass answers a 2 km query well inside it.
+    ox.settings.requests_timeout = 12
+    _osmnx_configured = True
+
+
+# Overpass mirrors, tried in order, ONLY after the default has failed.
+#
+# The default must be tried first and must be tried unchanged: OSMnx keys its
+# on-disk HTTP cache by request URL, so pointing at a mirror makes every cached
+# response a miss. That is not theoretical -- doing it turned a 0.6s cached
+# shade field into a two-minute pile of retries against a dead upstream, and
+# the committed Portland cache is the whole reason a fresh clone works offline.
+OVERPASS_MIRRORS = (
+    "https://overpass-api.de/api",       # default: the cache was built against this
+    "https://overpass.kumi.systems/api",
+    "https://overpass.private.coffee/api",
+)
+
+
+def with_overpass_fallback(fetch):
+    """Run `fetch`, moving to another mirror only if the default is unreachable.
+
+    All three are public instances of the same API over the same OSM data, so
+    which one answers changes nothing about the result -- only whether there is
+    one. None needs a key, which keeps §4's "no API keys anywhere" intact.
+    """
+    import osmnx as ox
+
+    configure_osmnx()
+    last = None
+    for url in OVERPASS_MIRRORS:
+        ox.settings.overpass_url = url
+        try:
+            return fetch()
+        except Exception as exc:  # noqa: BLE001 - any transport failure is a miss
+            last = exc
+            continue
+    # Always leave the default in place, so the next call can hit the cache.
+    ox.settings.overpass_url = OVERPASS_MIRRORS[0]
+    raise last if last else RuntimeError("No Overpass mirror was reachable.")
 
 
 def bbox_contains(lat: float, lon: float) -> bool:
