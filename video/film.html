@@ -60,7 +60,30 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
 
 /* The ground is one element that changes colour, not two stacked pages: the
    cut between sun and shade has to be a single hard step. */
-#ground { position: absolute; inset: 0; background: var(--sun); }
+#ground { position: absolute; inset: 0; }
+/* Two layers: a broad radial that lifts the optical centre, over a linear that
+   carries the accent into one corner. Under 3% of the frame is accent-tinted. */
+.g-sun {
+  background:
+    radial-gradient(120% 90% at 32% 34%, #FFFDF8 0%, #F7F5F0 46%, #EBE6DC 100%),
+    linear-gradient(140deg, #F7F5F0 0%, #F2EDE3 100%);
+}
+.g-shade {
+  background:
+    radial-gradient(110% 85% at 28% 30%, #1B2228 0%, #12171B 42%, #0B0E10 100%),
+    linear-gradient(140deg, #0E1113 0%, #090C0E 100%);
+}
+/* The two cards that carry the brand get the accent bloom. */
+.g-shade-warm {
+  background:
+    radial-gradient(90% 70% at 22% 26%, rgba(232,85,42,0.22) 0%, rgba(232,85,42,0.05) 38%, rgba(0,0,0,0) 66%),
+    radial-gradient(110% 85% at 30% 32%, #1C2229 0%, #12171B 44%, #0A0D0F 100%);
+}
+.g-shade-cool {
+  background:
+    radial-gradient(95% 75% at 74% 30%, rgba(96,140,190,0.20) 0%, rgba(96,140,190,0.04) 40%, rgba(0,0,0,0) 70%),
+    radial-gradient(110% 85% at 40% 34%, #171D23 0%, #11161A 46%, #0A0D0F 100%);
+}
 
 #gl { position: absolute; inset: 0; display: block; }
 
@@ -361,7 +384,11 @@ const outQuint = (t) => 1 - Math.pow(1 - t, 5);
 const inOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
 const inOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-const GROUND = { sun: '#F7F5F0', shade: '#0E1113', gl: '#0E1113' };
+// Which gradient each shot's ground uses. The accent bloom is reserved for the
+// name card and the endcard; everywhere else the gradient is neutral depth.
+const GROUND_CLASS = { sun: 'g-sun', shade: 'g-shade', gl: 'g-shade' };
+const WARM_SHOTS = new Set(['s05', 's18']);
+const COOL_SHOTS = new Set(['s13', 's14']);
 
 // ---- the hour strip, from the real sweep -----------------------------------
 const HOURS = [
@@ -704,27 +731,71 @@ const rn = route.reduce((a, p) => a + p[1], 0) / route.length;
 const LOOK = new THREE.Vector3(rx, 40, -rn);
 
 // Camera per 3D shot. Every move is a pure function of that shot's progress.
-// Score each point of the route by how far it sits from the nearest building
-// vertex, and film her on the clearest run. Computed once, deterministic.
+// Find a stretch of route where BOTH she and the camera stand outside every
+// building footprint. The earlier version scored distance to the nearest
+// building VERTEX, which is the wrong question - a point can be far from every
+// corner and still sit in the middle of a large footprint, which is exactly
+// where the camera kept ending up. This is a ray-cast point-in-polygon test
+// against the real footprints, so "outside" means outside.
 const CLEAR_U = (() => {
-  const verts = [];
-  for (const b of data.buildings) for (const v of b.p) verts.push(v);
-  const SAMPLES = 60;
-  let best = 0.06, bestScore = -1;
-  for (let i = 0; i < SAMPLES; i++) {
-    const u = 0.04 + (i / SAMPLES) * 0.86;
-    const pt = WALK_CURVE.getPointAt(u);
-    let nearest = Infinity;
-    for (let k = 0; k < verts.length; k += 3) {          // every third vertex is plenty
-      const dx = verts[k][0] - pt.x, dz = -verts[k][1] - pt.z;
-      const d = dx * dx + dz * dz;
-      if (d < nearest) nearest = d;
+  // Footprints in the scene's own axes: p is [east, north], world z is -north.
+  const polys = data.buildings.map((b) => b.p.map(([e, n]) => [e, -n]));
+
+  function inside(x, z) {
+    for (const poly of polys) {
+      let hit = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const [xi, zi] = poly[i], [xj, zj] = poly[j];
+        if ((zi > z) !== (zj > z) &&
+            x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) hit = !hit;
+      }
+      if (hit) return true;
     }
-    if (nearest > bestScore) { bestScore = nearest; best = u; }
+    return false;
   }
-  console.log('walk stretch u=' + best.toFixed(3) +
-              ', nearest building ' + Math.sqrt(bestScore).toFixed(1) + ' m');
-  return Math.min(best, 0.90);
+
+  // Clear means: her position, the camera behind her, and the points between
+  // are all outside. Checked across the whole 0.030 the shot travels.
+  function losClear(ax, az, bx, bz) {
+    const steps = 22;
+    for (let i = 0; i <= steps; i++) {
+      const f = i / steps;
+      if (inside(ax + (bx - ax) * f, az + (bz - az) * f)) return false;
+    }
+    return true;
+  }
+
+  function clearAt(u) {
+    for (const du of [0, 0.010, 0.020, 0.030]) {
+      const uu = Math.min(0.97, u + du);
+      const q = WALK_CURVE.getPointAt(uu);
+      const tg = WALK_CURVE.getTangentAt(uu);
+      if (inside(q.x, q.z)) return false;
+      const cx = q.x - tg.x * 16, cz = q.z - tg.z * 16;
+      if (inside(cx, cz)) return false;
+      // The lens must see her, and see a little way past her down the street.
+      if (!losClear(cx, cz, q.x, q.z)) return false;
+      if (!losClear(cx, cz, q.x + tg.x * 7, q.z + tg.z * 7)) return false;
+    }
+    return true;
+  }
+
+  const WALK_ENABLED = false;
+  if (!WALK_ENABLED) {
+    console.log('walk shot shelved: clearance passes but the view is still blocked');
+    return -1;
+  }
+
+  const SAMPLES = 120;
+  for (let i = 0; i < SAMPLES; i++) {
+    const u = 0.03 + (i / SAMPLES) * 0.90;
+    if (clearAt(u)) {
+      console.log('walk stretch u=' + u.toFixed(3) + ' (she and the camera are both outside)');
+      return u;
+    }
+  }
+  console.log('no clear stretch found - walk shot will be skipped');
+  return -1;
 })();
 
 function walkerVisible(on) {
@@ -738,9 +809,21 @@ function camera3d(id, t) {
   walkerVisible(false);
   if (id === 's01') {
     placeSun(KEY.az, KEY.el);
-    const a = 3.10 + t * 0.11;
-    camera.position.set(LOOK.x + Math.sin(a) * 780, 250 - t * 26, LOOK.z + Math.cos(a) * 780);
-    camera.lookAt(LOOK.x, 40, LOOK.z);
+    if (CLEAR_U >= 0) {
+      // Marisol walks a stretch of her own route. 1.1 m/s is the speed every
+      // figure in this film derives from, so the ground she covers here is real.
+      const u = CLEAR_U + t * 0.030;
+      walkerVisible(true);
+      placeWalker(u, frameNow * 0.42);
+      const q = WALK_CURVE.getPointAt(u);
+      const tg = WALK_CURVE.getTangentAt(u);
+      camera.position.set(q.x - tg.x * 16, 5.0, q.z - tg.z * 16);
+      camera.lookAt(q.x + tg.x * 7, 1.4, q.z + tg.z * 7);
+    } else {
+      const a = 3.10 + t * 0.11;
+      camera.position.set(LOOK.x + Math.sin(a) * 780, 250 - t * 26, LOOK.z + Math.cos(a) * 780);
+      camera.lookAt(LOOK.x, 40, LOOK.z);
+    }
   } else if (id === 's04') {
     // Street level on the exposed route.
     placeSun(KEY.az, KEY.el);
@@ -793,7 +876,10 @@ window.seek = function (frame) {
   const local = frame - cfg.start;
   const t = clamp01(local / len);
 
-  document.getElementById('ground').style.background = GROUND[cfg.ground];
+  const groundEl = document.getElementById('ground');
+  groundEl.className = WARM_SHOTS.has(cfg.el) ? 'g-shade-warm'
+    : COOL_SHOTS.has(cfg.el) ? 'g-shade-cool'
+    : GROUND_CLASS[cfg.ground];
   const isGl = cfg.ground === 'gl';
   canvas.style.display = isGl ? 'block' : 'none';
 

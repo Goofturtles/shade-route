@@ -449,7 +449,10 @@ input[type="range"]:focus-visible { outline: 3px solid var(--shade); outline-off
     border-radius: var(--r-sheet);
     transform: none;
   }
-  .sheet .grab i { display: none; }
+  .sheet-body { padding-top: 20px; }
+  /* On desktop the panel is fixed, so the drag handle toggles nothing. A
+     control that does nothing is worse than no control. */
+  .sheet .grab { display: none; }
   .brandbub { left: 462px; }
   .status { left: calc(462px + (100vw - 462px) / 2); top: calc(16px + var(--safe-t)); }
 }
