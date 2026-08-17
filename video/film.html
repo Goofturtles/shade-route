@@ -859,6 +859,10 @@ function camera3d(id, t) {
 // ============================================================================
 // Exposed so a framing probe can try camera candidates without editing the film.
 window.__film = { scene, camera, renderer, LOOK };
+window.__walkProbe = { curve: WALK_CURVE };
+window.__walkerShow = walkerVisible;
+window.__placeWalker = placeWalker;
+window.__walkerPivot = WALK.pivot;
 
 window.seek = function (frame) {
   let active = null;

@@ -27,6 +27,7 @@ from pathlib import Path
 BASE = os.environ.get("SHADE_API", "http://127.0.0.1:8000")
 SCENE = Path(__file__).with_name("film.html")
 SCENE3D = Path(__file__).with_name("scene3d.js")
+THUMB = Path(__file__).with_name("thumb.html")
 
 # The gate imports the app's own solar model, so the drawn diagram is checked
 # against the same code the product runs rather than against a second opinion.
@@ -259,6 +260,24 @@ def main() -> int:
             notes.append(f"solar arc not cross-checked ({exc})")
     else:
         notes.append("could not read the solar track from scene3d.js")
+
+    # The thumbnail states the same two figures and is the first thing anyone
+    # sees, so it faces the same checks. Leaving it out would recreate exactly
+    # the failure this gate already had once — validating one artefact while a
+    # different one is what the audience actually looks at.
+    if THUMB.exists():
+        print("\nThe thumbnail")
+        print("-" * 13)
+        thumb_text = visible_text(THUMB.read_text(encoding="utf-8"))
+        for pattern, why in FORBIDDEN:
+            hit = re.search(pattern, thumb_text, re.I)
+            check(hit is None, f"thumbnail: no {why}", hit.group(0) if hit else "")
+        for value, what in ((want_win, "shadiest"), (want_lose, "fastest")):
+            check(re.search(rf"(?<!\d){value}(?!\d)\s*%", thumb_text) is not None,
+                  f"thumbnail states the computed {what} figure", f"API says {value}%")
+        check("Shade Route" in thumb_text, "thumbnail carries the product name")
+    else:
+        notes.append("no thumb.html; thumbnail not cross-checked")
 
     print("\nProvenance")
     print("-" * 10)
