@@ -61,31 +61,63 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
 /* The ground is one element that changes colour, not two stacked pages: the
    cut between sun and shade has to be a single hard step. */
 #ground { position: absolute; inset: 0; }
-/* Two layers: a broad radial that lifts the optical centre, over a linear that
-   carries the accent into one corner. Under 3% of the frame is accent-tinted. */
+/* Gradients here are LIGHT FALLING ON A ROOM, not shapes filled with colour.
+   Three rules from the reference work, each of which is a visible tell if
+   broken:
+
+   1. Every light origin sits OUTSIDE the frame. A radial whose centre you can
+      see reads as a spotlight sticker; one whose centre is cropped reads as a
+      room with a window in it.
+   2. Four alpha stops per radial, never two. A two-stop radial has a hard
+      elliptical edge, and that edge is the single commonest amateur tell.
+   3. Vivid source hex at low alpha, rather than a muted hex at high alpha.
+      The accent below is the film's real vermilion at 0.06-0.16 - that gap
+      between saturated source and low opacity is what separates lit from neon.
+
+   One chromatic hue in any frame, plus neutrals. The ground is near-black but
+   deliberately blue-leaning, never #000. */
+
 .g-sun {
   background:
-    radial-gradient(120% 90% at 32% 34%, #FFFDF8 0%, #F7F5F0 46%, #EBE6DC 100%),
-    linear-gradient(140deg, #F7F5F0 0%, #F2EDE3 100%);
+    radial-gradient(56% 44% at 26% -10%,
+      rgba(255,255,255,.95) 0%, rgba(255,253,248,.55) 34%,
+      rgba(247,245,240,.18) 62%, rgba(247,245,240,0) 84%),
+    radial-gradient(64% 50% at 104% 8%,
+      rgba(232,222,205,.42) 0%, rgba(232,222,205,.20) 38%,
+      rgba(232,222,205,.06) 64%, rgba(232,222,205,0) 86%),
+    #F4F1EA;
 }
 .g-shade {
   background:
-    radial-gradient(110% 85% at 28% 30%, #1B2228 0%, #12171B 42%, #0B0E10 100%),
-    linear-gradient(140deg, #0E1113 0%, #090C0E 100%);
+    radial-gradient(52% 40% at 30% -8%,
+      rgba(150,170,196,.20) 0%, rgba(150,170,196,.10) 36%,
+      rgba(150,170,196,.03) 62%, rgba(150,170,196,0) 84%),
+    radial-gradient(60% 46% at 96% 104%,
+      rgba(70,86,104,.22) 0%, rgba(70,86,104,.10) 40%,
+      rgba(70,86,104,.03) 66%, rgba(70,86,104,0) 88%),
+    #0B0E11;
 }
-/* The two cards that carry the brand get the accent bloom. */
+/* The two cards carrying the brand take the accent as the light source. */
 .g-shade-warm {
   background:
-    radial-gradient(90% 70% at 22% 26%, rgba(232,85,42,0.22) 0%, rgba(232,85,42,0.05) 38%, rgba(0,0,0,0) 66%),
-    radial-gradient(110% 85% at 30% 32%, #1C2229 0%, #12171B 44%, #0A0D0F 100%);
+    radial-gradient(50% 40% at 22% -10%,
+      rgba(232,85,42,.16) 0%, rgba(232,85,42,.08) 34%,
+      rgba(232,85,42,.02) 62%, rgba(232,85,42,0) 84%),
+    radial-gradient(58% 44% at 92% 106%,
+      rgba(232,85,42,.10) 0%, rgba(232,85,42,.04) 40%,
+      rgba(232,85,42,.01) 66%, rgba(232,85,42,0) 88%),
+    #0B0E11;
 }
 .g-shade-cool {
   background:
-    radial-gradient(95% 75% at 74% 30%, rgba(96,140,190,0.20) 0%, rgba(96,140,190,0.04) 40%, rgba(0,0,0,0) 70%),
-    radial-gradient(110% 85% at 40% 34%, #171D23 0%, #11161A 46%, #0A0D0F 100%);
+    radial-gradient(54% 42% at 78% -8%,
+      rgba(120,158,205,.18) 0%, rgba(120,158,205,.09) 36%,
+      rgba(120,158,205,.025) 62%, rgba(120,158,205,0) 84%),
+    radial-gradient(56% 44% at 8% 104%,
+      rgba(88,104,126,.16) 0%, rgba(88,104,126,.07) 40%,
+      rgba(88,104,126,.02) 66%, rgba(88,104,126,0) 88%),
+    #0A0D10;
 }
-
-#gl { position: absolute; inset: 0; display: block; }
 
 .shot { position: absolute; inset: 0; opacity: 0; visibility: hidden; }
 
@@ -158,7 +190,7 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
 
 #clock { position: absolute; right: 150px; bottom: 89px; text-align: right; }
 
-#grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.038;
+#grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.055;
          mix-blend-mode: overlay; }
 #vig { position: absolute; inset: 0; pointer-events: none; }
 </style>
