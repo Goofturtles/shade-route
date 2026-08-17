@@ -17,7 +17,7 @@
 
 import { spawn } from 'node:child_process';
 import { mkdir, rm, readdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -55,7 +55,27 @@ const DPR = 2 * SCALE;
 // system temp dir. Hard-coding one machine's profile path wrote into a stranger's
 // home directory on another Windows box, and on POSIX path.join treated it as
 // relative and created a literal "C:/Users/..." folder beside the script.
-const FRAME_DIR = path.join(os.tmpdir(), 'shade-route-film', 'frames');
+//
+// Each run gets its OWN directory. When every run shared one, killing a render
+// and starting another silently produced a file mixed from both cuts: the new
+// run's startup wipe deleted the old run's frames while the old process - which
+// had survived a kill that only appeared to work - carried on writing into the
+// gap. The output looked correct and was two different films interleaved. A lock
+// would have needed a stale-lock story; separate directories cannot collide.
+const FILM_TMP = path.join(os.tmpdir(), 'shade-route-film');
+
+function newestRunDir() {
+  if (!existsSync(FILM_TMP)) return path.join(FILM_TMP, 'run-none');
+  const runs = readdirSync(FILM_TMP)
+    .filter((d) => d.startsWith('run-'))
+    .map((d) => ({ d, t: statSync(path.join(FILM_TMP, d)).mtimeMs }))
+    .sort((a, b) => b.t - a.t);
+  return path.join(FILM_TMP, runs.length ? runs[0].d : 'run-none');
+}
+
+const FRAME_DIR = SKIP_CAPTURE
+  ? newestRunDir()
+  : path.join(FILM_TMP, `run-${process.pid}`);
 // Resolve against the working directory first, then against this script, so
 // both `node video/render.mjs --scene video/scene.html` from the repo root and
 // `node render.mjs --scene scene.html` from in here work. Resolving only
@@ -188,4 +208,10 @@ if (!SKIP_CAPTURE) {
   console.log(`re-encoding ${n} existing frames`);
 }
 await encode();
+
+// Several gigabytes of frames have served their purpose; leaving them behind
+// fills the disk one render at a time.
+if (!SKIP_CAPTURE && !arg('keep-frames', false)) {
+  await rm(FRAME_DIR, { recursive: true, force: true });
+}
 console.log('\ndone ->', outPath);
