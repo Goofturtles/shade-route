@@ -360,7 +360,7 @@ html, body {
         actually asks: when should I go?</p>
       <ul class="hours" id="hourStrip" style="margin-top:44px"></ul>
       <p class="sub" data-rise style="margin-top:28px;max-width:1500px">
-        Thirteen daylight hours, each one fully routed, ranked by <b>time in direct sun</b> rather than by
+        Thirteen departure times, each one fully routed, ranked by <b>time in direct sun</b> rather than by
         percentage &mdash; minutes of exposure are what actually cause harm.</p>
     </div>
     <div class="vignette"></div>
@@ -486,7 +486,9 @@ html, body {
   function outCubic(t) { return 1 - Math.pow(1 - t, 3); }
   function inOutSine(t) { return -(Math.cos(Math.PI * t) - 1) / 2; }
 
-  // The real 14-hour sweep for this route on this date. check_claims.py fails
+  // The thirteen daylight hours of the sweep for this route on this date; 20:00
+  // is also computed but the sun has set by then, so there is no bar to draw.
+  // check_claims.py fails
   // the build if the winning hour or its percentage stops matching the API.
   var HOURS = [
     { h: 7,  pct: 99 }, { h: 8,  pct: 93 }, { h: 9,  pct: 88 }, { h: 10, pct: 71 },
@@ -668,7 +670,7 @@ html, body {
       // The sun descends through the afternoon and the shadow grows to meet it:
       // the whole method in one continuous move.
       if (cfg.el === 's9') {
-        drawSun(lerp(64, 26, inOutSine(clamp01((local - 26) / (len - 46)))));
+        drawSun(lerp(57, 26, inOutSine(clamp01((local - 26) / (len - 46)))));
       }
 
       // The slider sweeps 0 -> 3 while the line beneath it states the honesty

@@ -18,12 +18,19 @@ from __future__ import annotations
 import html as htmllib
 import json
 import re
+import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
 BASE = "http://127.0.0.1:8000"
 SCENE = Path(__file__).with_name("scene.html")
+
+# The gate imports the app's own solar model, so the drawn diagram is checked
+# against the same code the product runs rather than against a second opinion.
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 # The film is about exactly this journey, at exactly this moment.
 PARAMS = {
@@ -184,6 +191,34 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001
         notes.append(f"hour strip not cross-checked ({exc})")
 
+    # The drawn sun scene captions its readout "pvlib", so the elevations it
+    # sweeps through have to be ones pvlib actually produces for this place on
+    # this date. The first cut swept from 64 degrees; Portland's maximum that day
+    # is 58.01. That is a fabricated reading in the one shot whose entire job is
+    # to explain the method, and nothing here caught it.
+    arc = re.search(r"drawSun\(lerp\(([\d.]+),\s*([\d.]+),", html)
+    if arc:
+        hi, lo = float(arc.group(1)), float(arc.group(2))
+        try:
+            from datetime import datetime
+            from app import sun as sunmod
+            day = datetime.fromisoformat(PARAMS["when"])
+            peak = max(
+                sunmod.solar_position(
+                    datetime(day.year, day.month, day.day, m // 60, m % 60)
+                ).elevation_deg
+                for m in range(4 * 60, 22 * 60, 5)
+            )
+            check(hi <= peak + 0.5,
+                  "the drawn sun never climbs higher than the real one",
+                  f"film sweeps from {hi:.1f} deg, pvlib peaks at {peak:.1f} deg")
+            check(lo > 0.0, "the drawn sun stays above the horizon",
+                  f"lowest drawn {lo:.1f} deg")
+        except Exception as exc:  # noqa: BLE001
+            notes.append(f"solar arc not cross-checked ({exc})")
+    else:
+        notes.append("could not find the drawn solar arc in the film")
+
     print("\nProvenance")
     print("-" * 10)
     check("OpenStreetMap" in text, "OpenStreetMap is credited on screen")
@@ -196,6 +231,12 @@ def main() -> int:
             print(f"  · {n}")
 
     print()
+    # A note means a claim the film makes went unverified. Printing PASS while
+    # that is true is precisely the false all-clear this gate exists to stop,
+    # so an unverified claim now fails the build exactly like a wrong one.
+    if notes and not failures:
+        print(f"FAIL - {len(notes)} claim(s) could not be verified at all.")
+        return 1
     if failures:
         print(f"FAIL — {len(failures)} claim(s) the film cannot support:")
         for f in failures:
