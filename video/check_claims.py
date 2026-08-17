@@ -102,14 +102,25 @@ def main() -> int:
     # earlier version did the latter: changing data-count="85" to "95" still
     # printed a pass, because nothing ever opened scene.html. That is the exact
     # fake-all-clear this project has now produced four times.
-    headline = re.search(r'<div class="stats">.*?</section>', html, re.S)
-    scope = headline.group(0) if headline else html
-    shown_counts = [int(n) for n in re.findall(r'data-count="(\d+)"', scope)]
-    expected_counts = [round(short["shade_fraction"] * 100),
-                       round(shady["shade_fraction"] * 100)]
-    check(sorted(shown_counts) == sorted(expected_counts),
-          "the film's two headline figures are the API's",
-          f"film {sorted(shown_counts)} vs API {sorted(expected_counts)}")
+    # Read each figure from the column it is actually in. Comparing the pair as
+    # a sorted set would let the two swap places and still pass, and swapping
+    # them inverts the film's whole argument.
+    def column(kind):
+        m = re.search(rf'<div class="stat {kind}">.*?data-count="(\d+)"', html, re.S)
+        return int(m.group(1)) if m else None
+
+    shown_lose, shown_win = column("lose"), column("win")
+    want_lose = round(short["shade_fraction"] * 100)
+    want_win = round(shady["shade_fraction"] * 100)
+    check(shown_lose == want_lose,
+          "the fastest route's figure is on the fastest route",
+          f"film {shown_lose}, API {want_lose}")
+    check(shown_win == want_win,
+          "the shadiest route's figure is on the shadiest route",
+          f"film {shown_win}, API {want_win}")
+    check(want_win > want_lose,
+          "the shadier route really is the shadier one",
+          f"{want_win}% vs {want_lose}%")
 
     # For the rest, require the computed value to actually appear in the film's
     # visible copy. A number the film does not state cannot be verified, so a
@@ -119,26 +130,31 @@ def main() -> int:
     benches = [r for r in (directions.get("rest_stops") or [])
                if r.get("kind") != "drinking_water"]
 
+    # Each figure must appear next to the unit it is quoted in. A bare digit
+    # search is satisfied by any coincidence on screen — "3" by "3:00 PM", or a
+    # placeholder still sitting in the diagram's markup.
     spoken = {
-        "extra distance": round(cmp_["extra_distance_m"]),
-        "extra minutes": round(cmp_["extra_duration_s"] / 60),
-        "sun on the fastest route": round(short["sun_seconds"] / 60),
-        "sun on the shadiest route": round(shady["sun_seconds"] / 60),
+        "extra distance": (round(cmp_["extra_distance_m"]), r"metres?\b"),
+        "extra minutes": (round(cmp_["extra_duration_s"] / 60), r"minutes?\b"),
+        "sun on the fastest route": (round(short["sun_seconds"] / 60), r"minutes?\b"),
+        "sun on the shadiest route": (round(shady["sun_seconds"] / 60), r"(?:minutes?\b|\.)"),
     }
     if benches:
-        spoken["bench count"] = len(benches)
+        spoken["bench count"] = (len(benches), r"benches\b")
     else:
         notes.append("no rest-stop list in the payload; bench count not cross-checked")
     gap = rest.get("longest_gap_m")
     if gap:
-        spoken["longest gap without a seat"] = round(gap / 10) * 10
+        spoken["longest gap without a seat"] = (round(gap / 10) * 10, r"m\b")
     else:
         notes.append("no longest-gap figure in the payload; 780 m not cross-checked")
 
-    for label, value in spoken.items():
-        # Word-boundaried so 7 does not match the 71 in "Marisol is 71".
-        found = re.search(rf"(?<!\d){value}(?!\d)", text) is not None
-        check(found, f"the film states the computed {label}", f"API says {value}")
+    for label, (value, unit) in spoken.items():
+        # Word-boundaried so 7 cannot match the 71 in "Marisol is 71", and the
+        # unit must follow within a few characters so the digit is the one meant.
+        found = re.search(rf"(?<!\d){value}(?!\d)\s*{unit}", text) is not None
+        check(found, f"the film states the computed {label}",
+              f"API says {value} ({unit.rstrip(chr(92) + 'b')})")
 
     # Claims made by the drawn scenes, from endpoints the route call does not
     # cover. The counters render through data-count, so they are read from the
@@ -176,6 +192,12 @@ def main() -> int:
                  if api_pct.get(h) is None or abs(api_pct[h] - q) > 1]
         check(bool(shown) and not drift, "every hour bar matches the sweep",
               ("drifted: " + str(drift)) if drift else f"{len(shown)} hours checked")
+        omitted = [h for h in hours if h["hour"] not in shown]
+        for h in omitted:
+            check(not h.get("casts_shadows", False),
+                  f"the hour the film leaves out ({h['hour']}:00) has no shade to draw",
+                  f"elevation {h.get('sun_elevation_deg')} deg")
+
         best, worst = bt.get("best_hour"), bt.get("worst_hour")
         if best is not None and worst is not None:
             check(best in shown and worst in shown,
