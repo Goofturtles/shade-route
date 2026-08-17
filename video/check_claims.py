@@ -24,7 +24,8 @@ import urllib.request
 from pathlib import Path
 
 BASE = "http://127.0.0.1:8000"
-SCENE = Path(__file__).with_name("scene.html")
+SCENE = Path(__file__).with_name("film.html")
+SCENE3D = Path(__file__).with_name("scene3d.js")
 
 # The gate imports the app's own solar model, so the drawn diagram is checked
 # against the same code the product runs rather than against a second opinion.
@@ -105,11 +106,15 @@ def main() -> int:
     # Read each figure from the column it is actually in. Comparing the pair as
     # a sorted set would let the two swap places and still pass, and swapping
     # them inverts the film's whole argument.
-    def column(kind):
-        m = re.search(rf'<div class="stat {kind}">.*?data-count="(\d+)"', html, re.S)
+    # The film labels its two columns rather than classing them, so each figure
+    # is found by the label a viewer actually reads. Comparing the pair as a
+    # sorted set would let them swap columns and still pass, and swapping them
+    # inverts the entire argument of the film.
+    def column(label):
+        m = re.search(rf'>{label}</p>.*?data-count="(\d+)"', html, re.S)
         return int(m.group(1)) if m else None
 
-    shown_lose, shown_win = column("lose"), column("win")
+    shown_lose, shown_win = column("Shortest"), column("Shade-weighted")
     want_lose = round(short["shade_fraction"] * 100)
     want_win = round(shady["shade_fraction"] * 100)
     check(shown_lose == want_lose,
@@ -134,10 +139,10 @@ def main() -> int:
     # search is satisfied by any coincidence on screen — "3" by "3:00 PM", or a
     # placeholder still sitting in the diagram's markup.
     spoken = {
-        "extra distance": (round(cmp_["extra_distance_m"]), r"metres?\b"),
-        "extra minutes": (round(cmp_["extra_duration_s"] / 60), r"minutes?\b"),
-        "sun on the fastest route": (round(short["sun_seconds"] / 60), r"minutes?\b"),
-        "sun on the shadiest route": (round(shady["sun_seconds"] / 60), r"(?:minutes?\b|\.)"),
+        "extra distance": (round(cmp_["extra_distance_m"]), r"(?:m|metres?)\b"),
+        "extra minutes": (round(cmp_["extra_duration_s"] / 60), r"(?:min|minutes?)\b"),
+        "sun on the fastest route": (round(short["sun_seconds"] / 60), r"(?:min|minutes?)\b"),
+        "sun on the shadiest route": (round(shady["sun_seconds"] / 60), r"(?:min|minutes?)\b"),
     }
     if benches:
         spoken["bench count"] = (len(benches), r"benches\b")
@@ -203,8 +208,8 @@ def main() -> int:
             check(best in shown and worst in shown,
                   "the strip includes the app's own best and worst departures",
                   f"best {best}:00, worst {worst}:00")
-            marked_best = re.search(r"entry\.h === (\d+) \? ' best'", html)
-            marked_worst = re.search(r": entry\.h === (\d+) \? ' worst'", html)
+            marked_best = re.search(r"e\.h === (\d+) \? 'var\(--accent\)'", html)
+            marked_worst = re.search(r": e\.h === (\d+) \?", html)
             check(marked_best and int(marked_best.group(1)) == best and
                   marked_worst and int(marked_worst.group(1)) == worst,
                   "the strip highlights the right two bars",
@@ -218,9 +223,15 @@ def main() -> int:
     # this date. The first cut swept from 64 degrees; Portland's maximum that day
     # is 58.01. That is a fabricated reading in the one shot whose entire job is
     # to explain the method, and nothing here caught it.
-    arc = re.search(r"drawSun\(lerp\(([\d.]+),\s*([\d.]+),", html)
-    if arc:
-        hi, lo = float(arc.group(1)), float(arc.group(2))
+    hi = lo = None
+    if SCENE3D.exists():
+        track = re.search(r'"sun_track":\[(.*?)\],"sun_peak"', SCENE3D.read_text(encoding="utf-8"))
+        if track:
+            els = [float(m) for m in re.findall(r'"el":(-?[\d.]+)', track.group(1))]
+            lit = [e for e in els if e > 1.0]
+            if lit:
+                hi, lo = max(lit), min(lit)
+    if hi is not None:
         try:
             from datetime import datetime
             from app import sun as sunmod
@@ -232,14 +243,14 @@ def main() -> int:
                 for m in range(4 * 60, 22 * 60, 5)
             )
             check(hi <= peak + 0.5,
-                  "the drawn sun never climbs higher than the real one",
-                  f"film sweeps from {hi:.1f} deg, pvlib peaks at {peak:.1f} deg")
-            check(lo > 0.0, "the drawn sun stays above the horizon",
-                  f"lowest drawn {lo:.1f} deg")
+                  "the sun the film draws never climbs higher than the real one",
+                  f"track peaks at {hi:.2f} deg, pvlib peaks at {peak:.2f} deg")
+            check(lo > 0.0, "every drawn sun position is above the horizon",
+                  f"lowest {lo:.2f} deg")
         except Exception as exc:  # noqa: BLE001
             notes.append(f"solar arc not cross-checked ({exc})")
     else:
-        notes.append("could not find the drawn solar arc in the film")
+        notes.append("could not read the solar track from scene3d.js")
 
     print("\nProvenance")
     print("-" * 10)

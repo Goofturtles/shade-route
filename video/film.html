@@ -165,13 +165,13 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--
   </section>
 
   <!-- ===== The cost of the fast way (3D, street level) ===== -->
-  <section class="shot on-gl" id="s04">
-    <div class="rail head">
+  <section class="shot on-shade" id="s04">
+    <div class="rail mid">
       <p class="bignum" data-count="15" data-suffix=" minutes">0</p>
       <p class="support" style="margin-top:14px">in direct sun, on the fastest route.</p>
+      <p class="eyebrow" style="margin-top:34px">Shortest route &middot; 1,753 m
+        &middot; 44% shaded</p>
     </div>
-    <p class="eyebrow eyebrow-fixed"><span class="mask"><span class="ink"
-      >Shortest route &middot; 1,753 m &middot; 44% shaded</span></span></p>
   </section>
 
   <!-- ===== C. The name (SHADE) ===== -->
@@ -334,7 +334,7 @@ const SHOTS = [
   { el: 's01', start:    0, end:  239, ground: 'gl'    },  //  8.0  cold open, macro shadow
   { el: 's02', start:  240, end:  359, ground: 'sun'   },  //  4.0  Marisol is 71
   { el: 's03', start:  360, end:  539, ground: 'sun'   },  //  6.0  the diuretic
-  { el: 's04', start:  540, end:  719, ground: 'gl'    },  //  6.0  15 minutes in sun
+  { el: 's04', start:  540, end:  719, ground: 'shade' },  //  6.0  15 minutes in sun
   { el: 's05', start:  720, end:  899, ground: 'shade' },  //  6.0  the name
   { el: 's06', start:  900, end: 1019, ground: 'sun'   },  //  4.0  two ways
   { el: 's07', start: 1020, end: 1259, ground: 'sun'   },  //  8.0  44 against 85
@@ -437,15 +437,15 @@ renderer.setSize(W, H, false);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.92;
+renderer.toneMappingExposure = 0.78;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#8fa3b0');
-scene.fog = new THREE.Fog('#93a6b2', 1500, 4000);
+scene.background = new THREE.Color('#5b7183');
+scene.fog = new THREE.Fog('#61788a', 1500, 4200);
 const camera = new THREE.PerspectiveCamera(26, W / H, 1, 5000);
 
-scene.add(new THREE.HemisphereLight('#bcd6f5', '#8a8272', 1.30));
+scene.add(new THREE.HemisphereLight('#9fbcdb', '#6d675c', 1.05));
 const sunLight = new THREE.DirectionalLight('#fff1cf', 3.0);
 sunLight.castShadow = true;
 sunLight.shadow.mapSize.set(4096, 4096);
@@ -460,7 +460,7 @@ sunLight.target = sunTarget;
 
 const ground3d = new THREE.Mesh(
   new THREE.PlaneGeometry(6000, 6000),
-  new THREE.MeshStandardMaterial({ color: '#b9b6ac', roughness: 1.0, metalness: 0 })
+  new THREE.MeshStandardMaterial({ color: '#8e8b82', roughness: 1.0, metalness: 0 })
 );
 ground3d.rotation.x = -Math.PI / 2;
 ground3d.receiveShadow = true;

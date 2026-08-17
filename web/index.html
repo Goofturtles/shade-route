@@ -322,42 +322,65 @@ h1, h2, h3 {
 }
 
 /* ---- Page: navigation rail beside the content ---------------------------- */
+/* Navigation runs across the top rather than down the side. A vertical rail
+   spent 236px of every screen on six links and pushed the map — the thing
+   people came for — into a narrower column. */
 .page {
-  display: grid;
-  grid-template-columns: 236px minmax(0, 1fr);
-  align-items: start;
-  gap: 18px;
+  display: block;
   max-width: 1740px;
   margin: 0 auto;
-  padding: 18px 18px 0;
+  padding: 14px 18px 0;
 }
-/* Below this the rail would eat a third of a tablet, so it becomes a
-   horizontal strip above the content instead of disappearing. */
-@media (max-width: 1100px) { .page { grid-template-columns: 1fr; } }
 
 .sidebar {
   position: sticky;
-  top: 18px;
-  display: grid;
-  gap: 18px;
-  align-content: start;
-  padding: 18px 14px 14px;
+  top: 10px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px 22px;
+  flex-wrap: nowrap;
+  padding: 10px 16px;
+  margin-bottom: 16px;
   border-radius: var(--r-xl);
-  background: var(--glass);
+  background: var(--glass-strong);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   box-shadow: var(--lift);
 }
-@media (max-width: 1100px) { .sidebar { position: static; } }
+.sidebar .brand { flex: 0 0 auto; }
 
-.sidebar .brand { padding: 0 6px; }
-
-.rail { display: grid; gap: 3px; }
+.rail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Six links plus a brand and a toggle will not fit a laptop at this size, so
+     the nav scrolls sideways rather than wrapping the bar to two rows. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail-foot { flex: 0 0 auto; margin-left: auto; }
+.rail-hint {
+  flex: 0 0 auto;
+  margin: 0;
+  white-space: nowrap;
+}
+@media (max-width: 1500px) { .rail-hint { display: none; } }
+@media (max-width: 860px) {
+  .sidebar { flex-wrap: wrap; }
+  .rail { order: 3; width: 100%; }
+  .rail-foot { margin-left: 0; }
+}
 .rail-item {
-  display: flex; align-items: center; gap: 11px;
-  padding: 11px 12px;
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 14px;
   min-height: 44px;
+  white-space: nowrap;
+  flex: 0 0 auto;
   border-radius: var(--r);
   color: var(--ink-muted);
   text-decoration: none;
@@ -1865,7 +1888,7 @@ details:not([open]) > *:not(summary) { display: none; }
   <nav class="rail" aria-label="Sections">
     <a class="rail-item" id="nav-plan" href="#controls" aria-current="page">
       <span class="ri" aria-hidden="true">◎</span> Plan route</a>
-    <a class="rail-item" id="nav-when" href="#when-band">
+    <a class="rail-item" id="nav-when" href="#when-disclosure">
       <span class="ri" aria-hidden="true">◷</span> When to leave</a>
     <a class="rail-item" id="nav-tradeoff" href="#results">
       <span class="ri" aria-hidden="true">⇄</span> The trade-off</a>
@@ -2411,20 +2434,62 @@ details:not([open]) > *:not(summary) { display: none; }
     return place.name + ' (' + place.category_label + ')';
   }
 
+  // A native <datalist> renders every option it is given, so handing it 245
+  // places produced a dropdown taller than the window that covered the form.
+  // Narrowing it to what the typed text actually matches keeps it to a glance.
+  var PLACE_SUGGESTIONS = 8;
+  function renderPlaceOptions(query) {
+    var list = document.getElementById('places-list');
+    if (!list) { return; }
+    var q = (query || '').trim().toLowerCase();
+    var pool = state.places;
+    var matches = q
+      ? pool.filter(function (p) { return p.name.toLowerCase().indexOf(q) !== -1; })
+      : pool;
+
+    // A prefix match is what the person meant; a mid-string match is a guess.
+    if (q) {
+      matches.sort(function (a, b) {
+        var ap = a.name.toLowerCase().indexOf(q) === 0 ? 0 : 1;
+        var bp = b.name.toLowerCase().indexOf(q) === 0 ? 0 : 1;
+        return ap - bp || a.name.length - b.name.length;
+      });
+    }
+
+    list.textContent = '';
+    matches.slice(0, PLACE_SUGGESTIONS).forEach(function (place) {
+      var option = document.createElement('option');
+      option.value = placeLabel(place);
+      list.appendChild(option);
+    });
+  }
+
   function loadPlaces() {
     return fetch('/api/places')
       .then(function (r) { return r.ok ? r.json() : { places: [] }; })
       .then(function (data) {
-        state.places = data.places || [];
-        var list = document.getElementById('places-list');
-        list.textContent = '';
-        state.places.forEach(function (place) {
-          var label = placeLabel(place);
-          state.placeByLabel[label.toLowerCase()] = place;
-          var option = document.createElement('option');
-          option.value = label;
-          list.appendChild(option);
+        // OSM carries one node per stop *direction*, so the raw list contains
+        // "Morrison Bridge (Bus stop)" twice, "Safeway (Pharmacy)" twice and so
+        // on. Two identical lines in a picker is a defect from the user's side
+        // however defensible it is in the data, and picking either gives a
+        // point on the same street — so the list keeps the first of each label
+        // while state.places keeps every node for routing and place counts.
+        var all = data.places || [];
+        var seen = Object.create(null);
+        state.places = all.filter(function (place) {
+          var key = placeLabel(place).toLowerCase();
+          if (seen[key]) { return false; }
+          seen[key] = true;
+          return true;
         });
+        state.places.forEach(function (place) {
+          state.placeByLabel[placeLabel(place).toLowerCase()] = place;
+        });
+        if (all.length !== state.places.length) {
+          console.info('places: ' + all.length + ' from OSM, ' +
+            state.places.length + ' after removing duplicate names');
+        }
+        renderPlaceOptions('');
         if (state.places.length === 0) {
           document.getElementById('origin-place').placeholder =
             'Place search unavailable — click the map instead';
@@ -2469,6 +2534,11 @@ details:not([open]) > *:not(summary) { display: none; }
       setPoint(kind, place.lat, place.lon, { name: place.name });
       input.value = fieldLabel(place);
     }
+    // Re-narrow the suggestion list to what has been typed so far. Both fields
+    // share one <datalist>, so it is rebuilt per keystroke against the field
+    // currently being edited.
+    input.addEventListener('input', function () { renderPlaceOptions(input.value); });
+    input.addEventListener('focus', function () { renderPlaceOptions(input.value); });
     input.addEventListener('change', apply);
     input.addEventListener('keydown', function (event) {
       if (event.key === 'Enter') { event.preventDefault(); apply(); }
@@ -2534,19 +2604,15 @@ details:not([open]) > *:not(summary) { display: none; }
     var controls = document.getElementById('controls');
     if (!controls.hidden) { return; }
     event.preventDefault();
-    document.getElementById('welcome').hidden = true;
-    controls.hidden = false;
+    showPlanner();
     controls.focus();
   });
 
   document.getElementById('welcome-plan').addEventListener('click', function () {
-    document.getElementById('welcome').hidden = true;
-    var controls = document.getElementById('controls');
-    controls.hidden = false;
-    // Move focus to the panel, not past it — a keyboard or screen-reader user
-    // pressing this button must land on the thing it just revealed.
-    controls.focus();
+    showPlanner();
+    // Land on the first thing there is to fill in, rather than past it.
     document.getElementById('origin-place').focus();
+    announce('Pick a start and a destination, or click the map to place them.');
   });
 
   document.getElementById('surprise-me').addEventListener('click', function () {
@@ -3496,6 +3562,29 @@ details:not([open]) > *:not(summary) { display: none; }
   // The answer first, then the map it happened on, then the detail — each a
   // beat apart so the eye has somewhere to land. Under prefers-reduced-motion
   // the stagger collapses to a single step and everything simply appears.
+  // Showing the planning surface: the form AND the map. Clicking the map is one
+  // of the two ways to set a point, and the brief requires it, so hiding the
+  // map until a route existed left the planning screen with no map to click and
+  // a column of empty space where it should have been.
+  function showPlanner() {
+    var welcome = document.getElementById('welcome');
+    if (welcome) { welcome.hidden = true; }
+    document.getElementById('controls').hidden = false;
+    var mapCard = document.getElementById('map-card');
+    if (mapCard && mapCard.hidden) {
+      mapCard.hidden = false;
+      // Leaflet measured this container while it was hidden, so it believes the
+      // map is 0x0. invalidateSize fixes the size, but the zoom it chose from
+      // those bad dimensions survives — which is why the map came back at
+      // street level instead of covering the demo area. Re-fit after measuring.
+      if (map) {
+        map.invalidateSize();
+        if (bboxRect) { map.fitBounds(bboxRect.getBounds(), mapPadding()); }
+      }
+    }
+    document.getElementById('key-panel').hidden = false;
+  }
+
   var LOCKED_RAIL = ['nav-when', 'nav-tradeoff', 'nav-directions', 'nav-log', 'nav-key'];
   function lockRail(locked) {
     LOCKED_RAIL.forEach(function (id) {
@@ -3512,9 +3601,7 @@ details:not([open]) > *:not(summary) { display: none; }
 
   var resultsRevealed = false;
   function revealResults() {
-    var welcome = document.getElementById('welcome');
-    if (welcome) { welcome.hidden = true; }
-    document.getElementById('controls').hidden = false;
+    showPlanner();
 
     if (resultsRevealed) { return; }
     resultsRevealed = true;
@@ -3524,16 +3611,6 @@ details:not([open]) > *:not(summary) { display: none; }
 
     // The map has to be un-hidden before Leaflet can measure it: a map sized
     // inside a display:none parent comes back 0x0 and renders grey.
-    var order = ['map-card', 'key-panel'];
-    order.forEach(function (id, i) {
-      var el = document.getElementById(id);
-      if (!el) { return; }
-      window.setTimeout(function () {
-        el.hidden = false;
-        if (id === 'map-card' && map) { map.invalidateSize(); }
-      }, reduce ? 0 : 260 + i * 200);
-    });
-
     document.body.classList.add('has-route');
     lockRail(false);
   }
