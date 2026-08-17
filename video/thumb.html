@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Shade Route — thumbnail</title>
+
+<!--
+  The video thumbnail. Same palette, same type and the same three.js scene as
+  the film, so it reads as a frame of the thing rather than as separate artwork.
+  Rendered by video/thumb.mjs at 1920x1080 and 1280x720.
+
+  A thumbnail is looked at for about a second at about 300 px wide, so it gets
+  one number, two words and one image. 85% is the only figure that survives
+  being that small, and it is a real API output like every other figure here.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@500&display=swap">
+<script src="scene3d.js"></script>
+
+<style>
+:root {
+  --shade:  #0E1113;
+  --ink:    #EDEDEA;
+  --mut:    #8A8F98;
+  --accent: #E8552A;
+  --sans: "Inter", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--shade); }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+#gl { position: absolute; inset: 0; display: block; }
+
+/* Two gradients, not one. The first is a hard left-to-right scrim that buys the
+   type its contrast; the second is a warm bloom off the sun's own side of the
+   frame, which is what keeps the dark half from reading as flat black. */
+#scrim {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 90% at 84% 22%, rgba(232,85,42,0.22) 0%, rgba(232,85,42,0) 55%),
+    linear-gradient(100deg,
+      rgba(14,17,19,0.98) 0%, rgba(14,17,19,0.95) 34%,
+      rgba(14,17,19,0.62) 56%, rgba(14,17,19,0.10) 78%, rgba(14,17,19,0.30) 100%);
+}
+#vig {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 78% 70% at 50% 46%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%);
+}
+
+.wrap { position: absolute; left: 118px; top: 50%; transform: translateY(-52%); width: 1010px; }
+
+.eyebrow {
+  font-family: var(--mono); font-size: 26px; font-weight: 500;
+  letter-spacing: 3.4px; text-transform: uppercase; color: var(--mut);
+}
+.figure {
+  display: flex; align-items: baseline;
+  font-family: var(--sans); font-weight: 600; color: var(--ink);
+  letter-spacing: -18px; line-height: 0.9;
+  font-variant-numeric: tabular-nums lining-nums;
+  margin-top: 22px;
+}
+.figure .n { font-size: 380px; }
+.figure .p { font-size: 176px; letter-spacing: -8px; margin-left: 6px; }
+
+.rule { height: 9px; width: 250px; background: var(--accent); margin: 30px 0 30px; }
+
+.claim {
+  font-family: var(--sans); font-size: 60px; font-weight: 600;
+  letter-spacing: -1.9px; line-height: 1.14; color: var(--ink); max-width: 940px;
+}
+.claim em { font-style: normal; color: var(--mut); }
+
+.mark {
+  position: absolute; left: 118px; bottom: 82px;
+  display: flex; align-items: center; gap: 18px;
+}
+.mark .wm {
+  font-family: var(--sans); font-size: 42px; font-weight: 600;
+  letter-spacing: -1.5px; color: var(--ink);
+}
+.mark .dot { width: 15px; height: 15px; border-radius: 50%; background: var(--accent); }
+.mark .sub { font-family: var(--mono); font-size: 21px; letter-spacing: 1.6px;
+             text-transform: uppercase; color: var(--mut); }
+</style>
+
+<div id="stage">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <div id="scrim"></div>
+  <div id="vig"></div>
+
+  <div class="wrap">
+    <p class="eyebrow">Portland &middot; 3:00 PM</p>
+    <div class="figure"><span class="n">85</span><span class="p">%</span></div>
+    <div class="rule"></div>
+    <p class="claim">of this walk stays in shade.<br><em>The fastest route: 44%.</em></p>
+  </div>
+
+  <div class="mark">
+    <span class="dot"></span>
+    <span class="wm">Shade Route</span>
+    <span class="sub">Walking routes that pick shadow</span>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.180.0/build/three.module.js';
+
+const data = window.SCENE3D;
+const W = 1920, H = 1080;
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.82;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#5b7183');
+scene.fog = new THREE.Fog('#61788a', 1500, 4200);
+const camera = new THREE.PerspectiveCamera(26, W / H, 1, 5000);
+
+scene.add(new THREE.HemisphereLight('#9fbcdb', '#6d675c', 1.05));
+const sun = new THREE.DirectionalLight('#fff1cf', 3.0);
+sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096);
+const S = 900;
+Object.assign(sun.shadow.camera, { left: -S, right: S, top: S, bottom: -S, near: 1, far: 4200 });
+sun.shadow.bias = -0.0006;
+sun.shadow.normalBias = 0.6;
+const target = new THREE.Object3D();
+scene.add(target, sun);
+sun.target = target;
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(6000, 6000),
+  new THREE.MeshStandardMaterial({ color: '#8e8b82', roughness: 1, metalness: 0 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+function merge(geos) {
+  let vc = 0, ic = 0;
+  for (const g of geos) {
+    vc += g.attributes.position.count;
+    ic += g.index ? g.index.count : g.attributes.position.count;
+  }
+  const pos = new Float32Array(vc * 3), nor = new Float32Array(vc * 3), col = new Float32Array(vc * 3);
+  const idx = new Uint32Array(ic);
+  let vo = 0, io = 0;
+  for (const g of geos) {
+    pos.set(g.attributes.position.array, vo * 3);
+    if (g.attributes.normal) nor.set(g.attributes.normal.array, vo * 3);
+    if (g.attributes.color) col.set(g.attributes.color.array, vo * 3);
+    const n = g.attributes.position.count;
+    if (g.index) { const gi = g.index.array; for (let i = 0; i < gi.length; i++) idx[io + i] = gi[i] + vo; io += gi.length; }
+    else { for (let i = 0; i < n; i++) idx[io + i] = vo + i; io += n; }
+    vo += n;
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  out.setIndex(new THREE.BufferAttribute(idx, 1));
+  out.computeVertexNormals();
+  return out;
+}
+
+{
+  const geos = [];
+  let seed = 20260817;
+  for (const b of data.buildings) {
+    const shape = new THREE.Shape();
+    shape.moveTo(b.p[0][0], b.p[0][1]);
+    for (let i = 1; i < b.p.length; i++) shape.lineTo(b.p[i][0], b.p[i][1]);
+    shape.closePath();
+    const g = new THREE.ExtrudeGeometry(shape, { depth: b.h, bevelEnabled: false });
+    g.rotateX(-Math.PI / 2);
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    const j = seed / 4294967296;
+    const tone = new THREE.Color().setHSL(0.09 + j * 0.03, 0.04 + j * 0.06, 0.63 + j * 0.18);
+    const n = g.attributes.position.count;
+    const cols = new Float32Array(n * 3);
+    for (let v = 0; v < n; v++) { cols[v*3] = tone.r; cols[v*3+1] = tone.g; cols[v*3+2] = tone.b; }
+    g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    geos.push(g);
+  }
+  const mesh = new THREE.Mesh(merge(geos),
+    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0 }));
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  scene.add(mesh);
+}
+
+function ribbon(points, colour, lift, width) {
+  const pts = points.map(([e, n]) => new THREE.Vector3(e, lift, -n));
+  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0);
+  return new THREE.Mesh(
+    new THREE.TubeGeometry(curve, Math.min(1400, pts.length * 6), width, 8, false),
+    new THREE.MeshStandardMaterial({ color: colour, roughness: 0.5, metalness: 0,
+      emissive: new THREE.Color(colour), emissiveIntensity: 0.42 })
+  );
+}
+scene.add(ribbon(data.route.shortest, '#C9C3B8', 3.0, 5.0));
+scene.add(ribbon(data.route.shadiest, '#F2703F', 5.0, 8.0));
+
+// 15:00 - the moment the film is about, and the one that puts long shadows
+// across the grid on the side of frame the type does not occupy.
+const key = data.sun['15:00'];
+{
+  const az = key.az * Math.PI / 180, el = key.el * Math.PI / 180, d = 1900;
+  sun.position.set(Math.sin(az) * Math.cos(el) * d, Math.sin(el) * d, -Math.cos(az) * Math.cos(el) * d);
+  sun.target.updateMatrixWorld();
+}
+
+const route = data.route.shadiest;
+const rx = route.reduce((a, p) => a + p[0], 0) / route.length;
+const rn = route.reduce((a, p) => a + p[1], 0) / route.length;
+const look = new THREE.Vector3(rx, 40, -rn);
+
+// Framed so the city sits in the right two-thirds, leaving the left for type.
+const a = 3.62;
+camera.position.set(look.x + Math.sin(a) * 1080 + 210, 430, look.z + Math.cos(a) * 1080);
+camera.lookAt(look.x + 300, 30, look.z);
+renderer.render(scene, camera);
+
+window.THUMB_READY = true;
+</script>
+</html>

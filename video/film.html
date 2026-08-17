@@ -556,10 +556,12 @@ function ribbon(points, flags, sunColour, shadeColour, lift, width) {
   }));
 }
 const shadeFlags = data.route_shade || {};
+const ROUTES = [];
 // Shortest route: drab, and it is not a second accent. Shadiest: vermilion where
 // it is in sun, deepened where it is in shadow.
-scene.add(ribbon(data.route.shortest, shadeFlags.shortest, '#C9C3B8', '#8A857B', 3.0, 5.0));
-scene.add(ribbon(data.route.shadiest, shadeFlags.shadiest, '#F2703F', '#B23A16', 5.0, 7.0));
+ROUTES.push(ribbon(data.route.shortest, shadeFlags.shortest, '#C9C3B8', '#8A857B', 3.0, 5.0));
+ROUTES.push(ribbon(data.route.shadiest, shadeFlags.shadiest, '#F2703F', '#B23A16', 5.0, 7.0));
+scene.add(...ROUTES);
 
 // --- trees ------------------------------------------------------------------
 // 445 of them, at their tagged crown radius and height. The film claims 737
@@ -702,7 +704,33 @@ const rn = route.reduce((a, p) => a + p[1], 0) / route.length;
 const LOOK = new THREE.Vector3(rx, 40, -rn);
 
 // Camera per 3D shot. Every move is a pure function of that shot's progress.
-function walkerVisible(on) { WALK.pivot.visible = on; }
+// Score each point of the route by how far it sits from the nearest building
+// vertex, and film her on the clearest run. Computed once, deterministic.
+const CLEAR_U = (() => {
+  const verts = [];
+  for (const b of data.buildings) for (const v of b.p) verts.push(v);
+  const SAMPLES = 60;
+  let best = 0.06, bestScore = -1;
+  for (let i = 0; i < SAMPLES; i++) {
+    const u = 0.04 + (i / SAMPLES) * 0.86;
+    const pt = WALK_CURVE.getPointAt(u);
+    let nearest = Infinity;
+    for (let k = 0; k < verts.length; k += 3) {          // every third vertex is plenty
+      const dx = verts[k][0] - pt.x, dz = -verts[k][1] - pt.z;
+      const d = dx * dx + dz * dz;
+      if (d < nearest) nearest = d;
+    }
+    if (nearest > bestScore) { bestScore = nearest; best = u; }
+  }
+  console.log('walk stretch u=' + best.toFixed(3) +
+              ', nearest building ' + Math.sqrt(bestScore).toFixed(1) + ' m');
+  return Math.min(best, 0.90);
+})();
+
+function walkerVisible(on) {
+  WALK.pivot.visible = on;
+  for (const r of ROUTES) r.visible = !on;
+}
 
 let frameNow = 0;
 
@@ -710,18 +738,9 @@ function camera3d(id, t) {
   walkerVisible(false);
   if (id === 's01') {
     placeSun(KEY.az, KEY.el);
-    // Marisol walks a stretch of her own route while the camera tracks beside
-    // her at eye height. 1.1 m/s over 1,901 m is the walking speed every figure
-    // in this film is derived from, so the distance she covers here is real.
-    const u = 0.055 + t * 0.030;
-    walkerVisible(true);
-    placeWalker(u, frameNow * 0.42);
-    const p = WALK_CURVE.getPointAt(u);
-    const tan = WALK_CURVE.getTangentAt(u);
-    // Offset to her left and slightly behind, so the sun is across frame.
-    const side = new THREE.Vector3(-tan.z, 0, tan.x).multiplyScalar(9.5);
-    camera.position.set(p.x + side.x - tan.x * 13.0, 3.4, p.z + side.z - tan.z * 13.0);
-    camera.lookAt(p.x + tan.x * 6, 1.15, p.z + tan.z * 6);
+    const a = 3.10 + t * 0.11;
+    camera.position.set(LOOK.x + Math.sin(a) * 780, 250 - t * 26, LOOK.z + Math.cos(a) * 780);
+    camera.lookAt(LOOK.x, 40, LOOK.z);
   } else if (id === 's04') {
     // Street level on the exposed route.
     placeSun(KEY.az, KEY.el);

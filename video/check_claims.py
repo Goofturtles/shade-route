@@ -17,13 +17,14 @@ from __future__ import annotations
 
 import html as htmllib
 import json
+import os
 import re
 import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
-BASE = "http://127.0.0.1:8000"
+BASE = os.environ.get("SHADE_API", "http://127.0.0.1:8000")
 SCENE = Path(__file__).with_name("film.html")
 SCENE3D = Path(__file__).with_name("scene3d.js")
 
