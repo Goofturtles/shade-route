@@ -785,4 +785,68 @@ discovering the model's own boundary, and that is stated rather than hidden.
 
 ---
 
+## The film, second cut — 16 August 2026
+
+### What was asked for
+
+Longer, and closer to the SaaS product films the human had built for another
+project — explicitly *"not stretching existing parts, I mean new parts and better
+layout"*.
+
+### What changed
+
+47.5 s to 107 s, nine scenes to seventeen, by adding an explanatory act rather
+than by holding the existing shots longer. The reference film was studied first
+(its scene timeline, its 65 s / 4K / 60 fps encode, and its from-scratch score),
+and the two things it does that this film did not were adopted: **abstract UI
+drawn in HTML instead of only screenshots**, and **music**.
+
+The three new drawn scenes are the sun/shadow geometry, the cost function with
+its aversion slider, and the fourteen-hour sweep as a bar strip. Two more close
+the film: what it is built out of, and what it does not know.
+
+**Why drawn and not captured:** a screenshot can only show that the software
+*has* an answer. A diagram is the only thing that can show why the answer is
+that one, and the shadow geometry is the whole argument of this project.
+
+### The score
+
+`video/score.mjs` synthesises 107 s of audio from detuned sine partials, a
+Schroeder reverb and a soft limiter, with its harmony pinned to the film's own
+cut points and its quietest passages under the two explanatory scenes. Nothing
+licensed enters the repository, which is the same rule the rest of the project
+runs under. It had a silent bug worth recording: the E-minor section referenced
+`NOTE.B2`, which was never defined, so every sample after 47.5 s was `NaN` — and
+because the normaliser divided by a `NaN` peak, the fix that followed (RMS
+normalisation) appeared to do nothing at all until the missing note was found.
+
+### The mistake that matters
+
+The first cut of the geometry scene swept the sun from **64 degrees** of
+elevation, beneath a readout captioned *"Solar elevation · pvlib"*. Portland's
+maximum on 2026-08-16 is **58.01 degrees**, at 13:15. That is a fabricated
+reading presented as a library output, in the one shot whose entire purpose is
+to explain the method — a §7 violation of the worst available kind. It also
+pushed the sun disc off the top of the frame for the first ~2.8 s of the shot.
+
+Neither the human nor Claude caught it by watching. It was caught by an audit
+subagent doing the arithmetic, then confirmed against pvlib directly and seen
+plainly in a captured frame. A 4K render already 1,400 frames in was killed and
+restarted.
+
+**The real failure was the gate, not the film.** `check_claims.py` verified
+every number that arrived from an API call and none of the numbers the film
+draws itself. It now imports the app's own solar model and asserts the drawn arc
+never exceeds the elevations pvlib produces for that place and date. It also
+used to print PASS while claims went unverified — an unreachable endpoint or a
+missing field downgraded to a note nobody read — and an unverified claim now
+fails the build exactly like a wrong one, because a gate that cannot fail is not
+a gate.
+
+The gate has since been shown to fail on four distinct classes of mutation: a
+wrong headline figure, the two headline figures swapped between columns, an
+impossible solar elevation, and a wrong distance.
+
+---
+
 *Log continues as milestones complete.*
